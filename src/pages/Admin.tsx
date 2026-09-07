@@ -18,6 +18,9 @@ import AdminConvocatoria from '@/components/admin/AdminConvocatoria';
 import AdminLiveScoring from '@/components/admin/AdminLiveScoring';
 import AdminSponsors from '@/components/admin/AdminSponsors';
 import AdminPagina from '@/components/admin/AdminPagina';
+import AdminScopeBar from '@/components/admin/AdminScopeBar';
+import AdminTorneos from '@/components/admin/AdminTorneos';
+
 import AdminEventos from '@/components/admin/AdminEventos';
 import AdminAvisos from '@/components/admin/AdminAvisos';
 import AdminMenus from '@/components/admin/AdminMenus';
