@@ -52,18 +52,21 @@ CREATE TABLE IF NOT EXISTS patrocinadores (
   INDEX idx_torneo (torneoid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Catálogo de estatus de pago (esquema real: columnas k / v)
 CREATE TABLE IF NOT EXISTS estatuspago (
-  id     INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(60) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  k INT NOT NULL PRIMARY KEY,
+  v VARCHAR(60) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO estatuspago (id, nombre) VALUES
-  (1, 'Pendiente'),
-  (2, 'En revisión'),
-  (3, 'Pagado'),
-  (4, 'Cargo a socio'),
-  (5, 'Cortesía'),
-  (6, 'Cancelado');
+INSERT IGNORE INTO estatuspago (k, v) VALUES
+  (1,  'POR VALIDAR'),
+  (2,  'PAGADO'),
+  (3,  'POR COBRAR'),
+  (4,  'CORTESIA'),
+  (5,  'LISTA ESPERA'),
+  (6,  'CANCELADO'),
+  (88, 'INSCRITO'),
+  (99, 'ELIMINADO');
 
 CREATE TABLE IF NOT EXISTS mejorscorep (
   id        INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
