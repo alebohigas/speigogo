@@ -477,8 +477,18 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
+      {/* Multi-torneo: qué configuración se está editando */}
+      {isAdmin && (
+        <AdminScopeBar managing={managingTorneos} onManagingChange={setManagingTorneos} />
+      )}
+
+      {managingTorneos ? (
+        <AdminTorneos />
+      ) : (
+      <>
       {/* Tabs for different admin sections */}
       <Tabs defaultValue={staffDefaultTab} className="space-y-6">
+
         {/*
           Admin tab strip — split across two wrapping rows so 13+ tabs no
           longer cram into a single 12-column grid. `flex flex-wrap` lets
