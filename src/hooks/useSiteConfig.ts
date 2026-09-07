@@ -597,8 +597,8 @@ const HOTELES_CONFIG_KEY = 'tournament_hoteles_config';
 /**
  * Fetch full site config from server
  */
-const fetchSiteConfig = async (): Promise<SiteConfig> => {
-  const res = await fetch(`${API_BASE_URL}/site_config.php`);
+const fetchSiteConfig = async (scope: string): Promise<SiteConfig> => {
+  const res = await fetch(`${API_BASE_URL}/site_config.php?${scopeQuery(scope)}`);
   if (!res.ok) throw new Error('Failed to fetch site config');
   return res.json();
 };
@@ -609,6 +609,8 @@ const fetchSiteConfig = async (): Promise<SiteConfig> => {
 const saveSiteConfigApi = async (payload: SaveConfigPayload): Promise<{ domain: string; saved: boolean }> => {
   /** Always submit the active session password, even from legacy admin forms. */
   const effectivePayload = {
+    /** Multi-torneo: se guarda en el alcance activo salvo que el llamador indique otro. */
+    scope: getConfigScope(),
     ...payload,
     password: payload.password === DEFAULT_SUPERADMIN_PASSWORD ? getSuperAdminPassword() : payload.password,
   };
@@ -624,6 +626,7 @@ const saveSiteConfigApi = async (payload: SaveConfigPayload): Promise<{ domain: 
   }
   return res.json();
 };
+
 
 // ============= Hooks =============
 
