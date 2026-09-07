@@ -32,6 +32,40 @@ $domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $domain = esc($conn, $domain);
 
 /**
+ * Alcance de la configuración (multi-torneo).
+ *  - 'general'  → configuración compartida del dominio (por defecto, y lo que
+ *                 usaban los sitios de un solo torneo antes de esta versión).
+ *  - '<torneoid>' → configuración propia de ese torneo.
+ * Se recibe por ?scope= en GET y por "scope" en el cuerpo del POST.
+ */
+function site_config_scope($raw) {
+    $raw = trim((string)$raw);
+    if ($raw === '' || strtolower($raw) === 'general') return 'general';
+    // Sólo se aceptan torneoids numéricos como alcance.
+    return ctype_digit($raw) ? $raw : 'general';
+}
+
+/** ¿La tabla ya tiene la columna scope (migración multi-torneo aplicada)? */
+function site_config_has_scope($conn) {
+    static $has = null;
+    if ($has !== null) return $has;
+    $r = $conn->query("SHOW COLUMNS FROM site_config LIKE 'scope'");
+    $has = $r && $r->num_rows > 0;
+    return $has;
+}
+$hasScope = site_config_has_scope($conn);
+
+/** Cláusula WHERE del alcance pedido (compatible con esquemas sin scope). */
+function site_config_where($conn, $domain, $scope) {
+    $w = "domain = '$domain'";
+    if (site_config_has_scope($conn)) {
+        $w .= " AND scope = '" . esc($conn, $scope) . "'";
+    }
+    return $w;
+}
+
+
+/**
  * Detect whether the live_scoring_config column exists.
  * This keeps the endpoint backward-compatible on servers
  * where the schema has not been updated yet.
