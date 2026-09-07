@@ -590,10 +590,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (!$staffAllowed) json_error('Unauthorized', 401);
     }
     
+    // Alcance al que se guarda (multi-torneo). Por defecto, 'general'.
+    $scope = site_config_scope($body['scope'] ?? 'general');
+
     // Build dynamic UPDATE fields from provided data
     $fields = [];
     $insertFields = ['domain'];
     $insertValues = ["'$domain'"];
+    if ($hasScope) {
+        $insertFields[] = 'scope';
+        $insertValues[] = "'" . esc($conn, $scope) . "'";
+    }
+
     
     if (isset($body['torneoid'])) {
         $tid = (int)$body['torneoid'];
