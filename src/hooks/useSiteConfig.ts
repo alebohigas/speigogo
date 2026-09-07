@@ -641,10 +641,14 @@ const saveSiteConfigApi = async (payload: SaveConfigPayload): Promise<{ domain: 
  * so the app uses server-defined settings for all visitors
  */
 export const useSiteConfig = () => {
+  /** Multi-torneo: la configuración depende del alcance activo. */
+  const scope = useConfigScope();
+
   return useQuery<SiteConfig>({
-    queryKey: ['site-config'],
+    queryKey: ['site-config', scope],
     queryFn: async () => {
-      const config = await fetchSiteConfig();
+      const config = await fetchSiteConfig(scope);
+
 
       // Sync torneoid.
       // Uses setStoredTorneoId (instead of a raw localStorage write) so every
