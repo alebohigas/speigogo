@@ -233,6 +233,9 @@ const AdminDashboard = () => {
   } = usePageVisibility();
   const { session: staffSession, logout: staffLogout } = useStaffAuth();
   const { isAdmin } = usePageVisibility();
+  /** Multi-torneo: pantalla de alta de torneos del sitio. */
+  const [managingTorneos, setManagingTorneos] = useState(false);
+
   /** Mapa tab → área. Si no está en el mapa, sólo admin completo lo ve. */
   const TAB_AREA: Record<string, StaffArea | undefined> = {
     archivos: 'uploads',
