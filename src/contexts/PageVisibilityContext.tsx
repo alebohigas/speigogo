@@ -16,6 +16,8 @@ import { clearSuperAdminPassword, hasRememberedSuperAdminPassword, validateSuper
  * se monta antes de que llegue la configuración del servidor.
  */
 import { isPageIdModuleDisabled, subscribeModules } from '@/modules/moduleState';
+import { subscribeConfigScope } from '@/lib/configScope';
+
 
 // ============= Types =============
 
@@ -220,6 +222,37 @@ export const PageVisibilityProvider = ({ children }: PageVisibilityProviderProps
    */
   const [, setModulesRevision] = useState(0);
   useEffect(() => subscribeModules(() => setModulesRevision((n) => n + 1)), []);
+
+  /**
+   * Multi-torneo: al cambiar el torneo activo (o al llegar su configuración
+   * del servidor) hay que releer visibilidad, notas, grupos y orden, porque
+   * cada torneo guarda los suyos.
+   */
+  useEffect(() => {
+    const reload = () => {
+      const read = <T,>(key: string, fallback: T): T => {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        try {
+          return JSON.parse(raw) as T;
+        } catch {
+          return fallback;
+        }
+      };
+      setVisibilitySettings((prev) => read(STORAGE_KEY, prev));
+      setPageNotes((prev) => read(NOTES_STORAGE_KEY, prev));
+      setMenuGroupsState((prev) => read(GROUPS_STORAGE_KEY, prev));
+      setPageGroupAssignmentsState((prev) => read(PAGE_GROUPS_STORAGE_KEY, prev));
+      setMenuItemOrderState((prev) => read(MENU_ORDER_STORAGE_KEY, prev));
+    };
+    const unsubscribe = subscribeConfigScope(reload);
+    window.addEventListener('tournament-config-synced', reload);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('tournament-config-synced', reload);
+    };
+  }, []);
+
 
   // Persist visibility settings to localStorage
   useEffect(() => {
