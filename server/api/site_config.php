@@ -32,6 +32,40 @@ $domain = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $domain = esc($conn, $domain);
 
 /**
+ * Alcance de la configuración (multi-torneo).
+ *  - 'general'  → configuración compartida del dominio (por defecto, y lo que
+ *                 usaban los sitios de un solo torneo antes de esta versión).
+ *  - '<torneoid>' → configuración propia de ese torneo.
+ * Se recibe por ?scope= en GET y por "scope" en el cuerpo del POST.
+ */
+function site_config_scope($raw) {
+    $raw = trim((string)$raw);
+    if ($raw === '' || strtolower($raw) === 'general') return 'general';
+    // Sólo se aceptan torneoids numéricos como alcance.
+    return ctype_digit($raw) ? $raw : 'general';
+}
+
+/** ¿La tabla ya tiene la columna scope (migración multi-torneo aplicada)? */
+function site_config_has_scope($conn) {
+    static $has = null;
+    if ($has !== null) return $has;
+    $r = $conn->query("SHOW COLUMNS FROM site_config LIKE 'scope'");
+    $has = $r && $r->num_rows > 0;
+    return $has;
+}
+$hasScope = site_config_has_scope($conn);
+
+/** Cláusula WHERE del alcance pedido (compatible con esquemas sin scope). */
+function site_config_where($conn, $domain, $scope) {
+    $w = "domain = '$domain'";
+    if (site_config_has_scope($conn)) {
+        $w .= " AND scope = '" . esc($conn, $scope) . "'";
+    }
+    return $w;
+}
+
+
+/**
  * Detect whether the live_scoring_config column exists.
  * This keeps the endpoint backward-compatible on servers
  * where the schema has not been updated yet.
@@ -357,7 +391,51 @@ function site_config_has_modules_config($conn) {
 $hasModulesConfig = site_config_has_modules_config($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Return full config for current domain
+    $scope = site_config_scope($_GET['scope'] ?? 'general');
+
+    /**
+     * ?all=1 → lista de torneos del dominio + TODAS las configuraciones
+     * (general + una por torneo) en una sola llamada, para que la barra
+     * superior pueda armar un desplegable por torneo sin N peticiones.
+     */
+    if (!empty($_GET['all'])) {
+        $torneos = [];
+        $res = @$conn->query("SELECT torneoid, nombre, slug, orden, activo FROM site_torneos WHERE domain = '$domain' AND activo = 1 ORDER BY orden ASC, torneoid ASC");
+        if ($res) {
+            while ($r = $res->fetch_assoc()) {
+                $torneos[] = [
+                    'torneoid' => (int)$r['torneoid'],
+                    'nombre'   => $r['nombre'],
+                    'slug'     => $r['slug'],
+                    'orden'    => (int)$r['orden'],
+                ];
+            }
+        }
+
+        $configs = [];
+        $where = "domain = '$domain'";
+        $rows = @$conn->query("SELECT * FROM site_config WHERE $where");
+        if ($rows) {
+            while ($r = $rows->fetch_assoc()) {
+                $key = site_config_has_scope($conn) ? (string)$r['scope'] : 'general';
+                $out = ['domain' => $_SERVER['HTTP_HOST'], 'torneoid' => isset($r['torneoid']) ? (int)$r['torneoid'] : null];
+                foreach ($r as $col => $val) {
+                    if ($col === 'domain' || $col === 'torneoid' || $col === 'scope' || $col === 'updated_at') continue;
+                    $out[$col] = ($val === null || $val === '') ? null : json_decode($val, true);
+                }
+                $configs[$key] = $out;
+            }
+        }
+
+        json_response([
+            'domain'  => $_SERVER['HTTP_HOST'],
+            'torneos' => $torneos,
+            'configs' => $configs,
+        ]);
+    }
+
+    // Return full config for current domain + scope
+
     $selectFields = 'torneoid, menu_order, visibility, menu_groups, page_group_assignments';
     if ($hasLiveScoringConfig) {
         $selectFields .= ', live_scoring_config';
@@ -411,8 +489,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $selectFields .= ', modules_config';
     }
 
-    $sql = "SELECT $selectFields FROM site_config WHERE domain = '$domain' LIMIT 1";
+    $where = site_config_where($conn, $domain, $scope);
+    $sql = "SELECT $selectFields FROM site_config WHERE $where LIMIT 1";
     $row = query_one($conn, $sql);
+
+    // Un torneo sin configuración propia todavía hereda la general.
+    if (!$row && $scope !== 'general') {
+        $whereGen = site_config_where($conn, $domain, 'general');
+        $row = query_one($conn, "SELECT $selectFields FROM site_config WHERE $whereGen LIMIT 1");
+        if ($row) $row['torneoid'] = (int)$scope;
+    }
+
     
     if ($row) {
         json_response([
@@ -503,10 +590,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (!$staffAllowed) json_error('Unauthorized', 401);
     }
     
+    // Alcance al que se guarda (multi-torneo). Por defecto, 'general'.
+    $scope = site_config_scope($body['scope'] ?? 'general');
+
     // Build dynamic UPDATE fields from provided data
     $fields = [];
     $insertFields = ['domain'];
     $insertValues = ["'$domain'"];
+    if ($hasScope) {
+        $insertFields[] = 'scope';
+        $insertValues[] = "'" . esc($conn, $scope) . "'";
+    }
+
     
     if (isset($body['torneoid'])) {
         $tid = (int)$body['torneoid'];

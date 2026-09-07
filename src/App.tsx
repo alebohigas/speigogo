@@ -14,6 +14,8 @@ import { StaffAuthProvider } from "@/contexts/StaffAuthContext";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { useAppIcon } from "@/hooks/useAppIcon";
 import { applyThemeConfig } from "@/lib/theme-palettes";
+import { TorneoScopeSync, TorneoSlugLayout } from "@/components/torneos/TorneoScope";
+
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import Convocatoria from "./pages/Convocatoria";
@@ -123,6 +125,44 @@ const SiteConfigSync = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// ============= Páginas públicas (multi-torneo) =============
+
+/**
+ * Páginas públicas del sitio, sin la barra inicial.
+ * Se montan dos veces:
+ *   - en la raíz            → /resultados      (sitio de un solo torneo)
+ *   - bajo el nombre corto  → /experience/resultados (sitio con varios torneos)
+ * Así las direcciones antiguas siguen funcionando.
+ */
+const publicPages: { path: string; element: React.ReactNode }[] = [
+  { path: 'convocatoria', element: <ProtectedRoute pageId="convocatoria"><Convocatoria /></ProtectedRoute> },
+  { path: 'eventos', element: <ProtectedRoute pageId="eventos"><Eventos /></ProtectedRoute> },
+  { path: 'jugadores', element: <ProtectedRoute pageId="jugadores"><Jugadores /></ProtectedRoute> },
+  { path: 'salidas', element: <ProtectedRoute pageId="salidas"><Salidas /></ProtectedRoute> },
+  { path: 'live-scoring', element: <ProtectedRoute pageId="live-scoring"><LiveScoring /></ProtectedRoute> },
+  { path: 'live', element: <ProtectedRoute pageId="live"><Live /></ProtectedRoute> },
+  { path: 'resultados', element: <ProtectedRoute pageId="resultados"><Resultados /></ProtectedRoute> },
+  /* Historial de resultados de ediciones anteriores (hasta 5 años) */
+  { path: 'historial', element: <ProtectedRoute pageId="historial"><Historial /></ProtectedRoute> },
+  { path: 'competicion', element: <ProtectedRoute pageId="competicion"><Competencias /></ProtectedRoute> },
+  { path: 'calendario', element: <ProtectedRoute pageId="calendario"><Calendario /></ProtectedRoute> },
+  { path: 'horarios', element: <ProtectedRoute pageId="horarios"><Horarios /></ProtectedRoute> },
+  { path: 'menus', element: <ProtectedRoute pageId="menus"><Menus /></ProtectedRoute> },
+  { path: 'avisos', element: <ProtectedRoute pageId="avisos"><Avisos /></ProtectedRoute> },
+  { path: 'premios', element: <ProtectedRoute pageId="premios"><Premios /></ProtectedRoute> },
+  { path: 'patrocinadores', element: <ProtectedRoute pageId="patrocinadores"><Patrocinadores /></ProtectedRoute> },
+  { path: 'reglas', element: <ProtectedRoute pageId="reglas"><Reglas /></ProtectedRoute> },
+  { path: 'skinrules', element: <ProtectedRoute pageId="skinrules"><SkinRules /></ProtectedRoute> },
+  { path: 'skinplayers', element: <ProtectedRoute pageId="skinplayers"><SkinPlayers /></ProtectedRoute> },
+  { path: 'skinscorecards', element: <ProtectedRoute pageId="skinscorecards"><SkinScorecards /></ProtectedRoute> },
+  { path: 'skingame', element: <ProtectedRoute pageId="skingame"><SkinGame /></ProtectedRoute> },
+  { path: 'hoteles', element: <ProtectedRoute pageId="hoteles"><Hoteles /></ProtectedRoute> },
+  { path: 'registro', element: <ProtectedRoute pageId="registro"><Registro /></ProtectedRoute> },
+  { path: 'banderas', element: <ProtectedRoute pageId="banderas"><Banderas /></ProtectedRoute> },
+  { path: 'matchplay', element: <ProtectedRoute pageId="matchplay"><MatchPlay /></ProtectedRoute> },
+  { path: 'stats', element: <ProtectedRoute pageId="stats"><Stats /></ProtectedRoute> },
+];
+
 // ============= App Component =============
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -134,6 +174,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
+            <TorneoScopeSync />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
@@ -154,34 +195,11 @@ const App = () => (
               <Route path="/admin/showcase-rotacion" element={<ModuleGate moduleId="showcase"><AdminShowcaseRotacionPage /></ModuleGate>} />
               {/* Public: player upload page after admin sends the email link */}
               <Route path="/registro/comprobante" element={<ModuleGate moduleId="registro"><Comprobante /></ModuleGate>} />
-              
+
               {/* Protected Routes - visibility controlled by admin */}
-              <Route path="/convocatoria" element={<ProtectedRoute pageId="convocatoria"><Convocatoria /></ProtectedRoute>} />
-              <Route path="/eventos" element={<ProtectedRoute pageId="eventos"><Eventos /></ProtectedRoute>} />
-              <Route path="/jugadores" element={<ProtectedRoute pageId="jugadores"><Jugadores /></ProtectedRoute>} />
-              <Route path="/salidas" element={<ProtectedRoute pageId="salidas"><Salidas /></ProtectedRoute>} />
-              <Route path="/live-scoring" element={<ProtectedRoute pageId="live-scoring"><LiveScoring /></ProtectedRoute>} />
-              <Route path="/live" element={<ProtectedRoute pageId="live"><Live /></ProtectedRoute>} />
-              <Route path="/resultados" element={<ProtectedRoute pageId="resultados"><Resultados /></ProtectedRoute>} />
-              {/* Historial de resultados de ediciones anteriores (hasta 5 años) */}
-              <Route path="/historial" element={<ProtectedRoute pageId="historial"><Historial /></ProtectedRoute>} />
-              <Route path="/competicion" element={<ProtectedRoute pageId="competicion"><Competencias /></ProtectedRoute>} />
-              <Route path="/calendario" element={<ProtectedRoute pageId="calendario"><Calendario /></ProtectedRoute>} />
-              <Route path="/horarios" element={<ProtectedRoute pageId="horarios"><Horarios /></ProtectedRoute>} />
-              <Route path="/menus" element={<ProtectedRoute pageId="menus"><Menus /></ProtectedRoute>} />
-              <Route path="/avisos" element={<ProtectedRoute pageId="avisos"><Avisos /></ProtectedRoute>} />
-              <Route path="/premios" element={<ProtectedRoute pageId="premios"><Premios /></ProtectedRoute>} />
-              <Route path="/patrocinadores" element={<ProtectedRoute pageId="patrocinadores"><Patrocinadores /></ProtectedRoute>} />
-              <Route path="/reglas" element={<ProtectedRoute pageId="reglas"><Reglas /></ProtectedRoute>} />
-              <Route path="/skinrules" element={<ProtectedRoute pageId="skinrules"><SkinRules /></ProtectedRoute>} />
-              <Route path="/skinplayers" element={<ProtectedRoute pageId="skinplayers"><SkinPlayers /></ProtectedRoute>} />
-              <Route path="/skinscorecards" element={<ProtectedRoute pageId="skinscorecards"><SkinScorecards /></ProtectedRoute>} />
-              <Route path="/skingame" element={<ProtectedRoute pageId="skingame"><SkinGame /></ProtectedRoute>} />
-              <Route path="/hoteles" element={<ProtectedRoute pageId="hoteles"><Hoteles /></ProtectedRoute>} />
-              <Route path="/registro" element={<ProtectedRoute pageId="registro"><Registro /></ProtectedRoute>} />
-              <Route path="/banderas" element={<ProtectedRoute pageId="banderas"><Banderas /></ProtectedRoute>} />
-              <Route path="/matchplay" element={<ProtectedRoute pageId="matchplay"><MatchPlay /></ProtectedRoute>} />
-              <Route path="/stats" element={<ProtectedRoute pageId="stats"><Stats /></ProtectedRoute>} />
+              {publicPages.map((p) => (
+                <Route key={p.path} path={`/${p.path}`} element={p.element} />
+              ))}
 
               {/* Standalone Showcase 300 reports (no Layout, auto-refresh 5min) */}
               <Route path="/showcase/:tipo" element={<ModuleGate moduleId="showcase"><Showcase300 /></ModuleGate>} />
@@ -189,6 +207,14 @@ const App = () => (
               <Route path="/showcase/rotacion" element={<ModuleGate moduleId="showcase"><ShowcaseRotator /></ModuleGate>} />
               {/* Standalone: clasificados Putt Finales por sexo (m|f). */}
               <Route path="/showcase/calificados/:sexo" element={<ModuleGate moduleId="showcase"><PuttCalificados /></ModuleGate>} />
+
+              {/* Mismas páginas bajo el nombre corto de cada torneo. */}
+              <Route path="/:torneoSlug" element={<TorneoSlugLayout />}>
+                <Route index element={<Index />} />
+                {publicPages.map((p) => (
+                  <Route key={p.path} path={p.path} element={p.element} />
+                ))}
+              </Route>
 
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />

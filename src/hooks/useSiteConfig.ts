@@ -8,6 +8,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_BASE_URL } from '@/config/api';
 import { DEFAULT_SUPERADMIN_PASSWORD, getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { setStoredTorneoId } from '@/hooks/useTorneoId';
+import { getConfigScope, scopeQuery, useConfigScope } from '@/lib/configScope';
+
 import type { ModulesConfig } from '@/modules/moduleState';
 
 
@@ -546,7 +548,10 @@ export interface SiteConfig {
 /** Payload for saving config (all fields optional except password) */
 export interface SaveConfigPayload {
   password: string;
+  /** Alcance donde guardar: 'general' o un torneoid. Por defecto, el activo. */
+  scope?: string;
   torneoid?: number;
+
   menu_order?: Record<string, number> | null;
   visibility?: Record<string, boolean> | null;
   menu_groups?: any[] | null;
@@ -597,8 +602,8 @@ const HOTELES_CONFIG_KEY = 'tournament_hoteles_config';
 /**
  * Fetch full site config from server
  */
-const fetchSiteConfig = async (): Promise<SiteConfig> => {
-  const res = await fetch(`${API_BASE_URL}/site_config.php`);
+const fetchSiteConfig = async (scope: string): Promise<SiteConfig> => {
+  const res = await fetch(`${API_BASE_URL}/site_config.php?${scopeQuery(scope)}`);
   if (!res.ok) throw new Error('Failed to fetch site config');
   return res.json();
 };
@@ -609,6 +614,8 @@ const fetchSiteConfig = async (): Promise<SiteConfig> => {
 const saveSiteConfigApi = async (payload: SaveConfigPayload): Promise<{ domain: string; saved: boolean }> => {
   /** Always submit the active session password, even from legacy admin forms. */
   const effectivePayload = {
+    /** Multi-torneo: se guarda en el alcance activo salvo que el llamador indique otro. */
+    scope: getConfigScope(),
     ...payload,
     password: payload.password === DEFAULT_SUPERADMIN_PASSWORD ? getSuperAdminPassword() : payload.password,
   };
@@ -625,6 +632,7 @@ const saveSiteConfigApi = async (payload: SaveConfigPayload): Promise<{ domain: 
   return res.json();
 };
 
+
 // ============= Hooks =============
 
 /**
@@ -633,10 +641,14 @@ const saveSiteConfigApi = async (payload: SaveConfigPayload): Promise<{ domain: 
  * so the app uses server-defined settings for all visitors
  */
 export const useSiteConfig = () => {
+  /** Multi-torneo: la configuración depende del alcance activo. */
+  const scope = useConfigScope();
+
   return useQuery<SiteConfig>({
-    queryKey: ['site-config'],
+    queryKey: ['site-config', scope],
     queryFn: async () => {
-      const config = await fetchSiteConfig();
+      const config = await fetchSiteConfig(scope);
+
 
       // Sync torneoid.
       // Uses setStoredTorneoId (instead of a raw localStorage write) so every
@@ -700,7 +712,15 @@ export const useSiteConfig = () => {
         localStorage.setItem(HOTELES_CONFIG_KEY, JSON.stringify(config.hoteles_config));
       }
 
+      /**
+       * Avisa a los consumidores basados en localStorage (visibilidad,
+       * orden y grupos del menú) de que ya llegó la configuración del
+       * alcance activo, para que vuelvan a leerla.
+       */
+      window.dispatchEvent(new Event('tournament-config-synced'));
+
       return config;
+
     },
     staleTime: 30 * 1000, // 30 seconds - keep fresh for admin changes
     retry: 1,

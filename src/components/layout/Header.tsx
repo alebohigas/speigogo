@@ -20,6 +20,9 @@ import { Menu, X, Shield, ChevronDown, MoreHorizontal, EyeOff } from 'lucide-rea
 import { useTournamentInfo } from '@/hooks/useTournamentData';
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import { cn } from '@/lib/utils';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
+import { buildMultiTorneoNav } from '@/lib/multiTorneoNav';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { MenuItem } from '@/data/mockData';
@@ -292,7 +295,17 @@ const Header = () => {
     return navItems;
   };
 
-  const navItems = buildNavItems();
+  /**
+   * Multi-torneo: si el dominio tiene torneos dados de alta, la barra muestra
+   * un desplegable por torneo (con sus páginas propias) más los enlaces
+   * compartidos. Si no hay torneos, se conserva el menú de siempre.
+   */
+  const { data: multiTorneo } = useSiteTorneos();
+  const hasTorneos = (multiTorneo?.torneos?.length ?? 0) > 0;
+  const navItems: NavItem[] = hasTorneos
+    ? (buildMultiTorneoNav(multiTorneo!.torneos, multiTorneo!.configs) as NavItem[])
+    : buildNavItems();
+
 
   // Overflow detection: determine how many items fit in the header
   const visibleCount = useOverflowMenu(navRef, logoRef, rightSlotRef, navItems.length);

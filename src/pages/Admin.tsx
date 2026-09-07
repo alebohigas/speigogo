@@ -18,6 +18,9 @@ import AdminConvocatoria from '@/components/admin/AdminConvocatoria';
 import AdminLiveScoring from '@/components/admin/AdminLiveScoring';
 import AdminSponsors from '@/components/admin/AdminSponsors';
 import AdminPagina from '@/components/admin/AdminPagina';
+import AdminScopeBar from '@/components/admin/AdminScopeBar';
+import AdminTorneos from '@/components/admin/AdminTorneos';
+
 import AdminEventos from '@/components/admin/AdminEventos';
 import AdminAvisos from '@/components/admin/AdminAvisos';
 import AdminMenus from '@/components/admin/AdminMenus';
@@ -233,6 +236,9 @@ const AdminDashboard = () => {
   } = usePageVisibility();
   const { session: staffSession, logout: staffLogout } = useStaffAuth();
   const { isAdmin } = usePageVisibility();
+  /** Multi-torneo: pantalla de alta de torneos del sitio. */
+  const [managingTorneos, setManagingTorneos] = useState(false);
+
   /** Mapa tab → área. Si no está en el mapa, sólo admin completo lo ve. */
   const TAB_AREA: Record<string, StaffArea | undefined> = {
     archivos: 'uploads',
@@ -477,8 +483,18 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
+      {/* Multi-torneo: qué configuración se está editando */}
+      {isAdmin && (
+        <AdminScopeBar managing={managingTorneos} onManagingChange={setManagingTorneos} />
+      )}
+
+      {managingTorneos ? (
+        <AdminTorneos />
+      ) : (
+      <>
       {/* Tabs for different admin sections */}
       <Tabs defaultValue={staffDefaultTab} className="space-y-6">
+
         {/*
           Admin tab strip — split across two wrapping rows so 13+ tabs no
           longer cram into a single 12-column grid. `flex flex-wrap` lets
@@ -887,6 +903,10 @@ const AdminDashboard = () => {
           </TabsContent>
         )}
       </Tabs>
+      </>
+      )}
+
+
 
       {/* Info Note */}
       <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
