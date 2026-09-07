@@ -47,3 +47,11 @@ export const useConfigScope = (): ConfigScope =>
 /** Sufijo de consulta para las peticiones al servidor. */
 export const scopeQuery = (scope: ConfigScope = currentScope) =>
   `scope=${encodeURIComponent(scope)}`;
+
+/** Suscripción imperativa (fuera de React) a los cambios de alcance. */
+export const subscribeConfigScope = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
