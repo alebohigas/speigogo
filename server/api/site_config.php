@@ -391,7 +391,51 @@ function site_config_has_modules_config($conn) {
 $hasModulesConfig = site_config_has_modules_config($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Return full config for current domain
+    $scope = site_config_scope($_GET['scope'] ?? 'general');
+
+    /**
+     * ?all=1 → lista de torneos del dominio + TODAS las configuraciones
+     * (general + una por torneo) en una sola llamada, para que la barra
+     * superior pueda armar un desplegable por torneo sin N peticiones.
+     */
+    if (!empty($_GET['all'])) {
+        $torneos = [];
+        $res = @$conn->query("SELECT torneoid, nombre, slug, orden, activo FROM site_torneos WHERE domain = '$domain' AND activo = 1 ORDER BY orden ASC, torneoid ASC");
+        if ($res) {
+            while ($r = $res->fetch_assoc()) {
+                $torneos[] = [
+                    'torneoid' => (int)$r['torneoid'],
+                    'nombre'   => $r['nombre'],
+                    'slug'     => $r['slug'],
+                    'orden'    => (int)$r['orden'],
+                ];
+            }
+        }
+
+        $configs = [];
+        $where = "domain = '$domain'";
+        $rows = @$conn->query("SELECT * FROM site_config WHERE $where");
+        if ($rows) {
+            while ($r = $rows->fetch_assoc()) {
+                $key = site_config_has_scope($conn) ? (string)$r['scope'] : 'general';
+                $out = ['domain' => $_SERVER['HTTP_HOST'], 'torneoid' => isset($r['torneoid']) ? (int)$r['torneoid'] : null];
+                foreach ($r as $col => $val) {
+                    if ($col === 'domain' || $col === 'torneoid' || $col === 'scope' || $col === 'updated_at') continue;
+                    $out[$col] = ($val === null || $val === '') ? null : json_decode($val, true);
+                }
+                $configs[$key] = $out;
+            }
+        }
+
+        json_response([
+            'domain'  => $_SERVER['HTTP_HOST'],
+            'torneos' => $torneos,
+            'configs' => $configs,
+        ]);
+    }
+
+    // Return full config for current domain + scope
+
     $selectFields = 'torneoid, menu_order, visibility, menu_groups, page_group_assignments';
     if ($hasLiveScoringConfig) {
         $selectFields .= ', live_scoring_config';
