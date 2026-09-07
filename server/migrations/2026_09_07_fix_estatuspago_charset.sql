@@ -1,64 +1,39 @@
 -- ============================================================
--- FIX: estatuspago — columnas desconocidas + mojibake
---   1) Convierte la tabla a utf8mb4 (arregla textos guardados).
---   2) Detecta nombres reales de columnas (id y nombre) y
---      rellena el catálogo con los textos correctos.
+-- FIX: estatuspago — esquema real (k / v) + acentos correctos
+--   La tabla existente usa las columnas `k` (clave) y `v` (texto),
+--   por eso fallaba el INSERT con la columna `id`.
+--   Además fuerza utf8mb4 para que no se guarden textos dañados
+--   del tipo "revisiÃ³n" / "CortesÃ­a".
 -- Idempotente. Sin GRANTs (IONOS / MySQL).
 -- ============================================================
 
--- 1) Charset correcto en la tabla y sus columnas de texto
+-- 1) La conexión debe hablar utf8mb4 ANTES de escribir texto
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
+-- 2) Tabla y columnas en utf8mb4 (repara el almacenamiento)
 ALTER TABLE estatuspago CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 2) Inserción dinámica usando las columnas reales de la tabla
-SET @pk := (
-  SELECT COLUMN_NAME FROM information_schema.COLUMNS
-  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'estatuspago' AND COLUMN_KEY = 'PRI'
-  LIMIT 1
-);
-SET @label := (
-  SELECT COLUMN_NAME FROM information_schema.COLUMNS
-  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'estatuspago'
-    AND COLUMN_KEY <> 'PRI'
-    AND DATA_TYPE IN ('varchar','char','text','enum')
-  ORDER BY ORDINAL_POSITION LIMIT 1
-);
--- Respaldos por si no hay PRI o columna de texto detectable
-SET @pk := COALESCE(@pk, (
-  SELECT COLUMN_NAME FROM information_schema.COLUMNS
-  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'estatuspago'
-  ORDER BY ORDINAL_POSITION LIMIT 1
-));
-SET @label := COALESCE(@label, (
-  SELECT COLUMN_NAME FROM information_schema.COLUMNS
-  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'estatuspago'
-    AND COLUMN_NAME <> @pk
-  ORDER BY ORDINAL_POSITION LIMIT 1
-));
+-- 3) Catálogo con los valores reales del sistema
+INSERT IGNORE INTO estatuspago (k, v) VALUES
+  (1,  'POR VALIDAR'),
+  (2,  'PAGADO'),
+  (3,  'POR COBRAR'),
+  (4,  'CORTESIA'),
+  (5,  'LISTA ESPERA'),
+  (6,  'CANCELADO'),
+  (88, 'INSCRITO'),
+  (99, 'ELIMINADO');
 
-SET @sql := CONCAT(
-  'INSERT IGNORE INTO estatuspago (`', @pk, '`, `', @label, '`) VALUES ',
-  '(1, ''Pendiente''),',
-  '(2, ''En revisión''),',
-  '(3, ''Pagado''),',
-  '(4, ''Cargo a socio''),',
-  '(5, ''Cortesía''),',
-  '(6, ''Cancelado'')'
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- 3) Corrige mojibake en filas que ya existieran con texto dañado
-SET @fix := CONCAT(
-  'UPDATE estatuspago SET `', @label, '` = CASE `', @pk, '` ',
-  'WHEN 1 THEN ''Pendiente'' ',
-  'WHEN 2 THEN ''En revisión'' ',
-  'WHEN 3 THEN ''Pagado'' ',
-  'WHEN 4 THEN ''Cargo a socio'' ',
-  'WHEN 5 THEN ''Cortesía'' ',
-  'WHEN 6 THEN ''Cancelado'' ',
-  'ELSE `', @label, '` END'
-);
-PREPARE stmt2 FROM @fix;
-EXECUTE stmt2;
-DEALLOCATE PREPARE stmt2;
+-- 4) Normaliza los textos por si alguna fila quedó dañada
+UPDATE estatuspago SET v = CASE k
+  WHEN 1  THEN 'POR VALIDAR'
+  WHEN 2  THEN 'PAGADO'
+  WHEN 3  THEN 'POR COBRAR'
+  WHEN 4  THEN 'CORTESIA'
+  WHEN 5  THEN 'LISTA ESPERA'
+  WHEN 6  THEN 'CANCELADO'
+  WHEN 88 THEN 'INSCRITO'
+  WHEN 99 THEN 'ELIMINADO'
+  ELSE v END
+WHERE k IN (1,2,3,4,5,6,88,99);
