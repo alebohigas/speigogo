@@ -1,3 +1,6 @@
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 -- ============================================================
 -- BOOTSTRAP 03: módulo de Pre-Registros
 --   registro             → registros del público
