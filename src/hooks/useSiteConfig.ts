@@ -712,7 +712,15 @@ export const useSiteConfig = () => {
         localStorage.setItem(HOTELES_CONFIG_KEY, JSON.stringify(config.hoteles_config));
       }
 
+      /**
+       * Avisa a los consumidores basados en localStorage (visibilidad,
+       * orden y grupos del menú) de que ya llegó la configuración del
+       * alcance activo, para que vuelvan a leerla.
+       */
+      window.dispatchEvent(new Event('tournament-config-synced'));
+
       return config;
+
     },
     staleTime: 30 * 1000, // 30 seconds - keep fresh for admin changes
     retry: 1,
