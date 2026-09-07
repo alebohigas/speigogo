@@ -8,6 +8,13 @@
 -- Idempotente. Sin GRANTs (IONOS / MySQL).
 -- ============================================================
 
+-- IMPORTANTE: fuerza la conexión a utf8mb4 para que los acentos
+-- (revisión, cortesía) no se guarden dañados.
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
+
+
 CREATE TABLE IF NOT EXISTS convocatoria_content (
   id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   torneoid     INT NOT NULL,
