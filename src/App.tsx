@@ -14,6 +14,8 @@ import { StaffAuthProvider } from "@/contexts/StaffAuthContext";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { useAppIcon } from "@/hooks/useAppIcon";
 import { applyThemeConfig } from "@/lib/theme-palettes";
+import { TorneoScopeSync, TorneoSlugLayout } from "@/components/torneos/TorneoScope";
+
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import Convocatoria from "./pages/Convocatoria";
