@@ -1,3 +1,6 @@
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 -- ============================================================
 -- BOOTSTRAP 01: site_config
 -- Tabla de configuración por dominio (torneoid activo, menús,
