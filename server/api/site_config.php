@@ -489,8 +489,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $selectFields .= ', modules_config';
     }
 
-    $sql = "SELECT $selectFields FROM site_config WHERE domain = '$domain' LIMIT 1";
+    $where = site_config_where($conn, $domain, $scope);
+    $sql = "SELECT $selectFields FROM site_config WHERE $where LIMIT 1";
     $row = query_one($conn, $sql);
+
+    // Un torneo sin configuración propia todavía hereda la general.
+    if (!$row && $scope !== 'general') {
+        $whereGen = site_config_where($conn, $domain, 'general');
+        $row = query_one($conn, "SELECT $selectFields FROM site_config WHERE $whereGen LIMIT 1");
+        if ($row) $row['torneoid'] = (int)$scope;
+    }
+
     
     if ($row) {
         json_response([
