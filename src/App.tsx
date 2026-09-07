@@ -227,11 +227,4 @@ const App = () => (
   </QueryClientProvider>
 );
 
-          </SiteConfigSync>
-        </StaffAuthProvider>
-      </PageVisibilityProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
-
 export default App;
