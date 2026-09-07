@@ -8,6 +8,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_BASE_URL } from '@/config/api';
 import { DEFAULT_SUPERADMIN_PASSWORD, getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { setStoredTorneoId } from '@/hooks/useTorneoId';
+import { getConfigScope, scopeQuery, useConfigScope } from '@/lib/configScope';
+
 import type { ModulesConfig } from '@/modules/moduleState';
 
 
@@ -546,7 +548,10 @@ export interface SiteConfig {
 /** Payload for saving config (all fields optional except password) */
 export interface SaveConfigPayload {
   password: string;
+  /** Alcance donde guardar: 'general' o un torneoid. Por defecto, el activo. */
+  scope?: string;
   torneoid?: number;
+
   menu_order?: Record<string, number> | null;
   visibility?: Record<string, boolean> | null;
   menu_groups?: any[] | null;
