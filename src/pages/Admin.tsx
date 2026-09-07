@@ -897,6 +897,10 @@ const AdminDashboard = () => {
           </TabsContent>
         )}
       </Tabs>
+      </>
+      )}
+
+
 
       {/* Info Note */}
       <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
