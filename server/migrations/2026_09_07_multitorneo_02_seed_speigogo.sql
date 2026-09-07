@@ -19,12 +19,12 @@ SET @t2   := 275;                        -- segundo torneo
 -- es la primera palabra distintiva del nombre (editable luego en /admin).
 INSERT INTO site_torneos (domain, torneoid, nombre, slug, orden, activo)
 SELECT @dom, @t1, COALESCE(t.nombre, CONCAT('Torneo ', @t1)), 'torneo1', 1, 1
-FROM (SELECT 1) x LEFT JOIN torneo t ON t.torneoid = @t1
+FROM (SELECT 1) x LEFT JOIN torneo t ON t.torneo_id = @t1
 ON DUPLICATE KEY UPDATE torneoid = VALUES(torneoid);
 
 INSERT INTO site_torneos (domain, torneoid, nombre, slug, orden, activo)
 SELECT @dom, @t2, COALESCE(t.nombre, CONCAT('Torneo ', @t2)), 'torneo2', 2, 1
-FROM (SELECT 1) x LEFT JOIN torneo t ON t.torneoid = @t2
+FROM (SELECT 1) x LEFT JOIN torneo t ON t.torneo_id = @t2
 ON DUPLICATE KEY UPDATE torneoid = VALUES(torneoid);
 
 -- ---------- 2. Copia de la configuración actual a cada torneo ----------

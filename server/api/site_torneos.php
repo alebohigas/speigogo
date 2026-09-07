@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $orden++;
         $nombre = trim((string)($t['nombre'] ?? ''));
         if ($nombre === '') {
-            $r = query_one($conn, "SELECT nombre FROM torneo WHERE torneoid = $tid LIMIT 1");
+            $r = query_one($conn, "SELECT nombre FROM torneo WHERE torneo_id = $tid LIMIT 1");
             $nombre = $r['nombre'] ?? ('Torneo ' . $tid);
         }
         $slug = trim(strtolower((string)($t['slug'] ?? '')));
