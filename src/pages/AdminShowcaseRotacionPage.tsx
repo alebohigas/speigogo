@@ -107,7 +107,11 @@ const groupIcon = (group: string) => {
 
 // ============= Dashboard =============
 
-const Dashboard = () => {
+/**
+ * Constructor de rotación. Se exporta para poder mostrarlo embebido dentro
+ * de /admin → Juego y jugadores → Showcase 300, sin abrir otra ventana.
+ */
+export const ShowcaseRotacionDashboard = () => {
   const { isLoading, all, groups } = useShowcaseSlides();
 
   /** Selección y segundos por slide (state local del builder). */
