@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useRegistroPreferente } from '@/hooks/useRegistroPreferente';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 import {
   getRegistroListUrl,
   getRegistroVerifyUrl,
