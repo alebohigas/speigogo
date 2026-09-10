@@ -480,7 +480,7 @@ const AdminShowcaseRotacionPage = () => {
   };
   return (
     <Layout>
-      {authed ? <Dashboard /> : <LoginForm onLogin={onLogin} />}
+      {authed ? <ShowcaseRotacionDashboard /> : <LoginForm onLogin={onLogin} />}
     </Layout>
   );
 };
