@@ -46,12 +46,17 @@ const AdminTorneos = () => {
   const update = (i: number, patch: Partial<SiteTorneo>) =>
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
+  /** Sube/baja un torneo intercambiando también su número de orden. */
   const move = (i: number, dir: -1 | 1) =>
     setRows((prev) => {
       const next = [...prev];
       const j = i + dir;
       if (j < 0 || j >= next.length) return prev;
+      const ordenI = next[i].orden;
+      const ordenJ = next[j].orden;
       [next[i], next[j]] = [next[j], next[i]];
+      next[i] = { ...next[i], orden: ordenI };
+      next[j] = { ...next[j], orden: ordenJ };
       return next;
     });
 
@@ -62,7 +67,7 @@ const AdminTorneos = () => {
         ...r,
         torneoid: Number(r.torneoid),
         slug: (r.slug || slugify(r.nombre || '', Number(r.torneoid))).trim(),
-        orden: i + 1,
+        orden: Number(r.orden) > 0 ? Number(r.orden) : i + 1,
       }));
     save.mutate(
       { torneos: clean, password: getSuperAdminPassword() },
