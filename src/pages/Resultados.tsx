@@ -679,8 +679,21 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                     )}
                                   </TableCell>
                                   {/* Nombre recortado a 4 renglones en móvil vía span interno (.player-name-clamp) */}
+                                  {/* En categorías por equipos el renglón muestra el nombre del
+                                      equipo en negritas y debajo la lista de integrantes. */}
                                   <TableCell className="font-medium player-name-cell sticky z-10 bg-white" style={{ left: '7.5rem' }}>
-                                    <span className="player-name-clamp">{name1}</span>
+                                    {categoryDetail?.isEquipos ? (
+                                      <div className="py-1">
+                                        <span className="block font-bold">{name1}</span>
+                                        {(player.members || []).map((m, mi) => (
+                                          <span key={`${player.id}-m${mi}`} className="block text-sm text-muted-foreground leading-tight">
+                                            {m}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <span className="player-name-clamp">{name1}</span>
+                                    )}
                                   </TableCell>
                                   {/* Round score cells — rowSpan=2 en parejas para centrar el score compartido */}
                                   {(categoryDetail?.days || []).map((_, i) => {
