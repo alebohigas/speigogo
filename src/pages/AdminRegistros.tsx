@@ -400,7 +400,8 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
     }
   };
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
+  // Recargar cuando cambia el torneo seleccionado.
+  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [torneoFilter]);
 
   /** Cargar catálogo `estatuspago` (primeras 6 opciones) una sola vez. */
   useEffect(() => {
@@ -865,7 +866,7 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
           */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
             {/* Búsqueda libre */}
-            <div className="relative md:col-span-4">
+            <div className="relative md:col-span-3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-10"
@@ -875,9 +876,25 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
               />
             </div>
 
+            {/* Torneo (multi-torneo): actual, uno concreto o todos */}
+            <div className="md:col-span-2">
+              <Select value={torneoFilter} onValueChange={setTorneoFilter}>
+                <SelectTrigger><SelectValue placeholder="Torneo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__active__">Torneo activo</SelectItem>
+                  {(siteTorneos?.torneos?.length ?? 0) > 0 && (
+                    <SelectItem value="__all__">Todos los torneos</SelectItem>
+                  )}
+                  {(siteTorneos?.torneos || []).map(t => (
+                    <SelectItem key={t.torneoid} value={String(t.torneoid)}>{t.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Folio (#id) */}
             <Input
-              className="md:col-span-2"
+              className="md:col-span-1"
               placeholder="Folio (#id)"
               inputMode="numeric"
               value={folioFilter}
