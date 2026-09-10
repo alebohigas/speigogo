@@ -355,6 +355,9 @@ json_response([
     'tee'          => $calInfo['tee'],
     /* Bandera para que el frontend active el render agrupado por match + "VS". */
     'isMatchPlay'  => $isMatchPlay,
+    /* Bandera para que el frontend muestre los integrantes del equipo con su
+     * tee de salida individual (bolita de color). */
+    'isEquipos'    => $isEquipos,
     'groups'       => $groups
 
 ]);
