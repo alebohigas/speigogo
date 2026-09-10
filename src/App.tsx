@@ -177,6 +177,7 @@ const App = () => (
           <BrowserRouter>
             <ScrollToTop />
             <TorneoScopeSync />
+            <TorneoDataReset />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
