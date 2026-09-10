@@ -51,18 +51,18 @@ foreach ($rows as $row) {
     $cat = [
         'categoryId'  => $row['categoria_id'],
         'name'        => $row['categoria'],
-        'shortName'   => $row['abreviatura'],
+        'shortName'   => isset($row['abreviatura']) ? $row['abreviatura'] : $row['categoria'],
         'system'      => $row['sistema'],
         'format'      => $row['formato'],
-        'style'       => $row['estilo'],
-        'gross'       => (int)$row['gross'],
+        'style'       => isset($row['estilo']) ? $row['estilo'] : '',
+        'gross'       => isset($row['gross']) ? (int)$row['gross'] : 0,
         'playerCount' => (int)$row['playerCount'],
-        'relatedCat'  => $row['catrel'],
+        'relatedCat'  => isset($row['catrel']) ? $row['catrel'] : 0,
         /** Detección de torneo de parejas — la categoría es de parejas cuando formato='PAREJAS'. */
-        'isParejas'   => (strtoupper($row['formato']) === 'PAREJAS')
+        'isParejas'   => (strtoupper((string)$row['formato']) === 'PAREJAS')
     ];
 
-    if (strtoupper($row['sistema']) === 'MATCH PLAY') {
+    if (strtoupper((string)$row['sistema']) === 'MATCH PLAY') {
         $matchPlay[] = $cat;
     } else {
         $strokePlay[] = $cat;
