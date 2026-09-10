@@ -57,12 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Reescribe la lista completa del dominio.
     @$conn->query("DELETE FROM site_torneos WHERE domain = '$domain'");
 
-    $orden = 0;
+    $auto = 0;
     $usados = [];
     foreach ($torneos as $t) {
         $tid = (int)($t['torneoid'] ?? 0);
         if ($tid <= 0) continue;
-        $orden++;
+        $auto++;
+        // Orden en la barra superior: el configurado, o la posición de la lista.
+        $orden = (int)($t['orden'] ?? 0);
+        if ($orden <= 0) $orden = $auto;
         $nombre = trim((string)($t['nombre'] ?? ''));
         if ($nombre === '') {
             $r = query_one($conn, "SELECT nombre FROM torneo WHERE torneo_id = $tid LIMIT 1");
