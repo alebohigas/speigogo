@@ -556,8 +556,12 @@ const Salidas = () => {
                                     const vsIdx = vsAfterIndexes(players, matchPlay);
                                     /* MATCH PLAY: renglón "VS" entre los dos contendientes del match. */
                                     const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
-                                    const totalRows = countGroupRowsWithVs(players, matchPlay);
-                                    const showTeam = hasAnyPair(players);
+                                    /* EQUIPOS: cada equipo agrega un renglón por integrante. */
+                                    const equipos = hasTeamMembers(players);
+                                    const totalRows = equipos
+                                      ? countGroupRowsTeam(players)
+                                      : countGroupRowsWithVs(players, matchPlay);
+                                    const showTeam = hasAnyPair(players) || equipos;
                                     const lineCols = showTeam ? 5 : 4;
                                     let firstRowEmitted = false;
                                     const rows: JSX.Element[] = [];
