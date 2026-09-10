@@ -79,6 +79,7 @@ const AdminTorneos = () => {
   };
 
   return (
+    <div className="space-y-6">
     <Card>
       <CardHeader>
         <CardTitle>Torneos del sitio</CardTitle>
