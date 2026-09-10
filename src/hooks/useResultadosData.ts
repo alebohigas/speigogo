@@ -164,6 +164,10 @@ export const useCategoryResults = (
                 // Number of CLOSED scorecards (statlsc=1) — used to compute Stroke diff total.
                 closedRounds: typeof p.closedRounds === 'number' ? p.closedRounds : 0,
                 handicapIndex: p.handicapIndex,
+                /* Categorías por equipos (AGOGO): código, nombre e integrantes. */
+                grupoid: p.grupoid || '',
+                teamName: p.teamName || '',
+                members: Array.isArray(p.members) ? p.members : undefined,
               })),
             }];
 
@@ -186,6 +190,9 @@ export const useCategoryResults = (
         // Accumulated closed-card total
         total: typeof cp.total === 'number' ? cp.total : 0,
         closedRounds: typeof cp.closedRounds === 'number' ? cp.closedRounds : 0,
+        grupoid: cp.grupoid || '',
+        teamName: cp.teamName || '',
+        members: Array.isArray(cp.members) ? cp.members : undefined,
       }));
 
       return {
