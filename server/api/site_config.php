@@ -522,7 +522,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!$row && $scope !== 'general') {
         $whereGen = site_config_where($conn, $domain, 'general');
         $row = query_one($conn, "SELECT $selectFields FROM site_config WHERE $whereGen LIMIT 1");
-        if ($row) $row['torneoid'] = (int)$scope;
+    }
+
+    // El alcance de un torneo SIEMPRE apunta a ese torneo: las filas copiadas
+    // desde la configuración general pueden traer un torneoid heredado
+    // (p. ej. 274) que haría que sus páginas mostraran datos de otro torneo.
+    if ($row && $scope !== 'general') {
+        $row['torneoid'] = (int)$scope;
     }
 
     // Alcance general con torneoid 0 (automático): se resuelve el primer
