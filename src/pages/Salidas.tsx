@@ -867,22 +867,46 @@ const Salidas = () => {
                                           <img src={player.clubLogo} alt="Club" className="w-auto object-contain rounded inline-block" style={{ height: '2.1375rem' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                         ) : (<span className="text-xs text-muted-foreground">—</span>)}
                                       </TableCell>
-                                       <TableCell className="font-medium text-foreground player-name-cell">
-                                         {/* MATCH PLAY: se antepone la posición del jugador en su grupo. */}
-                                         <span className="player-name-clamp">
-                                           {matchPlay && player.position != null && player.position !== ''
-                                             ? `${player.position} ${player.name}`
-                                             : player.name}
+                                        <TableCell className="font-medium text-foreground player-name-cell">
+                                         {/* MATCH PLAY: se antepone la posición del jugador en su grupo.
+                                           * EQUIPOS: el renglón principal identifica al equipo. */}
+                                         <span className="player-name-clamp font-bold">
+                                           {player.members?.length
+                                             ? (player.groupId || player.name)
+                                             : matchPlay && player.position != null && player.position !== ''
+                                               ? `${player.position} ${player.name}`
+                                               : player.name}
                                          </span>
                                        </TableCell>
                                       {/* En MATCH PLAY se omite la celda de Score. */}
                                       {!matchPlay && (
-                                        <TableCell className="text-center font-bold text-primary align-middle" rowSpan={isPair ? 2 : 1}>
+                                        <TableCell
+                                          className="text-center font-bold text-primary align-middle"
+                                          rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                        >
                                           {player.score || '—'}
                                         </TableCell>
                                       )}
                                     </TableRow>
                                   );
+                                  // ----- EQUIPOS: integrantes con su tee de salida individual -----
+                                  (player.members ?? []).forEach((member, mIdx) => {
+                                    const isLastMember = mIdx === (player.members?.length ?? 0) - 1;
+                                    rows.push(
+                                      <TableRow
+                                        key={`${group.id}-${pIdx}-m${mIdx}`}
+                                        className={`bg-white hover:bg-white ${isLastMember ? '' : 'border-b-0'}`}
+                                      >
+                                        <TableCell className="p-1" />
+                                        <TableCell className="font-medium text-foreground player-name-cell">
+                                          <span className="player-name-clamp inline-flex items-center gap-2">
+                                            <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                                            {member.name}
+                                          </span>
+                                        </TableCell>
+                                      </TableRow>
+                                    );
+                                  });
                                   // ----- Renglón secundario (segundo integrante de la pareja) -----
                                   if (isPair) {
                                     rows.push(
