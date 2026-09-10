@@ -56,6 +56,17 @@ export interface SalidasPlayer {
   matchSide?: number;
   /** MATCH PLAY: posición/siembra del jugador dentro de su grupo (`jugadores.grupo`). */
   position?: string | number;
+  /** EQUIPOS: integrantes del equipo, cada uno con su tee de salida propio. */
+  members?: SalidasTeamMember[];
+}
+
+/** EQUIPOS: integrante de un equipo con su tee de salida individual. */
+export interface SalidasTeamMember {
+  name: string;
+  tee: string;
+  bgColor?: string;
+  color?: string;
+  hi?: string | number | null;
 }
 
 
