@@ -64,6 +64,24 @@ function site_config_where($conn, $domain, $scope) {
     return $w;
 }
 
+/**
+ * Torneo de referencia del alcance 'general'.
+ *
+ * La vista general NO pertenece a ningún torneo: guarda 0 en la columna
+ * torneoid (valor centinela = "automático"). Cuando alguna página compartida
+ * necesita datos de torneo, se resuelve aquí el primer torneo publicado del
+ * dominio, así nunca chocan los torneoid entre sí.
+ */
+function site_config_ref_torneo($conn, $domain) {
+    static $cache = [];
+    if (isset($cache[$domain])) return $cache[$domain];
+    $tid = 0;
+    $res = @$conn->query("SELECT torneoid FROM site_torneos WHERE domain = '$domain' AND activo = 1 ORDER BY orden ASC, id ASC LIMIT 1");
+    if ($res && ($r = $res->fetch_assoc())) $tid = (int)$r['torneoid'];
+    $cache[$domain] = $tid;
+    return $tid;
+}
+
 
 /**
  * Detect whether the live_scoring_config column exists.
