@@ -530,6 +530,7 @@ const AdminDashboard = () => {
             { value: 'banderas',     icon: Flag,            label: 'Banderas' },
 
             { value: 'live',         icon: Radio,           label: 'Live' },
+            { value: 'showcase-rotacion', icon: MonitorPlay, label: 'Showcase 300' },
             { value: 'registro',     icon: ClipboardList,   label: 'Pre-Registro' },
             { value: 'jugadores',    icon: Layers,          label: 'Categorías' },
             { value: 'brackets',     icon: Trophy,          label: 'Brackets Putt' },
