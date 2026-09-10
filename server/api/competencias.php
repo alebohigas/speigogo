@@ -1426,7 +1426,7 @@ function get_oyes300_players($conn, $tid, $holeNum, $limit = 3, $filterEq = null
     $sql = "SELECT a.jugadorid,
                    CONCAT(j.nombre, ' ', j.apellido) as jugador,
                    ROUND(a.distancia, 3) as distancia,
-                   a.premio as hoyo,
+                   COALESCE(NULLIF(a.hoyo, 0), a.premio) as hoyo,
                    COALESCE(NULLIF(cat.abreviatura,''), cat.categoria, '') as categoria,
                    cl.logo, cl.nombre as club
             FROM oyesxjug a
