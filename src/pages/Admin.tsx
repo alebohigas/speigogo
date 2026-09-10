@@ -103,6 +103,7 @@ import { cn } from '@/lib/utils';
 import { useSiteConfig, useSaveSiteConfig } from '@/hooks/useSiteConfig';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
+import { useConfigScope } from '@/lib/configScope';
 /** Módulos: los tabs de un módulo apagado no se muestran ni se montan. */
 import { useModules } from '@/modules/useModules';
 import { Blocks } from 'lucide-react';
@@ -320,6 +321,7 @@ const AdminDashboard = () => {
   };
   const navigate = useNavigate();
   const { data: siteConfig, isLoading: isLoadingSiteConfig } = useSiteConfig();
+  const configScope = useConfigScope();
   const saveSiteConfig = useSaveSiteConfig();
   const { toast } = useToast();
   const [homeTitleInput, setHomeTitleInput] = useState('');
@@ -580,15 +582,17 @@ const AdminDashboard = () => {
 
         {/* Configuration Tab */}
         <TabsContent value="config" className="space-y-4">
-          {/* General home identity */}
+          {/* General edits its shared Home; tournament scopes show their identity. */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" />
-                Texto del Home General
+                {configScope === 'general' ? 'Texto del Home General' : 'Configuración del Torneo'}
               </CardTitle>
               <CardDescription>
-                Configura el título de la portada compartida donde viven todos los torneos.
+                {configScope === 'general'
+                  ? 'Configura el título de la portada compartida donde viven todos los torneos.'
+                  : 'Esta configuración pertenece únicamente al torneo seleccionado.'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -598,7 +602,7 @@ const AdminDashboard = () => {
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Cargando texto del Home...
                   </div>
-                ) : (
+                ) : configScope === 'general' ? (
                   <div className="space-y-2">
                     <Label htmlFor="general-home-title">Título principal</Label>
                     <div className="flex gap-2">
@@ -641,6 +645,11 @@ const AdminDashboard = () => {
                       Si se deja vacío, la portada mostrará “Torneo de Golf”.
                     </p>
                   </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    Torneo ID: <span className="font-mono font-bold">{configScope}</span>
+                  </p>
                 )}
               </div>
             </CardContent>

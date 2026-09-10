@@ -893,7 +893,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $copySql = "INSERT INTO site_config (domain, scope, torneoid, theme_config)
                     SELECT '$domain', CAST(st.torneoid AS CHAR), st.torneoid, $themeVal
                     FROM site_torneos st
-                    WHERE st.domain = '$domain'
+                    WHERE st.domain COLLATE utf8mb4_unicode_ci = '$domain' COLLATE utf8mb4_unicode_ci
+                      AND st.activo = 1
                     ON DUPLICATE KEY UPDATE theme_config = VALUES(theme_config)";
         if (!$conn->query($copySql)) {
             json_error('La paleta General se guardó, pero no pudo copiarse a los torneos: ' . $conn->error, 500);
