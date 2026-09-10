@@ -529,17 +529,6 @@ const Salidas = () => {
                             </div>
                             {/* Group table */}
                             <div className="overflow-x-auto bg-white">
-                              {(() => {
-                                const players = result.group.players ?? [];
-                                const matchPlay = !!result.matchPlay || isMatchPlaySystem(result.system);
-                                const equipos = hasTeamMembers(players);
-                                const showPairTeam = hasAnyPair(players);
-                                const showTeamColumn = showPairTeam && !equipos;
-                                const showTeeColumn = equipos;
-                                const hasScoreColumn = !matchPlay;
-                                (result as any)._totalCols = 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
-                                return null;
-                              })()}
                               <Table className="bg-white tournament-table">
                                 <TableHeader>
                                   <TableRow className="bg-primary hover:bg-primary">
