@@ -39,7 +39,24 @@ require_once 'config.php';
  */
 function tj_active_torneoid($conn) {
     $domain = esc($conn, $_SERVER['HTTP_HOST'] ?? 'localhost');
-    $r = @$conn->query("SELECT torneoid FROM site_config WHERE domain = '$domain' LIMIT 1");
+
+    // Multi-torneo: el torneo principal del dominio es el primero activo
+    // registrado en `site_torneos` (por orden). Si la tabla no existe se
+    // usa la configuración por dominio como antes.
+    $r = @$conn->query("SELECT torneoid FROM site_torneos
+                        WHERE domain = '$domain' AND activo = 1
+                        ORDER BY orden ASC, id ASC LIMIT 1");
+    if ($r) {
+        $row = $r->fetch_assoc();
+        $r->free();
+        if (!empty($row['torneoid'])) return (string)(int)$row['torneoid'];
+    }
+
+    $r = @$conn->query("SELECT torneoid FROM site_config WHERE domain = '$domain'
+                        ORDER BY (scope = 'general') ASC LIMIT 1");
+    if (!$r) {
+        $r = @$conn->query("SELECT torneoid FROM site_config WHERE domain = '$domain' LIMIT 1");
+    }
     if ($r && ($row = $r->fetch_assoc())) {
         $r->free();
         if (!empty($row['torneoid'])) return (string)(int)$row['torneoid'];
