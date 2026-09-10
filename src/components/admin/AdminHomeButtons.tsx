@@ -107,15 +107,19 @@ const AdminHomeButtons = () => {
               const nombre = t.nombre || `Torneo ${t.torneoid}`;
               return menuItems
                 .filter((m) => m.id !== 'home')
-                .filter((m) => (cfg?.visibility?.[m.id] ?? true) !== false)
-                .map((m) => (
-                  <SelectItem key={`t${t.torneoid}:${m.id}`} value={`t${t.torneoid}:${m.id}`}>
-                    {nombre} {m.label}
-                    <span className="text-muted-foreground">
-                      {' '}— {t.slug ? `/${t.slug}${m.path}` : m.path}
-                    </span>
-                  </SelectItem>
-                ));
+                .map((m) => {
+                  // Visibilidad real de esa página DENTRO del torneo indicado.
+                  const visible = (cfg?.visibility?.[m.id] ?? true) !== false;
+                  return (
+                    <SelectItem key={`t${t.torneoid}:${m.id}`} value={`t${t.torneoid}:${m.id}`}>
+                      {nombre} {m.label}
+                      <span className="text-muted-foreground">
+                        {' '}— {t.slug ? `/${t.slug}${m.path}` : m.path}
+                      </span>
+                      {!visible && <span className="ml-2 text-xs text-amber-600">(oculta)</span>}
+                    </SelectItem>
+                  );
+                });
             })}
           </SelectContent>
         </Select>
