@@ -21,6 +21,7 @@ import { ArrowDown, ArrowUp, Plus, Save, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { useSiteTorneos, useSaveSiteTorneos, type SiteTorneo } from '@/hooks/useSiteTorneos';
+import { useSaveSiteConfig } from '@/hooks/useSiteConfig';
 
 /** Nombre corto sugerido a partir del nombre del torneo. */
 const slugify = (nombre: string, torneoid: number) => {
