@@ -879,12 +879,15 @@ const Salidas = () => {
                                 const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
                                 /* EQUIPOS: cada equipo agrega un renglón por integrante. */
                                 const equipos = hasTeamMembers(players);
+                                const showPairTeam = groupsHaveAnyPair(detail.groups);
+                                const showTeamColumn = showPairTeam && !equipos;
+                                const showTeeColumn = equipos;
+                                const hasScoreColumn = !matchPlay;
                                 const totalRows = equipos
                                   ? countGroupRowsTeam(players)
                                   : countGroupRowsWithVs(players, matchPlay);
-                                const showTeam = groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups);
-                                const lineCols = showTeam ? 5 : 4;
-                                const totalCols = lineCols + (!matchPlay ? 1 : 0);
+                                const totalCols = 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
+                                const lineCols = totalCols;
                                 const isLastGroup = gIdx >= (detail.groups ?? []).length - 1;
                                 let firstRowEmitted = false;
                                 const rows: JSX.Element[] = [];
