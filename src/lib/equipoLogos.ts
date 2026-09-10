@@ -56,3 +56,81 @@ export const buildEquipoLogoCandidates = (grupoid: string, torneoId?: string): s
   }
   return urls;
 };
+
+/**
+ * Resolución de logos sin parpadeo.
+ * ---------------------------------------------------------------
+ * En vez de montar un <img> en la tabla y dejar que falle una y otra
+ * vez (cada fallo re-renderiza la fila y provoca saltos de diseño),
+ * probamos las rutas candidatas fuera del DOM con `new Image()` y sólo
+ * mostramos la imagen cuando ya sabemos cuál carga.
+ *
+ * Los resultados se guardan en memoria: cada equipo se resuelve una
+ * sola vez por sesión y las rutas ya conocidas como inexistentes no se
+ * vuelven a pedir (aunque las comparta otro equipo).
+ */
+
+/** Resultado ya resuelto por clave de equipo. */
+const resolved = new Map<string, string | null>();
+/** Promesas en curso, para no duplicar el sondeo. */
+const pending = new Map<string, Promise<string | null>>();
+/** Rutas ya probadas: true = carga, false = no existe. */
+const urlStatus = new Map<string, boolean>();
+
+const probe = (url: string): Promise<boolean> => {
+  const known = urlStatus.get(url);
+  if (known !== undefined) return Promise.resolve(known);
+  return new Promise<boolean>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const ok = img.naturalWidth > 0;
+      urlStatus.set(url, ok);
+      resolve(ok);
+    };
+    img.onerror = () => {
+      urlStatus.set(url, false);
+      resolve(false);
+    };
+    img.src = url;
+  });
+};
+
+/** Devuelve la primera ruta que carga, o null si ninguna existe. */
+export const resolveEquipoLogo = (
+  grupoid: string,
+  torneoId?: string,
+  dbLogo?: string
+): Promise<string | null> => {
+  const key = `${torneoId || ''}|${grupoid || ''}|${dbLogo || ''}`;
+  if (resolved.has(key)) return Promise.resolve(resolved.get(key) ?? null);
+  const inflight = pending.get(key);
+  if (inflight) return inflight;
+
+  const candidates = buildEquipoLogoCandidates(grupoid, torneoId);
+  if (dbLogo) candidates.push(dbLogo);
+
+  const run = (async () => {
+    for (const url of candidates) {
+      // Si ya sabemos que esa ruta no existe, ni siquiera la pedimos.
+      if (urlStatus.get(url) === false) continue;
+      // eslint-disable-next-line no-await-in-loop
+      if (await probe(url)) {
+        resolved.set(key, url);
+        return url;
+      }
+    }
+    resolved.set(key, null);
+    return null;
+  })();
+
+  pending.set(key, run);
+  run.finally(() => pending.delete(key));
+  return run;
+};
+
+/** Ruta ya resuelta en memoria (sin lanzar sondeo). */
+export const getCachedEquipoLogo = (
+  grupoid: string,
+  torneoId?: string,
+  dbLogo?: string
+): string | null | undefined => resolved.get(`${torneoId || ''}|${grupoid || ''}|${dbLogo || ''}`);
