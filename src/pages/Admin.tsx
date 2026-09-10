@@ -304,6 +304,8 @@ const AdminDashboard = () => {
     ? (AREA_TO_TAB[staffSession.areas[0]] || 'config')
     : 'config';
   const staffDefaultTab = isAdminTabEnabled(staffFirstTab) ? staffFirstTab : 'config';
+  /** Pestaña activa (controlada para poder agrupar las secciones). */
+  const [activeTab, setActiveTab] = useState<string>(staffDefaultTab);
   /**
    * Filtra tabs por MÓDULO (apagado en /setup = no existe para nadie) y luego
    * por permisos del usuario activo.
