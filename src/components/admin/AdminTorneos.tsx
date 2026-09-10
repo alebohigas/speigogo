@@ -17,11 +17,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowDown, ArrowUp, Plus, Save, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { useSiteTorneos, useSaveSiteTorneos, type SiteTorneo } from '@/hooks/useSiteTorneos';
-import { useSaveSiteConfig } from '@/hooks/useSiteConfig';
+import { useSaveSiteConfig, type SiteConfig } from '@/hooks/useSiteConfig';
 
 /** Nombre corto sugerido a partir del nombre del torneo. */
 const slugify = (nombre: string, torneoid: number) => {
@@ -48,8 +49,10 @@ const AdminTorneos = () => {
   }, [data?.torneos]);
 
   useEffect(() => {
-    const tid = Number(data?.configs?.general?.torneoid ?? 0);
-    if (tid > 0) setGeneralTorneo(tid);
+    const gen = data?.configs?.general as (Partial<SiteConfig> & { torneoid_auto?: boolean }) | undefined;
+    if (!gen) return;
+    // Automático: la vista general no guarda ningún torneo fijo.
+    setGeneralTorneo(gen.torneoid_auto ? 0 : Number(gen.torneoid ?? 0) || 0);
   }, [data?.configs]);
 
   const handleSaveGeneral = () => {
@@ -202,20 +205,33 @@ const AdminTorneos = () => {
         <CardTitle>Configuración general</CardTitle>
         <CardDescription>
           La vista general no pertenece a ningún torneo: aquí se guardan las páginas
-          compartidas (patrocinadores, reglas, premios…). Elige de qué torneo toma los datos
-          cuando una página compartida los necesita.
+          compartidas (patrocinadores, reglas, premios…). Normalmente puedes dejarla en
+          automático; solo elige un torneo si quieres fijar de cuál toma los datos una
+          página compartida.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-3 md:grid-cols-[220px_auto] md:items-end">
+        <div className="grid gap-3 md:grid-cols-[280px_auto] md:items-end">
           <div>
             <Label className="text-xs">Torneo de referencia</Label>
-            <Input
-              type="number"
-              value={generalTorneo || ''}
-              onChange={(e) => setGeneralTorneo(Number(e.target.value))}
-              placeholder="Torneo #"
-            />
+            <Select
+              value={String(generalTorneo || 0)}
+              onValueChange={(v) => setGeneralTorneo(Number(v))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Automático" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Automático (primer torneo publicado)</SelectItem>
+                {rows
+                  .filter((r) => Number(r.torneoid) > 0)
+                  .map((r) => (
+                    <SelectItem key={r.torneoid} value={String(r.torneoid)}>
+                      {r.nombre?.trim() || `Torneo ${r.torneoid}`}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button className="gap-2" onClick={handleSaveGeneral} disabled={saveConfig.isPending}>
             <Save className="h-4 w-4" />
@@ -223,7 +239,8 @@ const AdminTorneos = () => {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Sugerencias: {rows.filter((r) => Number(r.torneoid) > 0).map((r) => `${r.torneoid} ${r.nombre || ''}`.trim()).join(' · ') || 'aún no hay torneos dados de alta'}
+          En automático, la vista general no guarda ningún número de torneo: usa el primero
+          publicado de la lista de arriba, así nunca se cruza con la configuración de cada torneo.
         </p>
       </CardContent>
     </Card>

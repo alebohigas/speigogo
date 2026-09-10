@@ -64,6 +64,24 @@ function site_config_where($conn, $domain, $scope) {
     return $w;
 }
 
+/**
+ * Torneo de referencia del alcance 'general'.
+ *
+ * La vista general NO pertenece a ningún torneo: guarda 0 en la columna
+ * torneoid (valor centinela = "automático"). Cuando alguna página compartida
+ * necesita datos de torneo, se resuelve aquí el primer torneo publicado del
+ * dominio, así nunca chocan los torneoid entre sí.
+ */
+function site_config_ref_torneo($conn, $domain) {
+    static $cache = [];
+    if (isset($cache[$domain])) return $cache[$domain];
+    $tid = 0;
+    $res = @$conn->query("SELECT torneoid FROM site_torneos WHERE domain = '$domain' AND activo = 1 ORDER BY orden ASC, id ASC LIMIT 1");
+    if ($res && ($r = $res->fetch_assoc())) $tid = (int)$r['torneoid'];
+    $cache[$domain] = $tid;
+    return $tid;
+}
+
 
 /**
  * Detect whether the live_scoring_config column exists.
@@ -418,7 +436,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if ($rows) {
             while ($r = $rows->fetch_assoc()) {
                 $key = site_config_has_scope($conn) ? (string)$r['scope'] : 'general';
-                $out = ['domain' => $_SERVER['HTTP_HOST'], 'torneoid' => isset($r['torneoid']) ? (int)$r['torneoid'] : null];
+                $tid = isset($r['torneoid']) ? (int)$r['torneoid'] : 0;
+                $auto = ($key === 'general' && $tid <= 0);
+                if ($auto) $tid = site_config_ref_torneo($conn, $domain);
+                $out = [
+                    'domain'        => $_SERVER['HTTP_HOST'],
+                    'torneoid'      => $tid > 0 ? $tid : null,
+                    'torneoid_auto' => $auto,
+                ];
                 foreach ($r as $col => $val) {
                     if ($col === 'domain' || $col === 'torneoid' || $col === 'scope' || $col === 'updated_at') continue;
                     $out[$col] = ($val === null || $val === '') ? null : json_decode($val, true);
@@ -500,7 +525,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if ($row) $row['torneoid'] = (int)$scope;
     }
 
-    
+    // Alcance general con torneoid 0 (automático): se resuelve el primer
+    // torneo publicado del dominio, sin guardar ningún torneoid fijo.
+    if ($row && $scope === 'general' && (int)$row['torneoid'] <= 0) {
+        $row['torneoid'] = site_config_ref_torneo($conn, $domain);
+    }
+
     if ($row) {
         json_response([
             'domain'                => $_SERVER['HTTP_HOST'],
