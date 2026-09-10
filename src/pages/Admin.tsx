@@ -779,6 +779,14 @@ const AdminDashboard = () => {
           <AdminLiveScoring />
         </TabsContent>
 
+        {/* Showcase 300 — accesos a los reportes de lobby/TV y, debajo, el
+            constructor de rotación ya desplegado (antes vivía en otra
+            ventana en /admin/showcase-rotacion). */}
+        <TabsContent value="showcase-rotacion" className="space-y-6">
+          <AdminShowcase300 />
+          <ShowcaseRotacionDashboard />
+        </TabsContent>
+
         {/* Sponsors Tab — controls how the Patrocinadores page renders sponsor logos */}
         <TabsContent value="sponsors">
           <AdminSponsors />
