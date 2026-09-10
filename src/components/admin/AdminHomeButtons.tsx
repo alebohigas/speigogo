@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, MousePointerClick, Save } from 'lucide-react';
 import { useSiteConfig, useSaveSiteConfig, type HomeConfig } from '@/hooks/useSiteConfig';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
