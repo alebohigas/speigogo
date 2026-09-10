@@ -971,7 +971,7 @@ if ($tipo === '' || $tipo === 'oyes300') {
             if ($detalle === '1') {
                 // Pass the internal prize id ($prizeId) — that's what the
                 // results table uses for filtering.
-                $group['players']     = get_oyes300_players($conn, $tid, $prizeId, $lugares);
+                $group['players']     = get_oyes300_players($conn, $tid, $prizeId, $lugares, $filterEq);
                 $group['lastUpdated'] = get_oyes300_last_updated($conn, $tid, $descripcion, $prizeIdEsc);
             }
 
@@ -1413,10 +1413,12 @@ function get_approach_players($conn, $tid, $descripcion, $limit) {
  * @param int    $limit    Maximum winners to return (oyesx.premio)
  * @return array<int, array<string, mixed>> Ordered list of winners
  */
-function get_oyes300_players($conn, $tid, $holeNum, $limit = 3) {
+function get_oyes300_players($conn, $tid, $holeNum, $limit = 3, $filterEq = null) {
     global $LOGOS_BASE_URL;
     $limit  = max(1, (int)$limit);
     $hole   = (int)$holeNum;
+    /** Filtro efectivo: `premio` o, si ese no trae datos, `hoyo`. */
+    $where = $filterEq ? "a." . $filterEq : "a.premio = $hole";
 
     // NOTE: For O'Yes 300, the hole id lives in `oyesxjug.premio` (not `hoyo`,
     // which is empty for this competition). The `categorias` table uses
