@@ -654,11 +654,14 @@ const Salidas = () => {
                                           >
                                             <TableCell className="p-1" />
                                             <TableCell className="font-medium text-foreground player-name-cell">
-                                              <span className="player-name-clamp inline-flex items-center gap-2">
-                                                <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
-                                                {member.name}
-                                              </span>
+                                              <span className="player-name-clamp">{member.name}</span>
                                             </TableCell>
+                                            {showTeeColumn && (
+                                              <TableCell className="text-center align-middle">
+                                                <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                                              </TableCell>
+                                            )}
+                                            {hasScoreColumn && <TableCell className="p-1" />}
                                           </TableRow>
                                         );
                                       });
