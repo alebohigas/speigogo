@@ -170,6 +170,39 @@ const AdminTorneos = () => {
         </div>
       </CardContent>
     </Card>
+
+    {/* ---------- Configuración compartida (vista general) ---------- */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Configuración general</CardTitle>
+        <CardDescription>
+          La vista general no pertenece a ningún torneo: aquí se guardan las páginas
+          compartidas (patrocinadores, reglas, premios…). Elige de qué torneo toma los datos
+          cuando una página compartida los necesita.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 md:grid-cols-[220px_auto] md:items-end">
+          <div>
+            <Label className="text-xs">Torneo de referencia</Label>
+            <Input
+              type="number"
+              value={generalTorneo || ''}
+              onChange={(e) => setGeneralTorneo(Number(e.target.value))}
+              placeholder="Torneo #"
+            />
+          </div>
+          <Button className="gap-2" onClick={handleSaveGeneral} disabled={saveConfig.isPending}>
+            <Save className="h-4 w-4" />
+            {saveConfig.isPending ? 'Guardando…' : 'Guardar configuración general'}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Sugerencias: {rows.filter((r) => Number(r.torneoid) > 0).map((r) => `${r.torneoid} ${r.nombre || ''}`.trim()).join(' · ') || 'aún no hay torneos dados de alta'}
+        </p>
+      </CardContent>
+    </Card>
+    </div>
   );
 };
 
