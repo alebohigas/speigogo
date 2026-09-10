@@ -10,7 +10,7 @@
  */
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
+import { useEffectiveSiteConfig } from '@/hooks/useInheritConfig';
 import type { AnuncioConfig } from '@/hooks/useSiteConfig';
 import { isAnuncioWithinSchedule } from '@/lib/anuncioSchedule';
 
@@ -68,7 +68,7 @@ const RibbonRow = ({ cfg }: { cfg: AnuncioConfig }) => {
  * qualifies for the current route.
  */
 const AnnouncementRibbon = () => {
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig } = useEffectiveSiteConfig();
   const location = useLocation();
   const raw = siteConfig?.anuncio_config;
   // Normalize legacy single-object payloads to an array.
