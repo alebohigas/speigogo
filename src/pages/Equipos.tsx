@@ -204,7 +204,16 @@ const Equipos = () => {
                                       style={{ height: '1.875rem' }}
                                     />
                                   </TableCell>
-                                  <TableCell className="font-bold pl-6">{team.grupoid}</TableCell>
+                                  <TableCell className="font-bold pl-6">
+                                    {team.numero ? (
+                                      <span className="flex flex-wrap items-baseline gap-2">
+                                        <span className="text-primary">{team.numero}</span>
+                                        <span>{team.nombre}</span>
+                                      </span>
+                                    ) : (
+                                      team.nombre || team.grupoid
+                                    )}
+                                  </TableCell>
                                   <TableCell />
                                   <TableCell
                                     className={`text-center text-lg font-bold text-destructive ${

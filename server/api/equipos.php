@@ -70,22 +70,33 @@ if ($campoid > 0) {
         while ($row = $res->fetch_assoc()) {
             $g = (string)($row['grupoid'] ?? '');
             if (!isset($byGroup[$g])) {
-                $totalHcp   = $row['tothcp'] !== null ? (float)$row['tothcp'] : 0;
-                $totalIndex = $row['totindex'] !== null ? (float)$row['totindex'] : 0;
-                // Fondo amarillo cuando el total del equipo queda por debajo
-                // del handicap mínimo permitido del torneo (legacy).
-                $comparado = ($indexCampo === '1') ? $totalHcp : $totalIndex;
+                // El identificador del equipo puede venir como "AK9001 The Beginners":
+                // separamos número/clave del nombre para mostrarlos por separado.
+                $numero = '';
+                $nombre = $g;
+                if (preg_match('/^([A-Za-z]*\d+[A-Za-z0-9\-]*)\s+(.+)$/u', $g, $m)) {
+                    $numero = $m[1];
+                    $nombre = $m[2];
+                }
                 $byGroup[$g] = [
                     'grupoid'      => $g,
+                    'numero'       => $numero,
+                    'nombre'       => $nombre,
                     'logo'         => $row['logo'] ?? '',
-                    'totalHcp'     => $totalHcp,
-                    'totalIndex'   => $totalIndex,
-                    'total'        => $comparado,
+                    // Totales legacy (pueden estar limitados a n jugadores fijos)
+                    'legacyHcp'    => $row['tothcp'] !== null ? (float)$row['tothcp'] : 0,
+                    'legacyIndex'  => $row['totindex'] !== null ? (float)$row['totindex'] : 0,
+                    'totalHcp'     => 0,
+                    'totalIndex'   => 0,
+                    'total'        => 0,
                     'handicapNeto' => $row['hn'] !== null ? (float)$row['hn'] : null,
-                    'fueraDeRango' => $hcpIndexMin > $comparado,
+                    'fueraDeRango' => false,
                     'players'      => [],
                 ];
             }
+            // Sumamos dinámicamente a TODOS los integrantes del equipo.
+            $byGroup[$g]['totalHcp']   += $row['hc'] !== null ? (float)$row['hc'] : 0;
+            $byGroup[$g]['totalIndex'] += $row['hi'] !== null ? (float)$row['hi'] : 0;
             $byGroup[$g]['players'][] = [
                 'id'      => $row['id'],
                 'nombre'  => $row['jugador'],
@@ -96,6 +107,19 @@ if ($campoid > 0) {
             ];
         }
         $res->free();
+
+        $maxPorEquipo = 0;
+        foreach ($byGroup as $g => $t) {
+            $n = count($t['players']);
+            if ($n > $maxPorEquipo) $maxPorEquipo = $n;
+            $byGroup[$g]['totalHcp']   = round($t['totalHcp'], 1) + 0;
+            $byGroup[$g]['totalIndex'] = round($t['totalIndex'], 1) + 0;
+            $comparado = ($indexCampo === '1') ? $byGroup[$g]['totalHcp'] : $byGroup[$g]['totalIndex'];
+            $byGroup[$g]['total']        = $comparado;
+            $byGroup[$g]['fueraDeRango'] = $hcpIndexMin > $comparado;
+            $byGroup[$g]['jugadores']    = $n;
+        }
+        if ($maxPorEquipo > 0) $numMaxJug = $maxPorEquipo;
         $teams = array_values($byGroup);
     }
 }

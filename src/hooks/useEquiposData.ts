@@ -21,6 +21,12 @@ export interface EquipoPlayer {
 
 export interface EquipoTeam {
   grupoid: string;
+  /** Número/clave del equipo (ej. AK9001), si viene en el identificador. */
+  numero?: string;
+  /** Nombre del equipo (ej. The Beginners). */
+  nombre?: string;
+  /** Integrantes reales del equipo. */
+  jugadores?: number;
   logo: string;
   totalHcp: number;
   totalIndex: number;
