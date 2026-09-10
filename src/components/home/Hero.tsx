@@ -38,6 +38,10 @@ const Hero = () => {
   const { data: tournamentInfo } = useTournamentInfo();
   const { data: siteConfig } = useSiteConfig();
   const isMultiTorneo = useIsMultiTorneo();
+  /** Torneos del sitio + su configuración, para los botones cruzados. */
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneos = siteTorneos?.torneos ?? [];
+  const configs = siteTorneos?.configs ?? {};
 
   /**
    * Resuelve un slot del hero:
