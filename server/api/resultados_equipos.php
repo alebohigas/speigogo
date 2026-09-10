@@ -50,7 +50,7 @@ $sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus, j.club A
                  $logoEqExpr AS logoeq,
                  $totalExprEq AS total_main";
 foreach ($diasEq as $i => $fechaEq) {
-    $sqlEq .= ", $diaFnEq(j.id, '" . esc_raw($conn, $fechaEq) . "') AS d{$i}";
+    $sqlEq .= ", $diaFnEq(j.id, '" . esc($conn, $fechaEq) . "') AS d{$i}";
 }
 $sqlEq .= " FROM jugadores j
             LEFT JOIN clubs b ON (j.clubid = b.id)
