@@ -194,6 +194,7 @@ export const useCategoryResults = (
         shortName: raw.shortName || '',
         system: raw.system || '',
         isParejas: !!raw.isParejas || (raw.format === 'PAREJAS'),
+        isEquipos: !!raw.isEquipos,
         format: raw.format,
         days: raw.days || [],
         daysPartial: Array.isArray(raw.daysPartial)
