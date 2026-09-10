@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Loader2, Users } from 'lucide-react';
 import jugadoresHero from '@/assets/jugadores-hero.jpg';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useCategories } from '@/hooks/usePlayersData';
 import { useEquipos } from '@/hooks/useEquiposData';
 import type { CategoryDetail } from '@/data/playersData';
@@ -158,7 +158,7 @@ const Equipos = () => {
                           </TableHeader>
                           <TableBody>
                             {teams.map((team) => (
-                              <>
+                              <Fragment key={team.grupoid}>
                                 {/* Separador gris entre equipos */}
                                 <TableRow key={`sep-${team.grupoid}`} className="hover:bg-transparent">
                                   <TableCell colSpan={4} className="p-0 h-2 bg-muted" />
@@ -216,7 +216,7 @@ const Equipos = () => {
                                     </TableCell>
                                   </TableRow>
                                 )}
-                              </>
+                              </Fragment>
                             ))}
                           </TableBody>
                         </Table>

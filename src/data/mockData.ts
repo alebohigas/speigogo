@@ -66,6 +66,7 @@ export const menuConfig: MenuItem[] = [
   { id: 'convocatoria', label: 'CONVOCATORIA', path: '/convocatoria', enabled: true, order: 2 },
   { id: 'eventos', label: 'EVENTOS', path: '/eventos', enabled: true, order: 3 },
   { id: 'jugadores', label: 'JUGADORES', path: '/jugadores', enabled: true, order: 4 },
+  { id: 'equipos', label: 'EQUIPOS', path: '/equipos', enabled: false, order: 4.5 },
   { id: 'salidas', label: 'SALIDAS', path: '/salidas', enabled: true, order: 5 },
   { id: 'live', label: 'LIVE', path: '/live', enabled: true, order: 6 },
   { id: 'resultados', label: 'RESULTADOS', path: '/resultados', enabled: true, order: 7 },
