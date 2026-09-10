@@ -607,21 +607,44 @@ const Salidas = () => {
                                           <TableCell className={`font-medium player-name-cell ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}>
                                             {/* Recorte a 4 renglones en móvil (.player-name-clamp).
                                               * MATCH PLAY: prefijo con la posición del jugador en su grupo. */}
-                                            <span className="player-name-clamp">
-                                              {matchPlay && player.position != null && player.position !== ''
-                                                ? `${player.position} ${player.name}`
-                                                : player.name}
+                                            <span className={`player-name-clamp ${player.members?.length ? 'font-bold' : ''}`}>
+                                              {player.members?.length
+                                                ? (player.groupId || player.name)
+                                                : matchPlay && player.position != null && player.position !== ''
+                                                  ? `${player.position} ${player.name}`
+                                                  : player.name}
                                             </span>
                                           </TableCell>
                                           {/* Score: en parejas se centra entre los dos renglones (rowSpan=2).
                                             * En MATCH PLAY la columna se omite por completo. */}
                                           {!matchPlay && (
-                                            <TableCell className="text-center font-bold text-primary align-middle" rowSpan={isPair ? 2 : 1}>
+                                            <TableCell
+                                              className="text-center font-bold text-primary align-middle"
+                                              rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                            >
                                               {player.score || '—'}
                                             </TableCell>
                                           )}
                                         </TableRow>
                                       );
+                                      // ----- EQUIPOS: integrantes con su tee de salida individual -----
+                                      (player.members ?? []).forEach((member, mIdx) => {
+                                        const isLastMember = mIdx === (player.members?.length ?? 0) - 1;
+                                        rows.push(
+                                          <TableRow
+                                            key={`${pIdx}-m${mIdx}`}
+                                            className={`bg-white hover:bg-white ${isLastMember ? '' : 'border-b-0'}`}
+                                          >
+                                            <TableCell className="p-1" />
+                                            <TableCell className="font-medium text-foreground player-name-cell">
+                                              <span className="player-name-clamp inline-flex items-center gap-2">
+                                                <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                                                {member.name}
+                                              </span>
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      });
                                       // ----- Renglón secundario (jugador 2) si es pareja -----
                                       if (isPair) {
                                         rows.push(
