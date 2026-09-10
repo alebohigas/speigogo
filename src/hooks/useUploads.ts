@@ -20,6 +20,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from '@/lib/apiClient';
+import { getConfigScope, useConfigScope } from '@/lib/configScope';
 
 /** Section identifiers accepted by the uploads endpoint. */
 export type UploadSection = 'eventos' | 'avisos' | 'menus' | 'premios' | 'hoteles' | 'convocatoria' | 'reglas' | 'skinrules' | 'banderas' | 'pdfs' | 'popup' | 'heros';
@@ -63,19 +64,28 @@ interface UploadResponse {
   errors: Array<{ name: string; error: string }>;
 }
 
+/**
+ * Multi-torneo: cada torneo guarda sus archivos en su propia carpeta
+ * (`scope=<torneoid>`); el alcance `general` conserva la carpeta histórica
+ * del dominio, así los sitios de un solo torneo no cambian.
+ */
+const scopeParam = (scope?: string) => `&scope=${encodeURIComponent(scope ?? getConfigScope())}`;
+
 /** Build the listing endpoint URL for a section. */
-const listUrl = (section: UploadSection) => `/api/uploads.php?section=${encodeURIComponent(section)}`;
+const listUrl = (section: UploadSection, scope?: string) =>
+  `/api/uploads.php?section=${encodeURIComponent(section)}${scopeParam(scope)}`;
 
 /** Build the upload endpoint URL for a section. */
-const uploadUrl = (section: UploadSection) =>
-  `/api/uploads.php?section=${encodeURIComponent(section)}&action=upload`;
+const uploadUrl = (section: UploadSection, scope?: string) =>
+  `/api/uploads.php?section=${encodeURIComponent(section)}&action=upload${scopeParam(scope)}`;
 
 /** Build the delete endpoint URL for a section. */
-const deleteUrl = (section: UploadSection) =>
-  `/api/uploads.php?section=${encodeURIComponent(section)}&action=delete`;
+const deleteUrl = (section: UploadSection, scope?: string) =>
+  `/api/uploads.php?section=${encodeURIComponent(section)}&action=delete${scopeParam(scope)}`;
 
 /** React Query key factory. */
-export const uploadsQueryKey = (section: UploadSection) => ['uploads', section] as const;
+export const uploadsQueryKey = (section: UploadSection, scope: string = getConfigScope()) =>
+  ['uploads', scope, section] as const;
 
 /**
  * useUploadsList
@@ -83,9 +93,10 @@ export const uploadsQueryKey = (section: UploadSection) => ['uploads', section] 
  * Cached for 30 s; invalidated automatically after upload/delete mutations.
  */
 export const useUploadsList = (section: UploadSection) => {
+  const scope = useConfigScope();
   return useQuery<UploadsListResponse>({
-    queryKey: uploadsQueryKey(section),
-    queryFn: () => apiFetch<UploadsListResponse>(listUrl(section)),
+    queryKey: uploadsQueryKey(section, scope),
+    queryFn: () => apiFetch<UploadsListResponse>(listUrl(section, scope)),
     staleTime: 30_000,
   });
 };
@@ -97,6 +108,7 @@ export const useUploadsList = (section: UploadSection) => {
  */
 export const useUploadFiles = (section: UploadSection) => {
   const queryClient = useQueryClient();
+  const scope = useConfigScope();
 
   return useMutation<UploadResponse, Error, { files: File[]; password: string }>({
     mutationFn: async ({ files, password }) => {
@@ -108,7 +120,7 @@ export const useUploadFiles = (section: UploadSection) => {
       // Backend accepts repeated `files[]` field for multi-file uploads.
       files.forEach((file) => formData.append('files[]', file, file.name));
 
-      const response = await fetch(uploadUrl(section), {
+      const response = await fetch(uploadUrl(section, scope), {
         method: 'POST',
         body: formData,
       });
@@ -118,15 +130,15 @@ export const useUploadFiles = (section: UploadSection) => {
 
       if (!response.ok) {
         const message = parsed?.error || `Error subiendo archivos (HTTP ${response.status})`;
-        throw new ApiError(message, response.status, uploadUrl(section), text, parsed);
+        throw new ApiError(message, response.status, uploadUrl(section, scope), text, parsed);
       }
       if (!parsed) {
-        throw new ApiError('Respuesta inválida del servidor', response.status, uploadUrl(section), text);
+        throw new ApiError('Respuesta inválida del servidor', response.status, uploadUrl(section, scope), text);
       }
       return parsed as UploadResponse;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: uploadsQueryKey(section) });
+      queryClient.invalidateQueries({ queryKey: uploadsQueryKey(section, scope) });
     },
   });
 };
@@ -137,10 +149,11 @@ export const useUploadFiles = (section: UploadSection) => {
  */
 export const useDeleteFile = (section: UploadSection) => {
   const queryClient = useQueryClient();
+  const scope = useConfigScope();
 
   return useMutation<{ deleted: true; name: string }, Error, { name: string; password: string }>({
     mutationFn: async ({ name, password }) => {
-      const response = await fetch(deleteUrl(section), {
+      const response = await fetch(deleteUrl(section, scope), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, password }),
@@ -151,12 +164,12 @@ export const useDeleteFile = (section: UploadSection) => {
 
       if (!response.ok) {
         const message = parsed?.error || `Error eliminando archivo (HTTP ${response.status})`;
-        throw new ApiError(message, response.status, deleteUrl(section), text, parsed);
+        throw new ApiError(message, response.status, deleteUrl(section, scope), text, parsed);
       }
       return parsed as { deleted: true; name: string };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: uploadsQueryKey(section) });
+      queryClient.invalidateQueries({ queryKey: uploadsQueryKey(section, scope) });
     },
   });
 };
