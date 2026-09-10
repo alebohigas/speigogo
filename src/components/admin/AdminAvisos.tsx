@@ -54,6 +54,7 @@ import { AVISOS_POSTERS } from '@/lib/posterAssets';
 // Server-uploaded posters take precedence over build-time assets so the
 // admin preview matches what visitors actually see on /avisos.
 import { useUploadsList } from '@/hooks/useUploads';
+import AdminInheritControl from './AdminInheritControl';
 
 // ============= Constants =============
 
@@ -453,6 +454,8 @@ const AdminAvisos = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Herencia desde el alcance General (multi-torneo). */}
+        <AdminInheritControl section="avisos" />
         {isLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <Loader2 className="h-4 w-4 animate-spin" />
