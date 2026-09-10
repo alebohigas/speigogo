@@ -875,6 +875,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!$conn->query($sql)) {
         json_error('Failed to save config: ' . $conn->error);
     }
+
+    /**
+     * La paleta General puede convertirse en la paleta común de todos los
+     * torneos del dominio. Sólo se copia theme_config; ninguna otra
+     * configuración individual se modifica.
+     */
+    if (
+        $hasScope &&
+        $scope === 'general' &&
+        !empty($body['apply_theme_to_all']) &&
+        array_key_exists('theme_config', $body)
+    ) {
+        $themeVal = $body['theme_config'] !== null
+            ? "'" . esc($conn, json_encode($body['theme_config'])) . "'"
+            : 'NULL';
+        $copySql = "INSERT INTO site_config (domain, scope, torneoid, theme_config)
+                    SELECT '$domain', CAST(st.torneoid AS CHAR), st.torneoid, $themeVal
+                    FROM site_torneos st
+                    WHERE st.domain = '$domain'
+                    ON DUPLICATE KEY UPDATE theme_config = VALUES(theme_config)";
+        if (!$conn->query($copySql)) {
+            json_error('La paleta General se guardó, pero no pudo copiarse a los torneos: ' . $conn->error, 500);
+        }
+    }
     
     json_response([
         'domain' => $_SERVER['HTTP_HOST'],

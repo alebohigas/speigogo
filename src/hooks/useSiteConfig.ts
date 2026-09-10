@@ -566,6 +566,8 @@ export interface SaveConfigPayload {
   premios_config?: PremiosConfig | null;
   hoteles_config?: HotelesConfig | null;
   theme_config?: ThemeConfig | null;
+  /** Desde General, copia la paleta guardada a todos los torneos del dominio. */
+  apply_theme_to_all?: boolean;
   stats_config?: StatsConfig | null;
   popup_config?: PopupConfig | null;
   anuncio_config?: AnuncioConfig | null;
