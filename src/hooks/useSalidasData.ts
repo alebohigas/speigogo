@@ -90,6 +90,8 @@ export interface SalidasDetailResponse {
   tee: string;
   /** true cuando la categoría es MATCH PLAY (jugadores agrupados por match). */
   isMatchPlay?: boolean;
+  /** true cuando la categoría se juega por equipos (tee individual por jugador). */
+  isEquipos?: boolean;
   groups: SalidasGroup[];
 
 }
