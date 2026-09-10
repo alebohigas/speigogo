@@ -20,6 +20,12 @@
 
 SET NAMES utf8mb4;
 
+-- 0) Normalizar colación: mezclar utf8mb4_unicode_ci con utf8mb4_general_ci
+--    provoca el error 1267 en los JOIN por `domain`. Unificamos todo a
+--    utf8mb4_unicode_ci (tablas y columnas de texto).
+ALTER TABLE site_config  CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE site_torneos CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- 1) Alinear site_config.general con el primer torneo activo del dominio.
 UPDATE site_config sc
 JOIN (
@@ -29,7 +35,7 @@ JOIN (
     SELECT domain, MIN(orden * 100000 + id) AS rank_key
     FROM site_torneos WHERE activo = 1 GROUP BY domain
   ) f ON f.domain = st.domain AND (st.orden * 100000 + st.id) = f.rank_key
-) p ON p.domain = sc.domain
+) p ON p.domain = sc.domain COLLATE utf8mb4_unicode_ci
 SET sc.torneoid = p.torneoid
 WHERE sc.scope = 'general';
 
