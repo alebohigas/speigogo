@@ -120,6 +120,9 @@ export interface ResultCategory {
    *  para enrutar el click de R{n} a `tarjeta_parejas.php` en vez de
    *  `resultados_tarjeta.php`. */
   isParejas?: boolean;
+  /** True cuando la categoría se juega por equipos (formato AGOGO). El
+   *  leaderboard muestra un renglón por equipo con sus integrantes debajo. */
+  isEquipos?: boolean;
   /** Format genérico ('INDIVIDUAL' | 'PAREJAS') del backend. */
   format?: string;
   /** Default scorecard type for this category (can be overridden per scoring) */
