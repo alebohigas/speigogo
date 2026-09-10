@@ -54,11 +54,12 @@ SELECT g.domain, CAST(st.torneoid AS CHAR), st.torneoid, g.menu_order, g.visibil
        g.anuncio_config, g.home_config, g.hero_config, g.historial_config, g.stats_config,
        g.stats_page_config, g.modules_config, g.tarjetas_config, g.theme_config
 FROM site_torneos st
-JOIN site_config g ON g.domain = st.domain AND g.scope = 'general'
+JOIN site_config g ON g.domain = st.domain COLLATE utf8mb4_unicode_ci AND g.scope = 'general'
 WHERE st.activo = 1
   AND NOT EXISTS (
     SELECT 1 FROM (SELECT domain, scope FROM site_config) x
-    WHERE x.domain = st.domain AND x.scope = CAST(st.torneoid AS CHAR)
+    WHERE x.domain = st.domain COLLATE utf8mb4_unicode_ci
+      AND x.scope = CAST(st.torneoid AS CHAR)
   );
 
 -- 3) Índice de apoyo para las consultas por dominio.
