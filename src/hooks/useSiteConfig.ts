@@ -292,8 +292,8 @@ export interface StatsPageConfig {
 /**
  * HomeConfig
  * -----------------------------------------------------------------------
- * Home page ("/") configurable pieces. Currently only the two hero CTA
- * buttons. The admin picks up to 2 page ids from the menu; if a selected
+ * Home page ("/") configurable pieces. Includes the shared site title and
+ * the two hero CTA buttons. The admin picks up to 2 page ids from the menu; if a selected
  * page is hidden or missing the Hero falls back per slot to the legacy
  * routes ("/convocatoria" for slot 1 and "/jugadores" for slot 2).
  *
@@ -301,6 +301,8 @@ export interface StatsPageConfig {
  */
 export interface HomeConfig {
   buttons: [string | null, string | null];
+  /** Título de la portada compartida en sitios con varios torneos. */
+  title?: string | null;
 }
 
 /**

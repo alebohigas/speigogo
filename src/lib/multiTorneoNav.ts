@@ -109,7 +109,8 @@ export const buildMultiTorneoNav = (
         id: `torneo-${t.torneoid}`,
         label: t.nombre || `Torneo ${t.torneoid}`,
         children,
-        orden: Number(t.orden) > 0 ? Number(t.orden) : i + 1,
+        orden: configs.general?.menu_order?.[`torneo-${t.torneoid}`]
+          ?? (Number(t.orden) > 0 ? Number(t.orden) : i + 1),
       };
     })
     .filter((g) => (g.children?.length ?? 0) > 0);

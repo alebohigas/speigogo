@@ -19,6 +19,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, MousePointerClick, Save } from 'lucide-react';
@@ -26,6 +27,7 @@ import { useSiteConfig, useSaveSiteConfig, type HomeConfig } from '@/hooks/useSi
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
+import { useConfigScope } from '@/lib/configScope';
 
 /** Sentinel value used by the Select to represent "use fallback". */
 const NONE = '__none__';
@@ -35,6 +37,7 @@ const AdminHomeButtons = () => {
   const saveSiteConfig = useSaveSiteConfig();
   const { getAllMenuItems, visibilitySettings } = usePageVisibility();
   const { toast } = useToast();
+  const scope = useConfigScope();
 
   /** Full menu items list (admin view — includes hidden pages). */
   const menuItems = useMemo(() => getAllMenuItems(), [getAllMenuItems]);
@@ -42,17 +45,22 @@ const AdminHomeButtons = () => {
   /** Local selection for each of the two slots (null = fallback). */
   const [btn1, setBtn1] = useState<string | null>(null);
   const [btn2, setBtn2] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
 
   /** Hydrate from server config whenever it changes. */
   useEffect(() => {
     const cfg = siteConfig?.home_config;
     setBtn1(cfg?.buttons?.[0] ?? null);
     setBtn2(cfg?.buttons?.[1] ?? null);
+    setTitle(cfg?.title ?? '');
   }, [siteConfig?.home_config]);
 
   /** Persist current selection to site_config. */
   const handleSave = () => {
-    const payload: HomeConfig = { buttons: [btn1, btn2] };
+    const payload: HomeConfig = {
+      buttons: [btn1, btn2],
+      ...(scope === 'general' ? { title: title.trim() || null } : {}),
+    };
     saveSiteConfig.mutate(
       { password: getSuperAdminPassword(), home_config: payload },
       {
@@ -124,6 +132,21 @@ const AdminHomeButtons = () => {
           </div>
         ) : (
           <>
+            {scope === 'general' && (
+              <div className="space-y-2 border-b pb-5">
+                <Label htmlFor="general-home-title">Título de la página General</Label>
+                <Input
+                  id="general-home-title"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Torneo de Golf"
+                  maxLength={120}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Se muestra en la portada compartida donde viven todos los torneos.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {renderSlot(1, btn1, setBtn1)}
               {renderSlot(2, btn2, setBtn2)}

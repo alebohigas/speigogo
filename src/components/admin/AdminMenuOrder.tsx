@@ -45,6 +45,7 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
+  Trophy,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { MenuItem } from '@/data/mockData';
 import type { MenuGroup } from './AdminMenuGroups';
+import { useConfigScope } from '@/lib/configScope';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 
 // ============= Types =============
 
@@ -94,12 +97,33 @@ const AdminMenuOrder = ({
   onGroupsChange,
   onPageGroupChange,
 }: AdminMenuOrderProps) => {
+  const scope = useConfigScope();
+  const { data: siteTorneos } = useSiteTorneos();
+  const tournamentItems = useMemo<MenuItem[]>(
+    () => scope === 'general'
+      ? (siteTorneos?.torneos ?? [])
+          .filter((torneo) => torneo.activo !== false)
+          .map((torneo, index) => ({
+            id: `torneo-${torneo.torneoid}`,
+            label: torneo.nombre || `Torneo ${torneo.torneoid}`,
+            path: `/${torneo.slug}`,
+            order: Number(torneo.orden) > 0 ? Number(torneo.orden) : index + 1,
+            enabled: true,
+          }))
+      : [],
+    [scope, siteTorneos?.torneos],
+  );
+  const orderItems = useMemo(
+    () => [...menuItems, ...tournamentItems],
+    [menuItems, tournamentItems],
+  );
+
   // --------- Lookup maps ---------
   const pagesById = useMemo(() => {
     const m = new Map<string, MenuItem>();
-    menuItems.forEach((p) => m.set(p.id, p));
+    orderItems.forEach((p) => m.set(p.id, p));
     return m;
-  }, [menuItems]);
+  }, [orderItems]);
 
   /**
    * Build the hierarchical TopLevelRow[] from the current flat order +
@@ -108,7 +132,7 @@ const AdminMenuOrder = ({
    * by their per-page order.
    */
   const buildHierarchy = (): TopLevelRow[] => {
-    const sorted = [...menuItems].sort((a, b) => {
+    const sorted = [...orderItems].sort((a, b) => {
       const oa = menuItemOrder[a.id] ?? a.order;
       const ob = menuItemOrder[b.id] ?? b.order;
       return oa - ob;
@@ -157,7 +181,7 @@ const AdminMenuOrder = ({
   useEffect(() => {
     setRows(buildHierarchy());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [menuItemOrder, menuItems, pageGroupAssignments, menuGroups]);
+  }, [menuItemOrder, orderItems, pageGroupAssignments, menuGroups]);
 
   /**
    * Flatten the hierarchical rows into a sequential per-page order map and
@@ -296,6 +320,7 @@ const AdminMenuOrder = ({
     const page = pagesById.get(pageId);
     if (!page) return null;
     const isVisible = visibilitySettings[pageId] ?? true;
+    const isTournament = pageId.startsWith('torneo-');
 
     return (
       <div
@@ -306,8 +331,13 @@ const AdminMenuOrder = ({
           isInsideGroup && 'border-dashed',
         )}
       >
-        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+        {isTournament ? (
+          <Trophy className="h-4 w-4 text-secondary shrink-0" />
+        ) : (
+          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+        )}
         <span className="font-medium flex-1 truncate">{page.label}</span>
+        {isTournament && <Badge variant="outline">Torneo</Badge>}
         {isVisible ? (
           <Eye className="h-4 w-4 text-primary" />
         ) : (
@@ -327,7 +357,7 @@ const AdminMenuOrder = ({
               Orden del Menú
             </CardTitle>
             <CardDescription>
-              Arrastra grupos y páginas para reordenarlos. Dentro de un grupo, las
+              Arrastra torneos, grupos y páginas para reordenarlos. Dentro de un grupo, las
               páginas pueden reordenarse y moverse a otro grupo. Para añadir o quitar
               una página de un grupo, usa la pestaña "Grupos del Menú".
             </CardDescription>
