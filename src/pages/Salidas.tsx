@@ -534,15 +534,25 @@ const Salidas = () => {
                                   <TableRow className="bg-primary hover:bg-primary">
                                     <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
                                     <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                    {(hasAnyPair(result.group.players ?? []) || hasTeamMembers(result.group.players ?? [])) && (
-                                      <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
-                                    )}
-                                    <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
-                                    <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
-                                    {/* MATCH PLAY: la columna Score no aplica en enfrentamientos. */}
-                                    {!(!!result.matchPlay || isMatchPlaySystem(result.system)) && (
-                                      <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
-                                    )}
+                                    {(() => {
+                                      const equipos = hasTeamMembers(result.group.players ?? []);
+                                      const showPairTeam = hasAnyPair(result.group.players ?? []);
+                                      return (
+                                        <>
+                                          {showPairTeam && !equipos && (
+                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
+                                          )}
+                                          <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
+                                          <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
+                                          {equipos && (
+                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Tee</TableHead>
+                                          )}
+                                          {!(!!result.matchPlay || isMatchPlaySystem(result.system)) && (
+                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
