@@ -56,6 +56,17 @@ export interface SalidasPlayer {
   matchSide?: number;
   /** MATCH PLAY: posición/siembra del jugador dentro de su grupo (`jugadores.grupo`). */
   position?: string | number;
+  /** EQUIPOS: integrantes del equipo, cada uno con su tee de salida propio. */
+  members?: SalidasTeamMember[];
+}
+
+/** EQUIPOS: integrante de un equipo con su tee de salida individual. */
+export interface SalidasTeamMember {
+  name: string;
+  tee: string;
+  bgColor?: string;
+  color?: string;
+  hi?: string | number | null;
 }
 
 
@@ -79,6 +90,8 @@ export interface SalidasDetailResponse {
   tee: string;
   /** true cuando la categoría es MATCH PLAY (jugadores agrupados por match). */
   isMatchPlay?: boolean;
+  /** true cuando la categoría se juega por equipos (tee individual por jugador). */
+  isEquipos?: boolean;
   groups: SalidasGroup[];
 
 }
@@ -129,6 +142,7 @@ export const useSalidasDetail = (
         system: data?.system ?? '',
         tee: data?.tee ?? '',
         isMatchPlay: !!data?.isMatchPlay,
+        isEquipos: !!data?.isEquipos,
         groups: Array.isArray(data?.groups) ? data.groups : [],
 
       };

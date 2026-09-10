@@ -45,6 +45,39 @@ const hasAnyPair = (players: SalidasGroup['players']): boolean =>
 const groupsHaveAnyPair = (groups: SalidasGroup[] | undefined): boolean =>
   (groups ?? []).some((g) => hasAnyPair(g.players ?? []));
 
+/**
+ * EQUIPOS: la salida se arma por equipo, pero cada integrante sale desde el tee
+ * que le corresponde según su handicap. El API entrega `members` por equipo.
+ */
+const hasTeamMembers = (players: SalidasGroup['players']): boolean =>
+  (players ?? []).some((p) => (p.members?.length ?? 0) > 0);
+
+const groupsHaveTeamMembers = (groups: SalidasGroup[] | undefined): boolean =>
+  (groups ?? []).some((g) => hasTeamMembers(g.players ?? []));
+
+/** Renglones que ocupa un grupo en modo EQUIPOS: 1 por equipo + 1 por integrante. */
+const countGroupRowsTeam = (players: SalidasGroup['players']): number =>
+  (players ?? []).reduce((acc, p) => acc + 1 + (p.members?.length ?? 0), 0);
+
+/** Bolita con el color del tee de salida del jugador + abreviatura del tee. */
+const TeeDot = ({ tee, bgColor, color }: { tee?: string; bgColor?: string; color?: string }) => (
+  <span className="inline-flex items-center gap-1.5 align-middle">
+    <span
+      className="inline-block rounded-full border border-border"
+      style={{ width: '0.7rem', height: '0.7rem', backgroundColor: bgColor || 'transparent' }}
+      aria-hidden
+    />
+    {tee ? (
+      <span
+        className="text-[0.7rem] font-semibold px-1 rounded"
+        style={{ backgroundColor: bgColor || 'transparent', color: color || 'inherit' }}
+      >
+        {tee}
+      </span>
+    ) : null}
+  </span>
+);
+
 /** Detecta MATCH PLAY a partir del nombre del sistema de juego. */
 const isMatchPlaySystem = (system?: string): boolean =>
   !!system && /match\s*play/i.test(system);
@@ -501,7 +534,7 @@ const Salidas = () => {
                                   <TableRow className="bg-primary hover:bg-primary">
                                     <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
                                     <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                    {hasAnyPair(result.group.players ?? []) && (
+                                    {(hasAnyPair(result.group.players ?? []) || hasTeamMembers(result.group.players ?? [])) && (
                                       <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
                                     )}
                                     <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
@@ -523,8 +556,12 @@ const Salidas = () => {
                                     const vsIdx = vsAfterIndexes(players, matchPlay);
                                     /* MATCH PLAY: renglón "VS" entre los dos contendientes del match. */
                                     const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
-                                    const totalRows = countGroupRowsWithVs(players, matchPlay);
-                                    const showTeam = hasAnyPair(players);
+                                    /* EQUIPOS: cada equipo agrega un renglón por integrante. */
+                                    const equipos = hasTeamMembers(players);
+                                    const totalRows = equipos
+                                      ? countGroupRowsTeam(players)
+                                      : countGroupRowsWithVs(players, matchPlay);
+                                    const showTeam = hasAnyPair(players) || equipos;
                                     const lineCols = showTeam ? 5 : 4;
                                     let firstRowEmitted = false;
                                     const rows: JSX.Element[] = [];
@@ -555,7 +592,10 @@ const Salidas = () => {
                                           {showTeam && (
                                             /* Código de pareja/equipo (p.ej. C05). Abarca ambos renglones
                                              * de la pareja con rowSpan=2 para que se centre verticalmente. */
-                                            <TableCell className="text-center font-bold text-foreground align-middle" rowSpan={isPair ? 2 : 1}>
+                                            <TableCell
+                                              className="text-center font-bold text-foreground align-middle"
+                                              rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                            >
                                               {player.groupId || '—'}
                                             </TableCell>
                                           )}
@@ -567,21 +607,44 @@ const Salidas = () => {
                                           <TableCell className={`font-medium player-name-cell ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}>
                                             {/* Recorte a 4 renglones en móvil (.player-name-clamp).
                                               * MATCH PLAY: prefijo con la posición del jugador en su grupo. */}
-                                            <span className="player-name-clamp">
-                                              {matchPlay && player.position != null && player.position !== ''
-                                                ? `${player.position} ${player.name}`
-                                                : player.name}
+                                            <span className={`player-name-clamp ${player.members?.length ? 'font-bold' : ''}`}>
+                                              {player.members?.length
+                                                ? (player.groupId || player.name)
+                                                : matchPlay && player.position != null && player.position !== ''
+                                                  ? `${player.position} ${player.name}`
+                                                  : player.name}
                                             </span>
                                           </TableCell>
                                           {/* Score: en parejas se centra entre los dos renglones (rowSpan=2).
                                             * En MATCH PLAY la columna se omite por completo. */}
                                           {!matchPlay && (
-                                            <TableCell className="text-center font-bold text-primary align-middle" rowSpan={isPair ? 2 : 1}>
+                                            <TableCell
+                                              className="text-center font-bold text-primary align-middle"
+                                              rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                            >
                                               {player.score || '—'}
                                             </TableCell>
                                           )}
                                         </TableRow>
                                       );
+                                      // ----- EQUIPOS: integrantes con su tee de salida individual -----
+                                      (player.members ?? []).forEach((member, mIdx) => {
+                                        const isLastMember = mIdx === (player.members?.length ?? 0) - 1;
+                                        rows.push(
+                                          <TableRow
+                                            key={`${pIdx}-m${mIdx}`}
+                                            className={`bg-white hover:bg-white ${isLastMember ? '' : 'border-b-0'}`}
+                                          >
+                                            <TableCell className="p-1" />
+                                            <TableCell className="font-medium text-foreground player-name-cell">
+                                              <span className="player-name-clamp inline-flex items-center gap-2">
+                                                <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                                                {member.name}
+                                              </span>
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      });
                                       // ----- Renglón secundario (jugador 2) si es pareja -----
                                       if (isPair) {
                                         rows.push(
@@ -628,7 +691,7 @@ const Salidas = () => {
                                 <tfoot>
                                   <tr className="bg-primary">
                                     <td
-                                      colSpan={(hasAnyPair(result.group.players ?? []) ? 6 : 5) - ((!!result.matchPlay || isMatchPlaySystem(result.system)) ? 1 : 0)}
+                                      colSpan={((hasAnyPair(result.group.players ?? []) || hasTeamMembers(result.group.players ?? [])) ? 6 : 5) - ((!!result.matchPlay || isMatchPlaySystem(result.system)) ? 1 : 0)}
                                       className="text-primary-foreground font-bold text-center py-2 text-sm"
                                     >
                                       CATEGORÍA: {result.categoryName}
@@ -761,7 +824,7 @@ const Salidas = () => {
                               <TableRow className="bg-primary hover:bg-primary">
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                {groupsHaveAnyPair(detail.groups) && (
+                                {(groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) && (
                                   <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
                                 )}
                                 <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
@@ -784,8 +847,12 @@ const Salidas = () => {
                                 const vsIdx = vsAfterIndexes(players, matchPlay);
                                 /* MATCH PLAY: renglón "VS" entre los dos contendientes del match. */
                                 const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
-                                const totalRows = countGroupRowsWithVs(players, matchPlay);
-                                const showTeam = groupsHaveAnyPair(detail.groups);
+                                /* EQUIPOS: cada equipo agrega un renglón por integrante. */
+                                const equipos = hasTeamMembers(players);
+                                const totalRows = equipos
+                                  ? countGroupRowsTeam(players)
+                                  : countGroupRowsWithVs(players, matchPlay);
+                                const showTeam = groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups);
                                 const lineCols = showTeam ? 5 : 4;
                                 const totalCols = lineCols + (!matchPlay ? 1 : 0);
                                 const isLastGroup = gIdx >= (detail.groups ?? []).length - 1;
@@ -817,8 +884,11 @@ const Salidas = () => {
                                       ) : null}
                                       {showTeam && (
                                         /* Columna "Equipo": código de pareja/grupo (p.ej. C05).
-                                         * rowSpan=2 cuando hay pareja para centrar verticalmente. */
-                                        <TableCell className="text-center font-bold text-foreground align-middle" rowSpan={isPair ? 2 : 1}>
+                                         * rowSpan=2 cuando hay pareja; en EQUIPOS abarca al equipo y sus integrantes. */
+                                        <TableCell
+                                          className="text-center font-bold text-foreground align-middle"
+                                          rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                        >
                                           {player.groupId || '—'}
                                         </TableCell>
                                       )}
@@ -827,22 +897,46 @@ const Salidas = () => {
                                           <img src={player.clubLogo} alt="Club" className="w-auto object-contain rounded inline-block" style={{ height: '2.1375rem' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                         ) : (<span className="text-xs text-muted-foreground">—</span>)}
                                       </TableCell>
-                                       <TableCell className="font-medium text-foreground player-name-cell">
-                                         {/* MATCH PLAY: se antepone la posición del jugador en su grupo. */}
-                                         <span className="player-name-clamp">
-                                           {matchPlay && player.position != null && player.position !== ''
-                                             ? `${player.position} ${player.name}`
-                                             : player.name}
+                                        <TableCell className="font-medium text-foreground player-name-cell">
+                                         {/* MATCH PLAY: se antepone la posición del jugador en su grupo.
+                                           * EQUIPOS: el renglón principal identifica al equipo. */}
+                                         <span className="player-name-clamp font-bold">
+                                           {player.members?.length
+                                             ? (player.groupId || player.name)
+                                             : matchPlay && player.position != null && player.position !== ''
+                                               ? `${player.position} ${player.name}`
+                                               : player.name}
                                          </span>
                                        </TableCell>
                                       {/* En MATCH PLAY se omite la celda de Score. */}
                                       {!matchPlay && (
-                                        <TableCell className="text-center font-bold text-primary align-middle" rowSpan={isPair ? 2 : 1}>
+                                        <TableCell
+                                          className="text-center font-bold text-primary align-middle"
+                                          rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                        >
                                           {player.score || '—'}
                                         </TableCell>
                                       )}
                                     </TableRow>
                                   );
+                                  // ----- EQUIPOS: integrantes con su tee de salida individual -----
+                                  (player.members ?? []).forEach((member, mIdx) => {
+                                    const isLastMember = mIdx === (player.members?.length ?? 0) - 1;
+                                    rows.push(
+                                      <TableRow
+                                        key={`${group.id}-${pIdx}-m${mIdx}`}
+                                        className={`bg-white hover:bg-white ${isLastMember ? '' : 'border-b-0'}`}
+                                      >
+                                        <TableCell className="p-1" />
+                                        <TableCell className="font-medium text-foreground player-name-cell">
+                                          <span className="player-name-clamp inline-flex items-center gap-2">
+                                            <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                                            {member.name}
+                                          </span>
+                                        </TableCell>
+                                      </TableRow>
+                                    );
+                                  });
                                   // ----- Renglón secundario (segundo integrante de la pareja) -----
                                   if (isPair) {
                                     rows.push(
@@ -897,7 +991,7 @@ const Salidas = () => {
                             <tfoot>
                               <tr className="bg-primary">
                                 <td
-                                  colSpan={(groupsHaveAnyPair(detail.groups) ? 6 : 5) - ((!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) ? 1 : 0)}
+                                  colSpan={((groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) ? 6 : 5) - ((!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) ? 1 : 0)}
                                   className="text-primary-foreground font-bold text-center py-2 text-sm"
                                 >
                                   CATEGORÍA: {detail.categoryName}

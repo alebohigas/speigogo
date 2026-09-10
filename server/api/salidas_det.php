@@ -118,6 +118,41 @@ if ($isMatchPlay) {
 // Determine view name based on format
 $viewName = $isParejas ? 'v_sal_jug_par' : 'v_sal_jug';
 
+/**
+ * EQUIPOS (formato tipo AGOGO): la salida se genera por grupo, pero cada
+ * integrante puede jugar desde un tee distinto según su handicap.
+ * Se replica el legacy `salidas_det2.php`: por cada grupo se listan sus
+ * jugadores con el tee (nombre + colores) tomado de `jugadores.teesalidaid`.
+ */
+$membersByGroup = [];
+$isEquipos = false;
+if (!$isParejas && !$isMatchPlay) {
+    $catid = esc($conn, $calInfo['categoriaid']);
+    $memberRows = query_all(
+        $conn,
+        "SELECT a.grupoid, CONCAT(a.nombre, ' ', a.apellido) AS jugador,
+                s.tee, s.bgcolor, s.color, a.indexjgo AS hi
+           FROM jugadores a
+           JOIN salidas s ON (a.teesalidaid = s.id)
+          WHERE a.categoriaid = $catid AND a.grupoid IS NOT NULL AND a.grupoid <> ''
+          ORDER BY a.grupoid, a.nombre, a.apellido"
+    );
+    foreach (($memberRows ?: []) as $mr) {
+        $gid = (string)$mr['grupoid'];
+        $membersByGroup[$gid][] = [
+            'name'    => trim($mr['jugador']),
+            'tee'     => $mr['tee'] ?? '',
+            'bgColor' => $mr['bgcolor'] ?? '',
+            'color'   => $mr['color'] ?? '',
+            'hi'      => $mr['hi'],
+        ];
+    }
+    foreach ($membersByGroup as $gid => $members) {
+        if (count($members) > 1) { $isEquipos = true; break; }
+    }
+    if (!$isEquipos) $membersByGroup = [];
+}
+
 
 foreach ($groupRows as $group) {
     $salid = esc($conn, $group['id']);
@@ -268,6 +303,10 @@ foreach ($groupRows as $group) {
         }
         if (isset($pr['grupoid'])) {
             $player['groupId'] = $pr['grupoid'];
+            /* EQUIPOS: integrantes del equipo con su tee de salida individual. */
+            if ($isEquipos && isset($membersByGroup[(string)$pr['grupoid']])) {
+                $player['members'] = $membersByGroup[(string)$pr['grupoid']];
+            }
         }
         /* MATCH PLAY: adjunta número de match y lado (1|2) para que el
          * frontend agrupe a los jugadores por enfrentamiento e inserte "VS". */
@@ -316,6 +355,9 @@ json_response([
     'tee'          => $calInfo['tee'],
     /* Bandera para que el frontend active el render agrupado por match + "VS". */
     'isMatchPlay'  => $isMatchPlay,
+    /* Bandera para que el frontend muestre los integrantes del equipo con su
+     * tee de salida individual (bolita de color). */
+    'isEquipos'    => $isEquipos,
     'groups'       => $groups
 
 ]);
