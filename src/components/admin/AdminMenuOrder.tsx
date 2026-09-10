@@ -534,7 +534,7 @@ const GroupRow = ({
               ref={provided.innerRef}
               {...provided.droppableProps}
               className={cn(
-                'p-2 pl-8 space-y-1 min-h-[44px] transition-colors',
+                'p-2 pl-8 min-h-[44px] transition-colors',
                 snapshot.isDraggingOver && 'bg-accent/20',
               )}
             >
