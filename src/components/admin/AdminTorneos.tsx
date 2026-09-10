@@ -49,8 +49,10 @@ const AdminTorneos = () => {
   }, [data?.torneos]);
 
   useEffect(() => {
-    const tid = Number(data?.configs?.general?.torneoid ?? 0);
-    if (tid > 0) setGeneralTorneo(tid);
+    const gen = data?.configs?.general as (Partial<SiteConfig> & { torneoid_auto?: boolean }) | undefined;
+    if (!gen) return;
+    // Automático: la vista general no guarda ningún torneo fijo.
+    setGeneralTorneo(gen.torneoid_auto ? 0 : Number(gen.torneoid ?? 0) || 0);
   }, [data?.configs]);
 
   const handleSaveGeneral = () => {
