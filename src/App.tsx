@@ -20,6 +20,7 @@ import { useEffect } from "react";
 import Index from "./pages/Index";
 import Convocatoria from "./pages/Convocatoria";
 import Eventos from "./pages/Eventos";
+import Equipos from './pages/Equipos';
 import Jugadores from "./pages/Jugadores";
 import Salidas from "./pages/Salidas";
 import LiveScoring from "./pages/LiveScoring";
@@ -138,6 +139,7 @@ const publicPages: { path: string; element: React.ReactNode }[] = [
   { path: 'convocatoria', element: <ProtectedRoute pageId="convocatoria"><Convocatoria /></ProtectedRoute> },
   { path: 'eventos', element: <ProtectedRoute pageId="eventos"><Eventos /></ProtectedRoute> },
   { path: 'jugadores', element: <ProtectedRoute pageId="jugadores"><Jugadores /></ProtectedRoute> },
+  { path: 'equipos', element: <ProtectedRoute pageId="equipos"><Equipos /></ProtectedRoute> },
   { path: 'salidas', element: <ProtectedRoute pageId="salidas"><Salidas /></ProtectedRoute> },
   { path: 'live-scoring', element: <ProtectedRoute pageId="live-scoring"><LiveScoring /></ProtectedRoute> },
   { path: 'live', element: <ProtectedRoute pageId="live"><Live /></ProtectedRoute> },

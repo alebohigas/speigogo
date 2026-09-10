@@ -99,6 +99,14 @@ export const getPlayersApiUrl = (catId: string, opts: { skin?: boolean } = {}): 
     ...(opts.skin ? { skin: '1' } : {}),
   })}`;
 
+/**
+ * Equipos (formato AGOGO) por categoría — /api/equipos.php.
+ * Devuelve jugadores agrupados por `grupoid` con H.I., H.C. y totales.
+ */
+export const getEquiposUrl = (catId: string): string =>
+  `${API_BASE_URL}/equipos.php${buildQuery({ catid: catId })}`;
+
+
 /** Calendario - tournament calendar from caljuego table */
 export const getCalendarioUrl = (): string => `${API_BASE_URL}/calendario.php${buildQuery()}`;
 
