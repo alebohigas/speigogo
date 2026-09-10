@@ -31,6 +31,7 @@ import type {
 } from '@/data/resultadosData';
 import ScorecardRow from '@/components/resultados/ScorecardRow';
 import ScorecardParejas from '@/components/resultados/ScorecardParejas';
+import EquipoLogo from '@/components/equipos/EquipoLogo';
 
 // ============= Helper Functions =============
 
