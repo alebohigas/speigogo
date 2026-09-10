@@ -59,7 +59,7 @@ WHERE st.activo = 1
   AND NOT EXISTS (
     SELECT 1 FROM (SELECT domain, scope FROM site_config) x
     WHERE x.domain = st.domain COLLATE utf8mb4_unicode_ci
-      AND x.scope = CAST(st.torneoid AS CHAR)
+      AND x.scope COLLATE utf8mb4_unicode_ci = CAST(st.torneoid AS CHAR) COLLATE utf8mb4_unicode_ci
   );
 
 -- 3) Índice de apoyo para las consultas por dominio.
