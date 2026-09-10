@@ -926,14 +926,27 @@ if ($tipo === '' || $tipo === 'oyes300') {
             $prizeIdEsc  = esc($conn, $prizeId);   // filters oyesxjug.premio
             $descripcion = $descRaw !== '' ? $descRaw : ('Hoyo ' . $holeNum);
 
-            // Count results for THIS prize. `oyesxjug.premio` matches the
-            // internal prize id stored in `oyesx.hoyo` (NOT the visible hole
-            // number that lives inside the descripcion text).
+            // Count results for THIS prize.
+            // Según el torneo, `oyesxjug` guarda el premio en `premio` o el
+            // número de hoyo en `hoyo`. Se prueba `premio` y, si no hay
+            // resultados, se cae a `hoyo` para no mostrar grupos vacíos.
+            $filterEq = "premio = $prizeIdEsc";
             $sql2 = "SELECT COUNT(*) as cnt
                      FROM oyesxjug
-                     WHERE torneoid = $tid AND premio = $prizeIdEsc";
+                     WHERE torneoid = $tid AND $filterEq";
             $cntRow = dbg_query_one($conn, $sql2, 'oyes300', "count_prize_$prizeId");
-            $playerCount = min((int)($cntRow['cnt'] ?? 0), $lugares);
+            $cntVal = (int)($cntRow['cnt'] ?? 0);
+            if ($cntVal === 0 && $holeNum > 0) {
+                $altFilter = "hoyo = " . (int)$holeNum;
+                $altRow = dbg_query_one($conn,
+                    "SELECT COUNT(*) as cnt FROM oyesxjug WHERE torneoid = $tid AND $altFilter",
+                    'oyes300', "count_hole_$holeNum");
+                if ((int)($altRow['cnt'] ?? 0) > 0) {
+                    $cntVal = (int)$altRow['cnt'];
+                    $filterEq = $altFilter;
+                }
+            }
+            $playerCount = min($cntVal, $lugares);
             // Also log distinct premio values present in oyesxjug for this tournament
             // so we can see what the column actually contains (one-time per request).
             if (!isset($DEBUG_SECTIONS['oyes300']['distinct_premio_logged'])) {
