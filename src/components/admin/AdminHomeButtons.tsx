@@ -95,6 +95,23 @@ const AdminHomeButtons = () => {
                   </SelectItem>
                 );
               })}
+
+            {/* Páginas de cada torneo del sitio: "Akron Invitational Salidas". */}
+            {torneos.map((t) => {
+              const cfg = configs[String(t.torneoid)];
+              const nombre = t.nombre || `Torneo ${t.torneoid}`;
+              return menuItems
+                .filter((m) => m.id !== 'home')
+                .filter((m) => (cfg?.visibility?.[m.id] ?? true) !== false)
+                .map((m) => (
+                  <SelectItem key={`t${t.torneoid}:${m.id}`} value={`t${t.torneoid}:${m.id}`}>
+                    {nombre} {m.label}
+                    <span className="text-muted-foreground">
+                      {' '}— {t.slug ? `/${t.slug}${m.path}` : m.path}
+                    </span>
+                  </SelectItem>
+                ));
+            })}
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">
