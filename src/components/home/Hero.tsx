@@ -17,6 +17,7 @@ import { Calendar, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { menuConfig } from '@/data/mockData';
+import { useIsMultiTorneo } from '@/hooks/useSiteTorneos';
 
 /** Regex to match leading Roman numerals (I, V, X, L, C, D, M) */
 const ROMAN_NUMERAL_REGEX = /^([IVXLCDM]+)\s+(.+)$/;
@@ -36,6 +37,7 @@ const parseTournamentName = (name: string) => {
 const Hero = () => {
   const { data: tournamentInfo } = useTournamentInfo();
   const { data: siteConfig } = useSiteConfig();
+  const isMultiTorneo = useIsMultiTorneo();
 
   /**
    * Resuelve un slot del hero:
@@ -71,19 +73,23 @@ const Hero = () => {
   const slot2 = resolveSlot(cfg2, fallback2);
 
   /** Parse tournament name into roman numeral and rest */
-  const parsed = tournamentInfo?.name
-    ? parseTournamentName(tournamentInfo.name)
+  const sharedTitle = isMultiTorneo ? siteConfig?.home_config?.title?.trim() : '';
+  const displayTitle = sharedTitle || tournamentInfo?.name || '';
+  const parsed = displayTitle
+    ? parseTournamentName(displayTitle)
     : { roman: '', rest: '' };
 
   /** Set document/tab title dynamically from tournament name + club */
   useEffect(() => {
-    if (tournamentInfo?.name) {
+    if (sharedTitle) {
+      document.title = sharedTitle;
+    } else if (tournamentInfo?.name) {
       const club = tournamentInfo.club || '';
       document.title = club
         ? `${tournamentInfo.name} | ${club}`
         : tournamentInfo.name;
     }
-  }, [tournamentInfo?.name, tournamentInfo?.club]);
+  }, [sharedTitle, tournamentInfo?.name, tournamentInfo?.club]);
 
   /** Format date range for display */
   /** Format date range avoiding timezone offset issues by parsing as UTC */
