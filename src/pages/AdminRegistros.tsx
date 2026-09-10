@@ -224,6 +224,19 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
    */
   const [folioFilter, setFolioFilter] = useState('');
   const [categoriaFilter, setCategoriaFilter] = useState<string>('__all__');
+  /**
+   * Filtro por torneo (multi-torneo). '__active__' = el torneo activo del
+   * dominio (comportamiento histórico), '__all__' = registros de todos los
+   * torneos dados de alta en esta página, o un torneoid concreto.
+   */
+  const [torneoFilter, setTorneoFilter] = useState<string>('__active__');
+  /** Torneos del dominio (para el selector y las etiquetas por fila). */
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneoNameById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const t of siteTorneos?.torneos || []) m.set(t.torneoid, t.nombre);
+    return m;
+  }, [siteTorneos?.torneos]);
   /** Modo de comparación de fecha: 'on' = en, 'after' = después, 'before' = antes. */
   const [dateMode, setDateMode] = useState<'on' | 'after' | 'before'>('on');
   /** Fecha (YYYY-MM-DD) usada con `dateMode` para filtrar `reg_fecha`. */
@@ -370,8 +383,13 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
   const refresh = async () => {
     setLoading(true);
     try {
-      // getRegistroListUrl now always limits to the active tournament
-      const res = await fetch(getRegistroListUrl(password));
+      // Filtro por torneo: activo (default), uno concreto o todos.
+      const torneoArg = torneoFilter === '__all__'
+        ? 'all' as const
+        : torneoFilter === '__active__'
+          ? undefined
+          : parseInt(torneoFilter, 10);
+      const res = await fetch(getRegistroListUrl(password, torneoArg));
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Error al cargar');
       setRows(json.rows || []);
