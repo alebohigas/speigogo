@@ -687,7 +687,7 @@ const Salidas = () => {
                                       if (vsLabelIdx.has(pIdx)) {
                                         rows.push(
                                           <TableRow key={`${pIdx}-vslabel`} className="bg-white hover:bg-white border-b-0">
-                                            <TableCell colSpan={showTeam ? 2 : 1} className="p-0" />
+                                            <TableCell colSpan={showTeamColumn ? 2 : 1} className="p-0" />
                                             <TableCell className="py-0 font-semibold text-muted-foreground">VS</TableCell>
                                           </TableRow>
                                         );
