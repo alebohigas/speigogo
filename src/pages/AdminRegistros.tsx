@@ -902,7 +902,7 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
             />
 
             {/* Categoría */}
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <Select value={categoriaFilter} onValueChange={setCategoriaFilter}>
                 <SelectTrigger><SelectValue placeholder="Categoría" /></SelectTrigger>
                 <SelectContent>
@@ -1050,6 +1050,12 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
                         <td className="p-3">
                           <div className="font-medium">{[r.reg_nombre, r.reg_apellido].filter(Boolean).join(' ') || '—'}</div>
                           <div className="text-xs text-muted-foreground">#{r.id} · {r.reg_fecha || r.created_at || (r as any).fecha_alta || '—'}</div>
+                          {/* Etiqueta de torneo cuando se ven varios torneos a la vez. */}
+                          {torneoFilter === '__all__' && r.torneoid != null && (
+                            <Badge variant="outline" className="mt-1 text-[10px] font-normal">
+                              {torneoNameById.get(Number(r.torneoid)) || `Torneo ${r.torneoid}`}
+                            </Badge>
+                          )}
                         </td>
                         <td className="p-3">
                           <div>{r.reg_correo || '—'}</div>
