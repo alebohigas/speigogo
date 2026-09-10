@@ -926,19 +926,35 @@ if ($tipo === '' || $tipo === 'oyes300') {
             $prizeIdEsc  = esc($conn, $prizeId);   // filters oyesxjug.premio
             $descripcion = $descRaw !== '' ? $descRaw : ('Hoyo ' . $holeNum);
 
-            // Count results for THIS prize. `oyesxjug.premio` matches the
-            // internal prize id stored in `oyesx.hoyo` (NOT the visible hole
-            // number that lives inside the descripcion text).
+            // Count results for THIS prize.
+            // Según el torneo, `oyesxjug` guarda el premio en `premio` o el
+            // número de hoyo en `hoyo`. Se prueba `premio` y, si no hay
+            // resultados, se cae a `hoyo` para no mostrar grupos vacíos.
+            $filterEq = "premio = $prizeIdEsc";
             $sql2 = "SELECT COUNT(*) as cnt
                      FROM oyesxjug
-                     WHERE torneoid = $tid AND premio = $prizeIdEsc";
+                     WHERE torneoid = $tid AND $filterEq";
             $cntRow = dbg_query_one($conn, $sql2, 'oyes300', "count_prize_$prizeId");
-            $playerCount = min((int)($cntRow['cnt'] ?? 0), $lugares);
+            $cntVal = (int)($cntRow['cnt'] ?? 0);
+            if ($cntVal === 0 && $holeNum > 0) {
+                $altFilter = "hoyo = " . (int)$holeNum;
+                $altRow = dbg_query_one($conn,
+                    "SELECT COUNT(*) as cnt FROM oyesxjug WHERE torneoid = $tid AND $altFilter",
+                    'oyes300', "count_hole_$holeNum");
+                if ((int)($altRow['cnt'] ?? 0) > 0) {
+                    $cntVal = (int)$altRow['cnt'];
+                    $filterEq = $altFilter;
+                }
+            }
+            $playerCount = min($cntVal, $lugares);
             // Also log distinct premio values present in oyesxjug for this tournament
             // so we can see what the column actually contains (one-time per request).
             if (!isset($DEBUG_SECTIONS['oyes300']['distinct_premio_logged'])) {
-                dbg_query_all($conn, "SELECT DISTINCT premio, COUNT(*) as n FROM oyesxjug WHERE torneoid = $tid GROUP BY premio ORDER BY premio",
-                              'oyes300', 'distinct_premio_in_oyesxjug');
+                /* Se guardan los valores reales para diagnosticar de qué
+                   columna cuelga el premio/hoyo en cada torneo. */
+                $DEBUG_SECTIONS['oyes300']['oyesxjug_valores'] = dbg_query_all($conn,
+                    "SELECT premio, hoyo, COUNT(*) as n FROM oyesxjug WHERE torneoid = $tid GROUP BY premio, hoyo ORDER BY premio, hoyo",
+                    'oyes300', 'distinct_premio_in_oyesxjug');
                 $DEBUG_SECTIONS['oyes300']['distinct_premio_logged'] = true;
             }
 
@@ -958,7 +974,7 @@ if ($tipo === '' || $tipo === 'oyes300') {
             if ($detalle === '1') {
                 // Pass the internal prize id ($prizeId) — that's what the
                 // results table uses for filtering.
-                $group['players']     = get_oyes300_players($conn, $tid, $prizeId, $lugares);
+                $group['players']     = get_oyes300_players($conn, $tid, $prizeId, $lugares, $filterEq);
                 $group['lastUpdated'] = get_oyes300_last_updated($conn, $tid, $descripcion, $prizeIdEsc);
             }
 
@@ -1400,10 +1416,12 @@ function get_approach_players($conn, $tid, $descripcion, $limit) {
  * @param int    $limit    Maximum winners to return (oyesx.premio)
  * @return array<int, array<string, mixed>> Ordered list of winners
  */
-function get_oyes300_players($conn, $tid, $holeNum, $limit = 3) {
+function get_oyes300_players($conn, $tid, $holeNum, $limit = 3, $filterEq = null) {
     global $LOGOS_BASE_URL;
     $limit  = max(1, (int)$limit);
     $hole   = (int)$holeNum;
+    /** Filtro efectivo: `premio` o, si ese no trae datos, `hoyo`. */
+    $where = $filterEq ? "a." . $filterEq : "a.premio = $hole";
 
     // NOTE: For O'Yes 300, the hole id lives in `oyesxjug.premio` (not `hoyo`,
     // which is empty for this competition). The `categorias` table uses
@@ -1411,14 +1429,14 @@ function get_oyes300_players($conn, $tid, $holeNum, $limit = 3) {
     $sql = "SELECT a.jugadorid,
                    CONCAT(j.nombre, ' ', j.apellido) as jugador,
                    ROUND(a.distancia, 3) as distancia,
-                   a.premio as hoyo,
+                   COALESCE(NULLIF(a.hoyo, 0), a.premio) as hoyo,
                    COALESCE(NULLIF(cat.abreviatura,''), cat.categoria, '') as categoria,
                    cl.logo, cl.nombre as club
             FROM oyesxjug a
             JOIN jugadores j ON (a.jugadorid = j.id)
             JOIN clubs cl ON (j.clubid = cl.id)
             LEFT JOIN categorias cat ON (j.categoriaid = cat.categoria_id)
-            WHERE a.torneoid = $tid AND a.premio = $hole
+            WHERE a.torneoid = $tid AND $where
             ORDER BY a.distancia ASC
             LIMIT $limit";
 

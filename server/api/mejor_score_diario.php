@@ -51,6 +51,19 @@ function format_dia_es($iso) {
     );
 }
 
+/**
+ * Algunas bases legacy no tienen el módulo de mejor score diario
+ * (`mejorscorep` / `v_mejorscorejugp`). En ese caso se responde una lista
+ * vacía en vez de un error 500.
+ */
+$hasTables = true;
+foreach (['mejorscorep', 'v_mejorscorejugp'] as $t) {
+    $rs = @$conn->query("SHOW TABLES LIKE '" . esc($conn, $t) . "'");
+    if (!$rs || $rs->num_rows === 0) { $hasTables = false; }
+    if ($rs) { $rs->free(); }
+}
+if (!$hasTables) { json_response([]); }
+
 // 1) Distinct premio+fecha combinations from mejorscorep
 $sql = "SELECT DISTINCT premio, fecha
         FROM mejorscorep

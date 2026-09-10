@@ -9,11 +9,25 @@ require_once 'config.php';
 $torneoid = require_param('torneoid');
 $tid = esc($conn, $torneoid);
 
+/**
+ * Algunas bases de datos legacy no tienen todas las columnas de branding en
+ * `torneo` (ej. `logo_fondo`, `logo_header`). Se detectan antes de consultar
+ * para no romper el endpoint con "Unknown column".
+ */
+$torneoCols = [];
+if ($rs = @$conn->query("SHOW COLUMNS FROM torneo")) {
+    while ($c = $rs->fetch_assoc()) { $torneoCols[$c['Field']] = true; }
+    $rs->free();
+}
+$optCols = ['estilo','sistemajuego','tipotorneo','color_cinta','imagen_gif','telefono','correotorne','logo_fondo','logo_header'];
+$selOpt = '';
+foreach ($optCols as $c) {
+    $selOpt .= isset($torneoCols[$c]) ? ", a.`$c`" : ", NULL AS `$c`";
+}
+
 // Tournament info
 $sql = "SELECT a.torneo_id, a.nombre, a.fecha_ini, a.fecha_fin, a.status,
-               a.logo, a.formato, a.estilo, a.sistemajuego, a.tipotorneo,
-               a.color_cinta, a.imagen_gif, a.telefono, a.correotorne,
-               a.logo_fondo, a.logo_header,
+               a.logo, a.formato $selOpt,
                b.nombre as club, b.logo as club_logo, b.ciudad, b.estado
         FROM torneo a
         JOIN clubs b ON (a.club_id = b.id)
