@@ -86,7 +86,9 @@ export const buildMultiTorneoNav = (
     .filter((t) => t.activo !== false)
     .map((t) => {
       const prefix = t.slug ? `/${t.slug}` : '';
-      const children = visiblePages(configs[String(t.torneoid)], prefix);
+      const children = visiblePages(configs[String(t.torneoid)], prefix).filter(
+        (p) => p.id !== 'home'
+      );
       return {
         type: 'group' as const,
         id: `torneo-${t.torneoid}`,
