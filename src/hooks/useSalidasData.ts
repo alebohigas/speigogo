@@ -142,6 +142,7 @@ export const useSalidasDetail = (
         system: data?.system ?? '',
         tee: data?.tee ?? '',
         isMatchPlay: !!data?.isMatchPlay,
+        isEquipos: !!data?.isEquipos,
         groups: Array.isArray(data?.groups) ? data.groups : [],
 
       };
