@@ -287,6 +287,11 @@ export interface StatsPageConfig {
   enabled?: boolean;
   sections: StatsPageSection[];
   overrides?: StatsPageOverrides;
+  /**
+   * Solo en el alcance General de un sitio con varios torneos: suma las
+   * estadísticas de todos los torneos activos en una sola vista.
+   */
+  combineTorneos?: boolean;
 }
 
 /**
@@ -310,6 +315,11 @@ export interface HomeConfig {
    * muestran los valores generales y su pestaña queda en modo lectura.
    */
   inherit?: Partial<Record<'avisos' | 'anuncio' | 'pop' | 'sponsors', boolean>>;
+  /**
+   * Texto que se muestra al elegir torneo en el pre-registro de un sitio
+   * con varios torneos. Clave = torneoid.
+   */
+  registro_opciones?: Record<string, { descripcion?: string | null; costo?: string | null }>;
 }
 
 /**

@@ -31,6 +31,7 @@ import AdminRegistro from '@/components/admin/AdminRegistro';
 import AdminRegistroPrecios from '@/components/admin/AdminRegistroPrecios';
 import AdminRegistroPreferente from '@/components/admin/AdminRegistroPreferente';
 import AdminSocioTipos from '@/components/admin/AdminSocioTipos';
+import AdminRegistroTorneos from '@/components/admin/AdminRegistroTorneos';
 import AdminCategoriasReglas from '@/components/admin/AdminCategoriasReglas';
 /** CRUD de categorías (Tee Salida, Rating, Slope, Par) → pestaña "Categorías". */
 import AdminCategorias from '@/components/admin/AdminCategorias';
@@ -803,6 +804,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="precios">Precios de inscripción</TabsTrigger>
               <TabsTrigger value="preferente">Registro preferente</TabsTrigger>
               <TabsTrigger value="socios">Relación de Socios</TabsTrigger>
+              <TabsTrigger value="torneos-registro">Elección de torneo</TabsTrigger>
             </TabsList>
             <TabsContent value="campos">
               <AdminRegistro />
@@ -824,6 +826,11 @@ const AdminDashboard = () => {
                 (TITULAR/EMERITO/DEPENDIENTE) usado por el motor de precios. */}
             <TabsContent value="socios">
               <AdminSocioTipos />
+            </TabsContent>
+            {/* Elección de torneo — texto que ve el jugador cuando la
+                página maneja varios torneos a la vez. */}
+            <TabsContent value="torneos-registro">
+              <AdminRegistroTorneos />
             </TabsContent>
           </Tabs>
         </TabsContent>

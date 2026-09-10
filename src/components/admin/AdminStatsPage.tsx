@@ -28,6 +28,8 @@ import { ArrowDown, ArrowUp, BarChart3, Eye, Loader2, Save } from 'lucide-react'
 import { useSiteConfig, useSaveSiteConfig, type StatsPageConfig, type StatsPageSection } from '@/hooks/useSiteConfig';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
+import { useConfigScope } from '@/lib/configScope';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 
 // ============= Constants =============
 
@@ -55,6 +57,10 @@ const AdminStatsPage = () => {
   const { data: siteConfig, isLoading } = useSiteConfig();
   const saveSiteConfig = useSaveSiteConfig();
   const { toast } = useToast();
+  /** Multi-torneo: alcance activo y torneos del sitio. */
+  const scope = useConfigScope();
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneos = (siteTorneos?.torneos ?? []).filter((t) => t.activo !== false);
 
   /** Local editor state — synced from server config on load. */
   const [sections, setSections] = useState<StatsPageSection[]>(DEFAULT_SECTIONS);
@@ -64,6 +70,8 @@ const AdminStatsPage = () => {
   const [jugadorNote, setJugadorNote] = useState<string>('');
   /** Which club identifier to show in the Clubes table ('name' or 'abr'). */
   const [clubNameField, setClubNameField] = useState<'name' | 'abr'>('name');
+  /** General: suma las estadísticas de todos los torneos del sitio. */
+  const [combineTorneos, setCombineTorneos] = useState(false);
 
   /** Hydrate editor state whenever the server config changes. */
   useEffect(() => {
@@ -84,6 +92,7 @@ const AdminStatsPage = () => {
     setCategoriaRounds(o.categoriaRounds != null ? String(o.categoriaRounds) : '');
     setJugadorNote(o.jugadorNote ?? '');
     setClubNameField((o.clubNameField ?? 'name') === 'abr' ? 'abr' : 'name');
+    setCombineTorneos(!!cfg?.combineTorneos);
   }, [siteConfig?.stats_page_config]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ============= Section reordering =============
@@ -125,6 +134,7 @@ const AdminStatsPage = () => {
         clubNameField,
         footerTagline:      existingTagline,
       },
+      combineTorneos,
     };
 
     saveSiteConfig.mutate(
@@ -299,6 +309,21 @@ const AdminStatsPage = () => {
               {/* NOTA: el "Slogan del footer" se administra desde
                   Admin &gt; Estadísticas (AdminStats), no aquí. */}
             </div>
+
+            {/* Suma de torneos — solo en la vista General de un sitio
+                que maneja varios torneos a la vez. */}
+            {scope === 'general' && torneos.length > 1 && (
+              <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div>
+                  <Label className="text-base">Sumar las estadísticas de todos los torneos</Label>
+                  <p className="text-xs text-muted-foreground">
+                    En la portada común, Clubes Asistentes y No Show muestran
+                    los jugadores de {torneos.map((t) => t.nombre).join(' + ')}.
+                  </p>
+                </div>
+                <Switch checked={combineTorneos} onCheckedChange={setCombineTorneos} />
+              </div>
+            )}
 
             <div className="pt-2">
               <Button onClick={handleSave} disabled={saveSiteConfig.isPending} className="gap-2">

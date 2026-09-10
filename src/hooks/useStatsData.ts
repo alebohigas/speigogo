@@ -17,6 +17,8 @@ import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/apiClient';
 import { API_BASE_URL, POLL_SLOW } from '@/config/api';
 import { getTorneoId } from '@/hooks/useTorneoId';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
+import { useConfigScope } from '@/lib/configScope';
 
 // ============= Types =============
 
@@ -183,13 +185,103 @@ const buildUrl = (path: string, extra: Record<string, string> = {}) => {
 
 // ============= Hooks =============
 
+/**
+ * useCombinedTorneoIds
+ * Devuelve la lista de torneos a sumar cuando el sitio muestra la vista
+ * General y el administrador activó "sumar estadísticas de los torneos".
+ * En cualquier otro caso devuelve null (comportamiento de un solo torneo).
+ */
+export const useCombinedTorneoIds = (): string[] | null => {
+  const scope = useConfigScope();
+  const { data } = useSiteTorneos();
+  const general = data?.configs?.general;
+  const combine = !!general?.stats_page_config?.combineTorneos;
+  if (scope !== 'general' || !combine) return null;
+  const ids = (data?.torneos ?? [])
+    .filter((t) => t.activo !== false)
+    .map((t) => String(t.torneoid))
+    .filter((id) => id && id !== '0');
+  return ids.length > 1 ? ids : null;
+};
+
+/** Suma varias respuestas de stats_clubes.php en una sola. */
+const mergeClubes = (parts: StatsClubesResponse[]): StatsClubesResponse => {
+  const clubs = new Map<string, StatsClub>();
+  const tees = new Map<number, StatsTee>();
+  const noShow: StatsNoShow = {
+    retiro: 0, noShow: 0, descalificado: 0, noContiende: 0, total: 0,
+    players: { retiro: [], noShow: [], descalificado: [], noContiende: [] },
+  };
+
+  parts.forEach((p) => {
+    (p?.tees ?? []).forEach((t) => { if (!tees.has(t.id)) tees.set(t.id, t); });
+
+    (p?.clubs ?? []).forEach((c) => {
+      const key = c.id != null ? `id:${c.id}` : `n:${(c.name || '').toLowerCase()}`;
+      const prev = clubs.get(key);
+      if (!prev) {
+        clubs.set(key, { ...c, byTee: { ...c.byTee } });
+        return;
+      }
+      prev.total += c.total;
+      Object.entries(c.byTee || {}).forEach(([teeId, v]) => {
+        const acc = prev.byTee[teeId] ?? { caballeros: 0, seniors: 0, supersenior: 0, damas: 0, total: 0 };
+        prev.byTee[teeId] = {
+          caballeros:  acc.caballeros  + v.caballeros,
+          seniors:     acc.seniors     + v.seniors,
+          supersenior: acc.supersenior + v.supersenior,
+          damas:       acc.damas       + v.damas,
+          total:       acc.total       + v.total,
+        };
+      });
+      if (!prev.logo && c.logo) prev.logo = c.logo;
+    });
+
+    const ns = p?.noShow;
+    if (ns) {
+      noShow.retiro        += ns.retiro || 0;
+      noShow.noShow        += ns.noShow || 0;
+      noShow.descalificado += ns.descalificado || 0;
+      noShow.noContiende   = (noShow.noContiende || 0) + (ns.noContiende || 0);
+      noShow.total         += ns.total || 0;
+      (['retiro', 'noShow', 'descalificado', 'noContiende'] as const).forEach((k) => {
+        const list = ns.players?.[k] ?? [];
+        noShow.players![k] = [...(noShow.players![k] ?? []), ...list];
+      });
+    }
+  });
+
+  // Orden alfabético dentro de cada estatus (igual que en un solo torneo).
+  (['retiro', 'noShow', 'descalificado', 'noContiende'] as const).forEach((k) => {
+    noShow.players![k] = (noShow.players![k] ?? []).sort((a, b) =>
+      a.name.localeCompare(b.name, 'es'));
+  });
+
+  const clubList = [...clubs.values()].sort((a, b) => b.total - a.total);
+  return {
+    total: clubList.reduce((s, c) => s + c.total, 0),
+    clubs: clubList,
+    tees: [...tees.values()],
+    noShow,
+  };
+};
+
 /** Clubes asistentes — aggregated player counts per club. */
-export const useStatsClubes = () =>
-  useQuery<StatsClubesResponse>({
-    queryKey: ['stats-clubes', getTorneoId()],
-    queryFn: () => apiFetch<StatsClubesResponse>(buildUrl('stats_clubes.php')),
+export const useStatsClubes = () => {
+  const combined = useCombinedTorneoIds();
+  return useQuery<StatsClubesResponse>({
+    queryKey: ['stats-clubes', combined ? combined.join(',') : getTorneoId()],
+    queryFn: async () => {
+      if (!combined) return apiFetch<StatsClubesResponse>(buildUrl('stats_clubes.php'));
+      const parts = await Promise.all(
+        combined.map((id) =>
+          apiFetch<StatsClubesResponse>(`${API_BASE_URL}/stats_clubes.php?torneoid=${id}`)),
+      );
+      return mergeClubes(parts);
+    },
     staleTime: POLL_SLOW,
   });
+};
 
 /** Estadísticas por categoría — hoyo por hoyo. */
 export const useStatsCategoria = (categoriaId: string | null) =>
