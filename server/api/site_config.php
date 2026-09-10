@@ -525,7 +525,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if ($row) $row['torneoid'] = (int)$scope;
     }
 
-    
+    // Alcance general con torneoid 0 (automático): se resuelve el primer
+    // torneo publicado del dominio, sin guardar ningún torneoid fijo.
+    if ($row && $scope === 'general' && (int)$row['torneoid'] <= 0) {
+        $row['torneoid'] = site_config_ref_torneo($conn, $domain);
+    }
+
     if ($row) {
         json_response([
             'domain'                => $_SERVER['HTTP_HOST'],
