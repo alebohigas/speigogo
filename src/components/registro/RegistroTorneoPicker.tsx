@@ -13,7 +13,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, Trophy } from 'lucide-react';
-import { useSiteTorneos, type SiteTorneo } from '@/hooks/useSiteTorneos';
+import { type SiteTorneo } from '@/hooks/useSiteTorneos';
 import { useGeneralConfig } from '@/hooks/useInheritConfig';
 import type { HomeConfig } from '@/hooks/useSiteConfig';
 
