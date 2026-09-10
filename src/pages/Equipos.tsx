@@ -40,33 +40,56 @@ const Equipos = () => {
   const tipoHcp = indexCampo === '1' ? 'de Campo' : 'Index';
   const minDisplay = indexCampo === '1' ? Math.round(hcpIndexMin) : hcpIndexMin.toFixed(1);
 
-  /** ============ Leyenda: tees de salida + significado de HI / HC ============ */
+  /** ============ Leyenda moderna: tees colapsables + significado de HI / HC ============ */
+  const [teesOpen, setTeesOpen] = useState(false);
+
   const Leyenda = () => (
-    <div className="w-full max-w-4xl mx-auto mb-6">
-      <p className="bg-muted-foreground text-white text-center font-bold py-1 rounded-sm">Tee Salidas</p>
-      <div className="py-3 space-y-1 text-sm">
-        {tees.map((t, i) => (
-          <div key={i}>
-            <span
-              className="px-1"
-              style={{ backgroundColor: t.bgcolor || 'transparent', color: t.color || 'inherit' }}
-            >
-              Tee Salida {t.tee} / Rating {t.rating} / Slope {t.slope} / Par {t.par}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="bg-muted-foreground text-white text-center py-2 rounded-sm text-sm space-y-1">
-        <p>H.I = Handicap Índice / H.C. = Handicap Campo</p>
-        <p>
-          <span className="bg-yellow-300 text-black px-4 py-0.5 inline-block">
-            Fondo <strong><em>AMARILLO</em></strong> handicap fuera de rango
+    <div className="w-full max-w-4xl mx-auto mb-6 space-y-3">
+      <Collapsible open={teesOpen} onOpenChange={setTeesOpen}>
+        <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted/70">
+          <span className="flex items-center gap-2 font-semibold text-foreground">
+            <Flag className="h-4 w-4 text-primary" />
+            Tees de salida
+            <span className="text-xs font-normal text-muted-foreground">({tees.length})</span>
           </span>
-        </p>
-        <p className="font-bold">SPEi Tour by Alien System</p>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${teesOpen ? 'rotate-180' : ''}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="grid gap-2 sm:grid-cols-2 px-1 pt-3">
+            {tees.map((t, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-lg border border-border/50 bg-card px-3 py-2 text-sm"
+              >
+                <span
+                  className="h-3.5 w-3.5 shrink-0 rounded-full border border-border/60"
+                  style={{ backgroundColor: t.bgcolor || 'transparent' }}
+                />
+                <div className="min-w-0">
+                  <p className="font-semibold text-foreground truncate">Tee {t.tee}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Rating {t.rating} · Slope {t.slope} · Par {t.par}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <span className="text-muted-foreground">
+          <strong className="text-foreground">H.I.</strong> Handicap Índice ·{' '}
+          <strong className="text-foreground">H.C.</strong> Handicap Campo
+        </span>
+        <span className="inline-flex items-center gap-2 text-muted-foreground">
+          <span className="h-3.5 w-3.5 rounded-full bg-yellow-300 border border-yellow-500" />
+          Fondo amarillo: handicap fuera de rango
+        </span>
       </div>
     </div>
   );
+
 
   return (
     <Layout>
