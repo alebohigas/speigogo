@@ -36,6 +36,10 @@ const AdminHomeButtons = () => {
   const saveSiteConfig = useSaveSiteConfig();
   const { getAllMenuItems, visibilitySettings } = usePageVisibility();
   const { toast } = useToast();
+  /** Torneos del sitio: permiten apuntar un botón a la página de otro torneo. */
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneos = siteTorneos?.torneos ?? [];
+  const configs = siteTorneos?.configs ?? {};
 
   /** Full menu items list (admin view — includes hidden pages). */
   const menuItems = useMemo(() => getAllMenuItems(), [getAllMenuItems]);
