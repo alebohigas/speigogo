@@ -376,14 +376,20 @@ const AdminMenuOrder = ({
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 className={cn(
-                  'space-y-2 rounded-lg transition-colors p-1',
+                  'rounded-lg transition-colors p-1',
                   snapshot.isDraggingOver && 'bg-accent/30',
                 )}
               >
-                {rows.map((row, index) => (
+                {rows.map((row, index) => {
+                  // El identificador debe ser estable: si depende del índice,
+                  // la librería pierde la referencia al reordenar y el bloque
+                  // termina siempre al final o deja de responder.
+                  const rowId =
+                    row.kind === 'page' ? `row-page:${row.pageId}` : `row-group:${row.groupId}`;
+                  return (
                   <Draggable
-                    key={row.kind === 'page' ? `row-page-${row.pageId}` : `row-group-${row.groupId}`}
-                    draggableId={`row:${index}`}
+                    key={rowId}
+                    draggableId={rowId}
                     index={index}
                   >
                     {(dragProvided, dragSnapshot) => (
