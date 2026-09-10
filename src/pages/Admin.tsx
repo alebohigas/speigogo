@@ -499,7 +499,7 @@ const AdminDashboard = () => {
       ) : (
       <>
       {/* Tabs for different admin sections */}
-      <Tabs defaultValue={staffDefaultTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
         {/*
           Admin tab strip — split across two wrapping rows so 13+ tabs no
