@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Palette, Check, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,8 @@ import {
   type CustomPalettePreset,
 } from '@/lib/theme-palettes';
 import { LAST_UPDATED_COLOR } from '@/components/competencias/LastUpdatedStamp';
+import { useConfigScope } from '@/lib/configScope';
+import { getSuperAdminPassword } from '@/lib/superAdminAuth';
 
 /** Small color swatch rendered from an HSL string. */
 const Swatch = ({ hsl, size = 'md' }: { hsl: string; size?: 'sm' | 'md' | 'lg' }) => (
@@ -53,6 +56,8 @@ const AdminThemePalette = () => {
   const { data: siteConfig, isLoading } = useSiteConfig();
   const saveSiteConfig = useSaveSiteConfig();
   const { toast } = useToast();
+  const scope = useConfigScope();
+  const [applyToAll, setApplyToAll] = useState(false);
 
   /** Currently saved palette, or null if domain has not chosen one. */
   const saved = siteConfig?.theme_config ?? null;
@@ -102,12 +107,18 @@ const AdminThemePalette = () => {
     const themeWithStamp: ThemeConfig = { ...theme, lastUpdatedColor };
     applyThemeConfig(themeWithStamp);
     saveSiteConfig.mutate(
-      { password: 'admin2025', theme_config: themeWithStamp },
+      {
+        password: getSuperAdminPassword(),
+        theme_config: themeWithStamp,
+        apply_theme_to_all: scope === 'general' && applyToAll,
+      },
       {
         onSuccess: () => {
           toast({
             title: 'Paleta guardada',
-            description: `"${theme.name}" se aplicó para todos los visitantes de este dominio.`,
+            description: scope === 'general' && applyToAll
+              ? `"${theme.name}" se aplicó a General y a todos los torneos.`
+              : `"${theme.name}" se aplicó a esta sección.`,
           });
         },
         onError: (err) => {
@@ -159,7 +170,11 @@ const AdminThemePalette = () => {
   const persistLastUpdatedColor = () => {
     const base = saved ?? DEFAULT_CUSTOM;
     saveSiteConfig.mutate(
-      { password: 'admin2025', theme_config: { ...base, lastUpdatedColor } },
+      {
+        password: getSuperAdminPassword(),
+        theme_config: { ...base, lastUpdatedColor },
+        apply_theme_to_all: scope === 'general' && applyToAll,
+      },
       {
         onSuccess: () => toast({
           title: 'Color guardado',
@@ -196,6 +211,21 @@ const AdminThemePalette = () => {
           </div>
         ) : (
           <>
+            {scope === 'general' && (
+              <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/30 p-4">
+                <div className="space-y-1">
+                  <Label htmlFor="apply-theme-to-all">Aplicar esta paleta a todos los torneos</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Al guardar, reemplaza la paleta individual de cada torneo por la paleta General.
+                  </p>
+                </div>
+                <Switch
+                  id="apply-theme-to-all"
+                  checked={applyToAll}
+                  onCheckedChange={setApplyToAll}
+                />
+              </div>
+            )}
             {/* Preset grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {PALETTE_PRESETS.map(preset => {
