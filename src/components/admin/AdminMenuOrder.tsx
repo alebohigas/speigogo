@@ -554,7 +554,7 @@ const GroupRow = ({
                       ref={dragProvided.innerRef}
                       {...dragProvided.draggableProps}
                       className={cn(
-                        'flex items-center gap-2 rounded-lg',
+                        'flex items-center gap-2 rounded-lg mb-1',
                         dragSnapshot.isDragging && 'shadow-md ring-2 ring-primary/30',
                       )}
                     >
