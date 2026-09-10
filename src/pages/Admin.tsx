@@ -38,6 +38,8 @@ import AdminBrackets from '@/components/admin/AdminBrackets';
 import AdminMatchPlay from '@/components/admin/AdminMatchPlay';
 import AdminThemePalette from '@/components/admin/AdminThemePalette';
 import AdminShowcase300 from '@/components/admin/AdminShowcase300';
+/** Constructor de rotación embebido en la pestaña Showcase 300. */
+import { ShowcaseRotacionDashboard } from '@/pages/AdminShowcaseRotacionPage';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminStatsPage from '@/components/admin/AdminStatsPage';
 import AdminHistorial from '@/components/admin/AdminHistorial';
