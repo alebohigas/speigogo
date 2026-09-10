@@ -427,7 +427,8 @@ const AdminMenuOrder = ({
                       </div>
                     )}
                   </Draggable>
-                ))}
+                  );
+                })}
                 {provided.placeholder}
               </div>
             )}
