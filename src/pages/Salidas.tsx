@@ -817,8 +817,12 @@ const Salidas = () => {
                                 const vsIdx = vsAfterIndexes(players, matchPlay);
                                 /* MATCH PLAY: renglón "VS" entre los dos contendientes del match. */
                                 const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
-                                const totalRows = countGroupRowsWithVs(players, matchPlay);
-                                const showTeam = groupsHaveAnyPair(detail.groups);
+                                /* EQUIPOS: cada equipo agrega un renglón por integrante. */
+                                const equipos = hasTeamMembers(players);
+                                const totalRows = equipos
+                                  ? countGroupRowsTeam(players)
+                                  : countGroupRowsWithVs(players, matchPlay);
+                                const showTeam = groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups);
                                 const lineCols = showTeam ? 5 : 4;
                                 const totalCols = lineCols + (!matchPlay ? 1 : 0);
                                 const isLastGroup = gIdx >= (detail.groups ?? []).length - 1;
