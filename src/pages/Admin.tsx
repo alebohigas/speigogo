@@ -565,7 +565,7 @@ const AdminDashboard = () => {
               id: 'juego',
               label: 'Juego y jugadores',
               icon: Trophy,
-              tabs: ['live', 'registro', 'jugadores', 'brackets', 'matchplay', 'stats-page', 'alien'],
+              tabs: ['live', 'showcase-rotacion', 'registro', 'jugadores', 'brackets', 'matchplay', 'stats-page', 'alien'],
             },
             {
               id: 'control',
