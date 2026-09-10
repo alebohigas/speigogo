@@ -711,7 +711,16 @@ const Salidas = () => {
                                 <tfoot>
                                   <tr className="bg-primary">
                                     <td
-                                      colSpan={totalCols}
+                                      colSpan={(() => {
+                                        const players = result.group.players ?? [];
+                                        const matchPlay = !!result.matchPlay || isMatchPlaySystem(result.system);
+                                        const equipos = hasTeamMembers(players);
+                                        const showPairTeam = hasAnyPair(players);
+                                        const showTeamColumn = showPairTeam && !equipos;
+                                        const showTeeColumn = equipos;
+                                        const hasScoreColumn = !matchPlay;
+                                        return 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
+                                      })()}
                                       className="text-primary-foreground font-bold text-center py-2 text-sm"
                                     >
                                       CATEGORÍA: {result.categoryName}
