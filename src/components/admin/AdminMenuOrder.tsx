@@ -397,7 +397,7 @@ const AdminMenuOrder = ({
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
                         className={cn(
-                          'rounded-lg transition-shadow',
+                          'rounded-lg transition-shadow mb-2',
                           dragSnapshot.isDragging && 'shadow-lg ring-2 ring-primary/30',
                         )}
                       >
