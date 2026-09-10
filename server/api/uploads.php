@@ -180,12 +180,30 @@ function safe_filename($raw) {
 }
 
 /**
+ * Alcance activo (multi-torneo): 'general' o el torneoid.
+ * Se recibe como `?scope=274`. 'general' conserva la ruta histórica
+ * `{domain}/{section}` para no mover los archivos ya subidos.
+ */
+function upload_scope() {
+    $raw = strtolower(trim((string)($_GET['scope'] ?? $_POST['scope'] ?? '')));
+    $raw = preg_replace('/[^a-z0-9_-]/', '', $raw);
+    if ($raw === '' || $raw === 'general') return 'general';
+    return $raw;
+}
+
+/** Segmento de carpeta del alcance ('' para general, 't274/' para un torneo). */
+function scope_segment() {
+    $scope = upload_scope();
+    return $scope === 'general' ? '' : ('t' . $scope . '/');
+}
+
+/**
  * Resolve the absolute upload directory for a section, creating it if needed.
  * @return string Absolute path WITHOUT trailing slash
  */
 function section_dir($section) {
     $domain = safe_domain_folder();
-    $base = __DIR__ . '/uploads/' . $domain . '/' . $section;
+    $base = __DIR__ . '/uploads/' . $domain . '/' . scope_segment() . $section;
     if (!is_dir($base)) {
         @mkdir($base, 0775, true);
     }
@@ -197,7 +215,9 @@ function section_dir($section) {
  */
 function public_url($section, $filename) {
     $domain = safe_domain_folder();
-    return '/api/uploads/' . rawurlencode($domain) . '/' . rawurlencode($section) . '/' . rawurlencode($filename);
+    $scope = scope_segment();
+    $scopePath = $scope === '' ? '' : (rawurlencode(rtrim($scope, '/')) . '/');
+    return '/api/uploads/' . rawurlencode($domain) . '/' . $scopePath . rawurlencode($section) . '/' . rawurlencode($filename);
 }
 
 /**
@@ -220,7 +240,9 @@ function public_versioned_url($section, $filename, $fullPath) {
 function public_thumb_url($section, $thumbName, $thumbPath) {
     $domain = safe_domain_folder();
     $mtime = @filemtime($thumbPath) ?: time();
-    return '/api/uploads/' . rawurlencode($domain) . '/' . rawurlencode($section)
+    $scope = scope_segment();
+    $scopePath = $scope === '' ? '' : (rawurlencode(rtrim($scope, '/')) . '/');
+    return '/api/uploads/' . rawurlencode($domain) . '/' . $scopePath . rawurlencode($section)
         . '/' . THUMB_DIR_NAME . '/' . rawurlencode($thumbName) . '?v=' . rawurlencode((string)$mtime);
 }
 
