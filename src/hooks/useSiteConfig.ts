@@ -303,6 +303,13 @@ export interface HomeConfig {
   buttons: [string | null, string | null];
   /** Título de la portada compartida en sitios con varios torneos. */
   title?: string | null;
+  /**
+   * Secciones que TODOS los torneos del sitio toman de la configuración
+   * General (Avisos, Anuncio, POP y Patrocinadores). Solo se lee del
+   * alcance 'general'; cuando una bandera está encendida, los torneos
+   * muestran los valores generales y su pestaña queda en modo lectura.
+   */
+  inherit?: Partial<Record<'avisos' | 'anuncio' | 'pop' | 'sponsors', boolean>>;
 }
 
 /**

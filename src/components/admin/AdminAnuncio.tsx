@@ -48,6 +48,7 @@ import { getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { menuConfig } from '@/data/mockData';
 import { describeAnuncioSchedule } from '@/lib/anuncioSchedule';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AdminInheritControl from './AdminInheritControl';
 
 /** Sensible defaults when no config has been saved yet. */
 const DEFAULT_ANUNCIO: AnuncioConfig = {
@@ -217,6 +218,8 @@ const AdminAnuncio = () => {
 
   return (
     <div className="space-y-6">
+      {/* Herencia desde el alcance General (multi-torneo). */}
+      <AdminInheritControl section="anuncio" />
       {/* Slot selector — one tab per anuncio ribbon. Green dot = enabled. */}
       <Tabs value={String(activeIdx)} onValueChange={(v) => setActiveIdx(Number(v))}>
         <TabsList className="grid grid-cols-3 w-full max-w-md">

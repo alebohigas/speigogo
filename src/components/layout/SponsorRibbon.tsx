@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSponsors } from '@/hooks/useTournamentData';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
+import { useEffectiveSiteConfig } from '@/hooks/useInheritConfig';
 import SponsorLogoImage, { type SponsorLogoStatus } from '@/components/sponsors/SponsorLogoImage';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -51,7 +51,7 @@ const clearLegacyBrokenIds = () => {
  */
 const SponsorRibbon = () => {
   const { data: sponsors = [] } = useSponsors();
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig } = useEffectiveSiteConfig();
   const { pathname } = useLocation();
   /**
    * Mobile override:

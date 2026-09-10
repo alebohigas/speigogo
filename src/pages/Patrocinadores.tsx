@@ -11,7 +11,7 @@ import PageHero from '@/components/shared/PageHero';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSponsors } from '@/hooks/useTournamentData';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
+import { useEffectiveSiteConfig } from '@/hooks/useInheritConfig';
 import { useTournamentInfo } from '@/hooks/useTournamentData';
 import { useState, useCallback } from 'react';
 import SponsorLogoImage, { SponsorLogoStatus } from '@/components/sponsors/SponsorLogoImage';
@@ -51,7 +51,7 @@ const getGridConfig = (columns: number) => {
 
 const Patrocinadores = () => {
   const { data: sponsors = [], isLoading } = useSponsors();
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig } = useEffectiveSiteConfig();
   const { data: tournamentInfo } = useTournamentInfo();
 
   /**

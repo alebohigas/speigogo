@@ -14,6 +14,7 @@ import { Image as ImageIcon, Eye, GalleryHorizontal } from 'lucide-react';
 import AdminSponsorsPreview from './sponsors/AdminSponsorsPreview';
 import AdminSponsorsRibbon from './sponsors/AdminSponsorsRibbon';
 import AdminSponsorsCarousel from './sponsors/AdminSponsorsCarousel';
+import AdminInheritControl from './AdminInheritControl';
 
 /**
  * AdminSponsors
@@ -22,6 +23,8 @@ import AdminSponsorsCarousel from './sponsors/AdminSponsorsCarousel';
 const AdminSponsors = () => {
   return (
     <Tabs defaultValue="preview" className="space-y-4">
+      {/* Herencia desde el alcance General (multi-torneo). */}
+      <AdminInheritControl section="sponsors" />
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="preview" className="gap-2">
           <ImageIcon className="h-4 w-4" />

@@ -24,7 +24,8 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSiteConfig, type AvisosConfig, type EventosGap } from '@/hooks/useSiteConfig';
+import { type AvisosConfig, type EventosGap } from '@/hooks/useSiteConfig';
+import { useEffectiveSiteConfig } from '@/hooks/useInheritConfig';
 import { applyOrder } from '@/lib/posterOrder';
 import { useUploadsList } from '@/hooks/useUploads';
 // Auto-discovered poster list — anything dropped into `src/assets/avisos/`
@@ -119,7 +120,7 @@ const DESKTOP_GAP_CLASS: Record<EventosGap, string> = {
  */
 const AvisosPostersSection = () => {
   // Pull admin-configurable layout from site_config (with safe defaults).
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig } = useEffectiveSiteConfig();
   const cfg: AvisosConfig = {
     ...DEFAULT_CONFIG,
     ...(siteConfig?.avisos_config ?? {}),

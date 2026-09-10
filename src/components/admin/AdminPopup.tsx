@@ -64,6 +64,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { menuConfig } from '@/data/mockData';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AdminInheritControl from './AdminInheritControl';
 
 /** Shared admin password (mirrors site_config.php usage). */
 const ADMIN_PASSWORD = 'admin2025';
@@ -263,6 +264,8 @@ const AdminPopup = () => {
 
   return (
     <div className="space-y-6">
+      {/* Herencia desde el alcance General (multi-torneo). */}
+      <AdminInheritControl section="pop" />
       {/* Slot selector — one tab per POP UP. Enabled slots show a green dot. */}
       <Tabs value={String(activeIdx)} onValueChange={(v) => setActiveIdx(Number(v))}>
         <TabsList className="grid grid-cols-3 w-full max-w-md">

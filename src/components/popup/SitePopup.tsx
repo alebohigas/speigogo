@@ -16,7 +16,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
+import { useEffectiveSiteConfig } from '@/hooks/useInheritConfig';
 import type { PopupConfig } from '@/hooks/useSiteConfig';
 import { cn } from '@/lib/utils';
 
@@ -79,7 +79,7 @@ const PopupCard = ({ popup }: { popup: PopupConfig }) => {
  * side-by-side on desktop (flex-row) and stacked on mobile (flex-col).
  */
 const SitePopup = () => {
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig } = useEffectiveSiteConfig();
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
