@@ -664,7 +664,16 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                   </TableCell>
                                   {/* Club Logo del jugador 1 (en parejas también es 1 logo por renglón) */}
                                   <TableCell className="p-1 text-center align-middle sticky z-10 bg-white" style={{ left: '4rem' }}>
-                                    {player.clubLogo ? (
+                                    {categoryDetail?.isEquipos ? (
+                                      /* Logo del equipo: primero /logos-equipos, luego el de la BD. */
+                                      <EquipoLogo
+                                        grupoid={player.grupoid || ''}
+                                        torneoId={torneoIdOverride}
+                                        dbLogo={player.clubLogo}
+                                        className="w-auto object-contain rounded inline-block"
+                                        style={{ height: '2.1375rem' }}
+                                      />
+                                    ) : player.clubLogo ? (
                                       <img
                                         src={player.clubLogo}
                                         alt="Club"
