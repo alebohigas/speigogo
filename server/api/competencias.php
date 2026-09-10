@@ -950,8 +950,11 @@ if ($tipo === '' || $tipo === 'oyes300') {
             // Also log distinct premio values present in oyesxjug for this tournament
             // so we can see what the column actually contains (one-time per request).
             if (!isset($DEBUG_SECTIONS['oyes300']['distinct_premio_logged'])) {
-                dbg_query_all($conn, "SELECT DISTINCT premio, COUNT(*) as n FROM oyesxjug WHERE torneoid = $tid GROUP BY premio ORDER BY premio",
-                              'oyes300', 'distinct_premio_in_oyesxjug');
+                /* Se guardan los valores reales para diagnosticar de qué
+                   columna cuelga el premio/hoyo en cada torneo. */
+                $DEBUG_SECTIONS['oyes300']['oyesxjug_valores'] = dbg_query_all($conn,
+                    "SELECT premio, hoyo, COUNT(*) as n FROM oyesxjug WHERE torneoid = $tid GROUP BY premio, hoyo ORDER BY premio, hoyo",
+                    'oyes300', 'distinct_premio_in_oyesxjug');
                 $DEBUG_SECTIONS['oyes300']['distinct_premio_logged'] = true;
             }
 
