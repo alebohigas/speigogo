@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS usuario_sesion (
 -- Para generar el hash en el servidor:
 --   php -r "echo password_hash('TU_PASSWORD', PASSWORD_DEFAULT), PHP_EOL;"
 
-SET @superadmin_hash := '__PEGA_AQUI_EL_HASH_BCRYPT__';
+SET @superadmin_hash := '$2y$12$G42NWjsNYjIUyZTp.GQZY.617MenIdiTR1cBTR1gvj9QEeTBOD9l.';
 
 INSERT INTO usuarios (usuario, pwd, clubid, tipo, torneoid, estatus, nombre, ultent, activo)
 VALUES ('__superadmin__', @superadmin_hash, 0, 100, 0, 'ACTIVO', 'Superadmin', NOW(), 1)
