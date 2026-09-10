@@ -5,6 +5,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { API_BASE_URL } from '@/config/api';
 import { DEFAULT_SUPERADMIN_PASSWORD, getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { setStoredTorneoId } from '@/hooks/useTorneoId';
@@ -665,18 +666,10 @@ export const useSiteConfig = () => {
   /** Multi-torneo: la configuración depende del alcance activo. */
   const scope = useConfigScope();
 
-  return useQuery<SiteConfig>({
+  const query = useQuery<SiteConfig>({
     queryKey: ['site-config', scope],
     queryFn: async () => {
       const config = await fetchSiteConfig(scope);
-
-
-      // Sync torneoid.
-      // Uses setStoredTorneoId (instead of a raw localStorage write) so every
-      // mounted `useTorneoId()` consumer is notified and refetches its data.
-      if (config.torneoid) {
-        setStoredTorneoId(String(config.torneoid));
-      }
 
       // Sync menu order
       if (config.menu_order) {
@@ -746,6 +739,26 @@ export const useSiteConfig = () => {
     staleTime: 30 * 1000, // 30 seconds - keep fresh for admin changes
     retry: 1,
   });
+
+  useEffect(() => {
+    if (!query.data) return;
+
+    // En un alcance de torneo, la URL/scope es la autoridad. No usamos aquí
+    // un torneoid devuelto por una petición anterior: una respuesta tardía del
+    // torneo 267 podía sobrescribir el 270 después de cambiar de página.
+    if (/^\d+$/.test(scope)) {
+      setStoredTorneoId(scope);
+      return;
+    }
+
+    // En General no existe un torneoid propio; conserva el torneo de respaldo
+    // que resuelve el servidor para las páginas legacy sin slug.
+    if (query.data.torneoid) {
+      setStoredTorneoId(String(query.data.torneoid));
+    }
+  }, [query.data, scope]);
+
+  return query;
 };
 
 /**
