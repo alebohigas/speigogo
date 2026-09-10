@@ -534,15 +534,25 @@ const Salidas = () => {
                                   <TableRow className="bg-primary hover:bg-primary">
                                     <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
                                     <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                    {(hasAnyPair(result.group.players ?? []) || hasTeamMembers(result.group.players ?? [])) && (
-                                      <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
-                                    )}
-                                    <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
-                                    <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
-                                    {/* MATCH PLAY: la columna Score no aplica en enfrentamientos. */}
-                                    {!(!!result.matchPlay || isMatchPlaySystem(result.system)) && (
-                                      <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
-                                    )}
+                                    {(() => {
+                                      const equipos = hasTeamMembers(result.group.players ?? []);
+                                      const showPairTeam = hasAnyPair(result.group.players ?? []);
+                                      return (
+                                        <>
+                                          {showPairTeam && !equipos && (
+                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
+                                          )}
+                                          <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
+                                          <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
+                                          {equipos && (
+                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Tee</TableHead>
+                                          )}
+                                          {!(!!result.matchPlay || isMatchPlaySystem(result.system)) && (
+                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -558,11 +568,15 @@ const Salidas = () => {
                                     const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
                                     /* EQUIPOS: cada equipo agrega un renglón por integrante. */
                                     const equipos = hasTeamMembers(players);
+                                    const showPairTeam = hasAnyPair(players);
+                                    const showTeamColumn = showPairTeam && !equipos;
+                                    const showTeeColumn = equipos;
+                                    const hasScoreColumn = !matchPlay;
                                     const totalRows = equipos
                                       ? countGroupRowsTeam(players)
                                       : countGroupRowsWithVs(players, matchPlay);
-                                    const showTeam = hasAnyPair(players) || equipos;
-                                    const lineCols = showTeam ? 5 : 4;
+                                    const totalCols = 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
+                                    const lineCols = totalCols;
                                     let firstRowEmitted = false;
                                     const rows: JSX.Element[] = [];
 
@@ -589,8 +603,8 @@ const Salidas = () => {
                                               </TableCell>
                                             </>
                                           ) : null}
-                                          {showTeam && (
-                                            /* Código de pareja/equipo (p.ej. C05). Abarca ambos renglones
+                                          {showTeamColumn && (
+                                            /* Código de pareja/grupo (p.ej. C05). Abarca ambos renglones
                                              * de la pareja con rowSpan=2 para que se centre verticalmente. */
                                             <TableCell
                                               className="text-center font-bold text-foreground align-middle"
@@ -606,8 +620,9 @@ const Salidas = () => {
                                           </TableCell>
                                           <TableCell className={`font-medium player-name-cell ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}>
                                             {/* Recorte a 4 renglones en móvil (.player-name-clamp).
+                                              * EQUIPOS: el renglón principal identifica al equipo.
                                               * MATCH PLAY: prefijo con la posición del jugador en su grupo. */}
-                                            <span className={`player-name-clamp ${player.members?.length ? 'font-bold' : ''}`}>
+                                            <span className={`player-name-clamp ${player.members?.length ? 'font-bold text-base' : ''}`}>
                                               {player.members?.length
                                                 ? (player.groupId || player.name)
                                                 : matchPlay && player.position != null && player.position !== ''
@@ -615,12 +630,14 @@ const Salidas = () => {
                                                   : player.name}
                                             </span>
                                           </TableCell>
+                                          {showTeeColumn && <TableCell className="p-1" />}
                                           {/* Score: en parejas se centra entre los dos renglones (rowSpan=2).
+                                            * En EQUIPOS aparece únicamente en la fila del equipo.
                                             * En MATCH PLAY la columna se omite por completo. */}
-                                          {!matchPlay && (
+                                          {hasScoreColumn && (
                                             <TableCell
-                                              className="text-center font-bold text-primary align-middle"
-                                              rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                              className="text-center font-extrabold text-primary align-middle text-lg"
+                                              rowSpan={isPair ? 2 : 1}
                                             >
                                               {player.score || '—'}
                                             </TableCell>
@@ -637,11 +654,14 @@ const Salidas = () => {
                                           >
                                             <TableCell className="p-1" />
                                             <TableCell className="font-medium text-foreground player-name-cell">
-                                              <span className="player-name-clamp inline-flex items-center gap-2">
-                                                <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
-                                                {member.name}
-                                              </span>
+                                              <span className="player-name-clamp">{member.name}</span>
                                             </TableCell>
+                                            {showTeeColumn && (
+                                              <TableCell className="text-center align-middle">
+                                                <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                                              </TableCell>
+                                            )}
+                                            {hasScoreColumn && <TableCell className="p-1" />}
                                           </TableRow>
                                         );
                                       });
@@ -667,7 +687,7 @@ const Salidas = () => {
                                       if (vsLabelIdx.has(pIdx)) {
                                         rows.push(
                                           <TableRow key={`${pIdx}-vslabel`} className="bg-white hover:bg-white border-b-0">
-                                            <TableCell colSpan={showTeam ? 2 : 1} className="p-0" />
+                                            <TableCell colSpan={showTeamColumn ? 2 : 1} className="p-0" />
                                             <TableCell className="py-0 font-semibold text-muted-foreground">VS</TableCell>
                                           </TableRow>
                                         );
@@ -691,7 +711,16 @@ const Salidas = () => {
                                 <tfoot>
                                   <tr className="bg-primary">
                                     <td
-                                      colSpan={((hasAnyPair(result.group.players ?? []) || hasTeamMembers(result.group.players ?? [])) ? 6 : 5) - ((!!result.matchPlay || isMatchPlaySystem(result.system)) ? 1 : 0)}
+                                      colSpan={(() => {
+                                        const players = result.group.players ?? [];
+                                        const matchPlay = !!result.matchPlay || isMatchPlaySystem(result.system);
+                                        const equipos = hasTeamMembers(players);
+                                        const showPairTeam = hasAnyPair(players);
+                                        const showTeamColumn = showPairTeam && !equipos;
+                                        const showTeeColumn = equipos;
+                                        const hasScoreColumn = !matchPlay;
+                                        return 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
+                                      })()}
                                       className="text-primary-foreground font-bold text-center py-2 text-sm"
                                     >
                                       CATEGORÍA: {result.categoryName}
@@ -824,15 +853,25 @@ const Salidas = () => {
                               <TableRow className="bg-primary hover:bg-primary">
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                {(groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) && (
-                                  <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
-                                )}
-                                <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
-                                <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
-                                {/* MATCH PLAY: sin columna Score (no aplica en enfrentamientos). */}
-                                {!(!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) && (
-                                  <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
-                                )}
+                                {(() => {
+                                  const equipos = groupsHaveTeamMembers(detail.groups);
+                                  const showPairTeam = groupsHaveAnyPair(detail.groups);
+                                  return (
+                                    <>
+                                      {showPairTeam && !equipos && (
+                                        <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
+                                      )}
+                                      <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
+                                      <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
+                                      {equipos && (
+                                        <TableHead className="text-primary-foreground font-bold text-center w-20">Tee</TableHead>
+                                      )}
+                                      {!(!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) && (
+                                        <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -849,12 +888,15 @@ const Salidas = () => {
                                 const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
                                 /* EQUIPOS: cada equipo agrega un renglón por integrante. */
                                 const equipos = hasTeamMembers(players);
+                                const showPairTeam = groupsHaveAnyPair(detail.groups);
+                                const showTeamColumn = showPairTeam && !equipos;
+                                const showTeeColumn = equipos;
+                                const hasScoreColumn = !matchPlay;
                                 const totalRows = equipos
                                   ? countGroupRowsTeam(players)
                                   : countGroupRowsWithVs(players, matchPlay);
-                                const showTeam = groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups);
-                                const lineCols = showTeam ? 5 : 4;
-                                const totalCols = lineCols + (!matchPlay ? 1 : 0);
+                                const totalCols = 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
+                                const lineCols = totalCols;
                                 const isLastGroup = gIdx >= (detail.groups ?? []).length - 1;
                                 let firstRowEmitted = false;
                                 const rows: JSX.Element[] = [];
@@ -882,7 +924,7 @@ const Salidas = () => {
                                           </TableCell>
                                         </>
                                       ) : null}
-                                      {showTeam && (
+                                      {showTeamColumn && (
                                         /* Columna "Equipo": código de pareja/grupo (p.ej. C05).
                                          * rowSpan=2 cuando hay pareja; en EQUIPOS abarca al equipo y sus integrantes. */
                                         <TableCell
@@ -900,7 +942,7 @@ const Salidas = () => {
                                         <TableCell className="font-medium text-foreground player-name-cell">
                                          {/* MATCH PLAY: se antepone la posición del jugador en su grupo.
                                            * EQUIPOS: el renglón principal identifica al equipo. */}
-                                         <span className="player-name-clamp font-bold">
+                                         <span className={`player-name-clamp font-bold ${player.members?.length ? 'text-base' : ''}`}>
                                            {player.members?.length
                                              ? (player.groupId || player.name)
                                              : matchPlay && player.position != null && player.position !== ''
@@ -908,11 +950,14 @@ const Salidas = () => {
                                                : player.name}
                                          </span>
                                        </TableCell>
-                                      {/* En MATCH PLAY se omite la celda de Score. */}
-                                      {!matchPlay && (
+                                      {showTeeColumn && <TableCell className="p-1" />}
+                                      {/* Score: en parejas se centra entre los dos renglones (rowSpan=2).
+                                       * En EQUIPOS aparece únicamente en la fila del equipo.
+                                       * En MATCH PLAY se omite la celda de Score. */}
+                                      {hasScoreColumn && (
                                         <TableCell
-                                          className="text-center font-bold text-primary align-middle"
-                                          rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                          className="text-center font-extrabold text-primary align-middle text-lg"
+                                          rowSpan={isPair ? 2 : 1}
                                         >
                                           {player.score || '—'}
                                         </TableCell>
@@ -929,11 +974,14 @@ const Salidas = () => {
                                       >
                                         <TableCell className="p-1" />
                                         <TableCell className="font-medium text-foreground player-name-cell">
-                                          <span className="player-name-clamp inline-flex items-center gap-2">
-                                            <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
-                                            {member.name}
-                                          </span>
+                                          <span className="player-name-clamp">{member.name}</span>
                                         </TableCell>
+                                        {showTeeColumn && (
+                                          <TableCell className="text-center align-middle">
+                                            <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                                          </TableCell>
+                                        )}
+                                        {hasScoreColumn && <TableCell className="p-1" />}
                                       </TableRow>
                                     );
                                   });
@@ -956,7 +1004,7 @@ const Salidas = () => {
                                   if (vsLabelIdx.has(pIdx)) {
                                     rows.push(
                                       <TableRow key={`${group.id}-${pIdx}-vslabel`} className="bg-white hover:bg-white border-b-0">
-                                        <TableCell colSpan={showTeam ? 2 : 1} className="p-0" />
+                                        <TableCell colSpan={showTeamColumn ? 2 : 1} className="p-0" />
                                         <TableCell className="py-0 font-semibold text-muted-foreground">VS</TableCell>
                                       </TableRow>
                                     );
@@ -991,7 +1039,15 @@ const Salidas = () => {
                             <tfoot>
                               <tr className="bg-primary">
                                 <td
-                                  colSpan={((groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) ? 6 : 5) - ((!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) ? 1 : 0)}
+                                  colSpan={(() => {
+                                    const matchPlay = !!detail.isMatchPlay || isMatchPlaySystem(detail.system);
+                                    const equipos = groupsHaveTeamMembers(detail.groups);
+                                    const showPairTeam = groupsHaveAnyPair(detail.groups);
+                                    const showTeamColumn = showPairTeam && !equipos;
+                                    const showTeeColumn = equipos;
+                                    const hasScoreColumn = !matchPlay;
+                                    return 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
+                                  })()}
                                   className="text-primary-foreground font-bold text-center py-2 text-sm"
                                 >
                                   CATEGORÍA: {detail.categoryName}
