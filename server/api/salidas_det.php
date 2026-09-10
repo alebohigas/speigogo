@@ -303,6 +303,10 @@ foreach ($groupRows as $group) {
         }
         if (isset($pr['grupoid'])) {
             $player['groupId'] = $pr['grupoid'];
+            /* EQUIPOS: integrantes del equipo con su tee de salida individual. */
+            if ($isEquipos && isset($membersByGroup[(string)$pr['grupoid']])) {
+                $player['members'] = $membersByGroup[(string)$pr['grupoid']];
+            }
         }
         /* MATCH PLAY: adjunta número de match y lado (1|2) para que el
          * frontend agrupe a los jugadores por enfrentamiento e inserte "VS". */
