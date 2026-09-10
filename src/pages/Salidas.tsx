@@ -915,7 +915,7 @@ const Salidas = () => {
                                           </TableCell>
                                         </>
                                       ) : null}
-                                      {showTeam && (
+                                      {showTeamColumn && (
                                         /* Columna "Equipo": código de pareja/grupo (p.ej. C05).
                                          * rowSpan=2 cuando hay pareja; en EQUIPOS abarca al equipo y sus integrantes. */
                                         <TableCell
@@ -933,7 +933,7 @@ const Salidas = () => {
                                         <TableCell className="font-medium text-foreground player-name-cell">
                                          {/* MATCH PLAY: se antepone la posición del jugador en su grupo.
                                            * EQUIPOS: el renglón principal identifica al equipo. */}
-                                         <span className="player-name-clamp font-bold">
+                                         <span className={`player-name-clamp font-bold ${player.members?.length ? 'text-base' : ''}`}>
                                            {player.members?.length
                                              ? (player.groupId || player.name)
                                              : matchPlay && player.position != null && player.position !== ''
@@ -941,11 +941,14 @@ const Salidas = () => {
                                                : player.name}
                                          </span>
                                        </TableCell>
-                                      {/* En MATCH PLAY se omite la celda de Score. */}
-                                      {!matchPlay && (
+                                      {showTeeColumn && <TableCell className="p-1" />}
+                                      {/* Score: en parejas se centra entre los dos renglones (rowSpan=2).
+                                       * En EQUIPOS aparece únicamente en la fila del equipo.
+                                       * En MATCH PLAY se omite la celda de Score. */}
+                                      {hasScoreColumn && (
                                         <TableCell
-                                          className="text-center font-bold text-primary align-middle"
-                                          rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                          className="text-center font-extrabold text-primary align-middle text-lg"
+                                          rowSpan={isPair ? 2 : 1}
                                         >
                                           {player.score || '—'}
                                         </TableCell>
