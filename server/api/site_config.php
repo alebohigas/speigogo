@@ -436,7 +436,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if ($rows) {
             while ($r = $rows->fetch_assoc()) {
                 $key = site_config_has_scope($conn) ? (string)$r['scope'] : 'general';
-                $out = ['domain' => $_SERVER['HTTP_HOST'], 'torneoid' => isset($r['torneoid']) ? (int)$r['torneoid'] : null];
+                $tid = isset($r['torneoid']) ? (int)$r['torneoid'] : 0;
+                $auto = ($key === 'general' && $tid <= 0);
+                if ($auto) $tid = site_config_ref_torneo($conn, $domain);
+                $out = [
+                    'domain'        => $_SERVER['HTTP_HOST'],
+                    'torneoid'      => $tid > 0 ? $tid : null,
+                    'torneoid_auto' => $auto,
+                ];
                 foreach ($r as $col => $val) {
                     if ($col === 'domain' || $col === 'torneoid' || $col === 'scope' || $col === 'updated_at') continue;
                     $out[$col] = ($val === null || $val === '') ? null : json_decode($val, true);
