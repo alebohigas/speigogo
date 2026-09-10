@@ -1030,7 +1030,7 @@ const Salidas = () => {
                             <tfoot>
                               <tr className="bg-primary">
                                 <td
-                                  colSpan={((groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) ? 6 : 5) - ((!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) ? 1 : 0)}
+                                  colSpan={totalCols}
                                   className="text-primary-foreground font-bold text-center py-2 text-sm"
                                 >
                                   CATEGORÍA: {detail.categoryName}
