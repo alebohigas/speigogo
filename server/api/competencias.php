@@ -1433,7 +1433,7 @@ function get_oyes300_players($conn, $tid, $holeNum, $limit = 3, $filterEq = null
             JOIN jugadores j ON (a.jugadorid = j.id)
             JOIN clubs cl ON (j.clubid = cl.id)
             LEFT JOIN categorias cat ON (j.categoriaid = cat.categoria_id)
-            WHERE a.torneoid = $tid AND a.premio = $hole
+            WHERE a.torneoid = $tid AND $where
             ORDER BY a.distancia ASC
             LIMIT $limit";
 
