@@ -592,7 +592,10 @@ const Salidas = () => {
                                           {showTeam && (
                                             /* Código de pareja/equipo (p.ej. C05). Abarca ambos renglones
                                              * de la pareja con rowSpan=2 para que se centre verticalmente. */
-                                            <TableCell className="text-center font-bold text-foreground align-middle" rowSpan={isPair ? 2 : 1}>
+                                            <TableCell
+                                              className="text-center font-bold text-foreground align-middle"
+                                              rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                            >
                                               {player.groupId || '—'}
                                             </TableCell>
                                           )}
