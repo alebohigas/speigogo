@@ -111,6 +111,16 @@ const AdminTorneos = () => {
                 placeholder={slugify(row.nombre || '', row.torneoid)}
               />
             </div>
+            <div>
+              <Label className="text-xs">Orden en la barra</Label>
+              <Input
+                type="number"
+                min={1}
+                value={row.orden || ''}
+                onChange={(e) => update(i, { orden: Number(e.target.value) })}
+                placeholder={String(i + 1)}
+              />
+            </div>
             <div className="flex items-end gap-2">
               <div className="flex flex-col items-center">
                 <Label className="text-xs">Publicado</Label>
