@@ -38,11 +38,34 @@ const slugify = (nombre: string, torneoid: number) => {
 const AdminTorneos = () => {
   const { data, isLoading } = useSiteTorneos();
   const save = useSaveSiteTorneos();
+  const saveConfig = useSaveSiteConfig();
   const [rows, setRows] = useState<SiteTorneo[]>([]);
+  /** Torneo del que la vista general toma datos cuando los necesita. */
+  const [generalTorneo, setGeneralTorneo] = useState<number>(0);
 
   useEffect(() => {
     if (data?.torneos) setRows(data.torneos);
   }, [data?.torneos]);
+
+  useEffect(() => {
+    const tid = Number(data?.configs?.general?.torneoid ?? 0);
+    if (tid > 0) setGeneralTorneo(tid);
+  }, [data?.configs]);
+
+  const handleSaveGeneral = () => {
+    saveConfig.mutate(
+      { scope: 'general', torneoid: Number(generalTorneo) || 0, password: getSuperAdminPassword() },
+      {
+        onSuccess: () =>
+          toast({
+            title: 'Configuración general guardada',
+            description: 'Las páginas compartidas ya usan este torneo de referencia.',
+          }),
+        onError: (e: Error) =>
+          toast({ title: 'No se pudo guardar', description: e.message, variant: 'destructive' }),
+      }
+    );
+  };
 
   const update = (i: number, patch: Partial<SiteTorneo>) =>
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
