@@ -15,6 +15,7 @@ import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { useAppIcon } from "@/hooks/useAppIcon";
 import { applyThemeConfig } from "@/lib/theme-palettes";
 import { TorneoScopeSync, TorneoSlugLayout } from "@/components/torneos/TorneoScope";
+import { TorneoDataReset } from "@/components/torneos/TorneoDataReset";
 
 import { useEffect } from "react";
 import Index from "./pages/Index";
