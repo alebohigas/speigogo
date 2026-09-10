@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useRegistroPreferente } from '@/hooks/useRegistroPreferente';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 import {
   getRegistroListUrl,
   getRegistroVerifyUrl,
@@ -223,6 +224,19 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
    */
   const [folioFilter, setFolioFilter] = useState('');
   const [categoriaFilter, setCategoriaFilter] = useState<string>('__all__');
+  /**
+   * Filtro por torneo (multi-torneo). '__active__' = el torneo activo del
+   * dominio (comportamiento histórico), '__all__' = registros de todos los
+   * torneos dados de alta en esta página, o un torneoid concreto.
+   */
+  const [torneoFilter, setTorneoFilter] = useState<string>('__active__');
+  /** Torneos del dominio (para el selector y las etiquetas por fila). */
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneoNameById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const t of siteTorneos?.torneos || []) m.set(t.torneoid, t.nombre);
+    return m;
+  }, [siteTorneos?.torneos]);
   /** Modo de comparación de fecha: 'on' = en, 'after' = después, 'before' = antes. */
   const [dateMode, setDateMode] = useState<'on' | 'after' | 'before'>('on');
   /** Fecha (YYYY-MM-DD) usada con `dateMode` para filtrar `reg_fecha`. */
@@ -369,8 +383,13 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
   const refresh = async () => {
     setLoading(true);
     try {
-      // getRegistroListUrl now always limits to the active tournament
-      const res = await fetch(getRegistroListUrl(password));
+      // Filtro por torneo: activo (default), uno concreto o todos.
+      const torneoArg = torneoFilter === '__all__'
+        ? 'all' as const
+        : torneoFilter === '__active__'
+          ? undefined
+          : parseInt(torneoFilter, 10);
+      const res = await fetch(getRegistroListUrl(password, torneoArg));
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Error al cargar');
       setRows(json.rows || []);
@@ -381,7 +400,8 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
     }
   };
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
+  // Recargar cuando cambia el torneo seleccionado.
+  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [torneoFilter]);
 
   /** Cargar catálogo `estatuspago` (primeras 6 opciones) una sola vez. */
   useEffect(() => {
@@ -846,7 +866,7 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
           */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
             {/* Búsqueda libre */}
-            <div className="relative md:col-span-4">
+            <div className="relative md:col-span-3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-10"
@@ -856,9 +876,25 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
               />
             </div>
 
+            {/* Torneo (multi-torneo): actual, uno concreto o todos */}
+            <div className="md:col-span-2">
+              <Select value={torneoFilter} onValueChange={setTorneoFilter}>
+                <SelectTrigger><SelectValue placeholder="Torneo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__active__">Torneo activo</SelectItem>
+                  {(siteTorneos?.torneos?.length ?? 0) > 0 && (
+                    <SelectItem value="__all__">Todos los torneos</SelectItem>
+                  )}
+                  {(siteTorneos?.torneos || []).map(t => (
+                    <SelectItem key={t.torneoid} value={String(t.torneoid)}>{t.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Folio (#id) */}
             <Input
-              className="md:col-span-2"
+              className="md:col-span-1"
               placeholder="Folio (#id)"
               inputMode="numeric"
               value={folioFilter}
@@ -866,7 +902,7 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
             />
 
             {/* Categoría */}
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <Select value={categoriaFilter} onValueChange={setCategoriaFilter}>
                 <SelectTrigger><SelectValue placeholder="Categoría" /></SelectTrigger>
                 <SelectContent>
@@ -1014,6 +1050,12 @@ export const RegistrosDashboard = ({ password }: { password: string }) => {
                         <td className="p-3">
                           <div className="font-medium">{[r.reg_nombre, r.reg_apellido].filter(Boolean).join(' ') || '—'}</div>
                           <div className="text-xs text-muted-foreground">#{r.id} · {r.reg_fecha || r.created_at || (r as any).fecha_alta || '—'}</div>
+                          {/* Etiqueta de torneo cuando se ven varios torneos a la vez. */}
+                          {torneoFilter === '__all__' && r.torneoid != null && (
+                            <Badge variant="outline" className="mt-1 text-[10px] font-normal">
+                              {torneoNameById.get(Number(r.torneoid)) || `Torneo ${r.torneoid}`}
+                            </Badge>
+                          )}
                         </td>
                         <td className="p-3">
                           <div>{r.reg_correo || '—'}</div>

@@ -383,10 +383,21 @@ export const getRegistroSubmitUrl = (): string =>
 
 /**
  * Admin listing endpoint (requires ?password=).
- * Siempre limita al torneoid activo del dominio.
+ * Por defecto limita al torneoid activo del dominio. En sitios multi-torneo
+ * se puede pedir otro torneo (`torneo = 267`) o todos a la vez
+ * (`torneo = 'all'` → ?all=1, sin torneoid).
  */
-export const getRegistroListUrl = (password: string): string => {
+export const getRegistroListUrl = (password: string, torneo?: number | 'all'): string => {
+  if (torneo === 'all') {
+    // buildQuery siempre añade torneoid; para "todos" lo quitamos y pasamos all=1.
+    const debugMode = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('debug')
+      : null;
+    const qs = new URLSearchParams({ password, all: '1', ...(debugMode === '1' ? { debug: '1' } : {}) }).toString();
+    return `${API_BASE_URL}/registro.php?${qs}`;
+  }
   const extra: Record<string, string> = { password };
+  if (typeof torneo === 'number' && torneo > 0) extra.torneoid = String(torneo);
   return `${API_BASE_URL}/registro.php${buildQuery(extra)}`;
 };
 
