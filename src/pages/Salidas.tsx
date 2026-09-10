@@ -45,6 +45,39 @@ const hasAnyPair = (players: SalidasGroup['players']): boolean =>
 const groupsHaveAnyPair = (groups: SalidasGroup[] | undefined): boolean =>
   (groups ?? []).some((g) => hasAnyPair(g.players ?? []));
 
+/**
+ * EQUIPOS: la salida se arma por equipo, pero cada integrante sale desde el tee
+ * que le corresponde según su handicap. El API entrega `members` por equipo.
+ */
+const hasTeamMembers = (players: SalidasGroup['players']): boolean =>
+  (players ?? []).some((p) => (p.members?.length ?? 0) > 0);
+
+const groupsHaveTeamMembers = (groups: SalidasGroup[] | undefined): boolean =>
+  (groups ?? []).some((g) => hasTeamMembers(g.players ?? []));
+
+/** Renglones que ocupa un grupo en modo EQUIPOS: 1 por equipo + 1 por integrante. */
+const countGroupRowsTeam = (players: SalidasGroup['players']): number =>
+  (players ?? []).reduce((acc, p) => acc + 1 + (p.members?.length ?? 0), 0);
+
+/** Bolita con el color del tee de salida del jugador + abreviatura del tee. */
+const TeeDot = ({ tee, bgColor, color }: { tee?: string; bgColor?: string; color?: string }) => (
+  <span className="inline-flex items-center gap-1.5 align-middle">
+    <span
+      className="inline-block rounded-full border border-border"
+      style={{ width: '0.7rem', height: '0.7rem', backgroundColor: bgColor || 'transparent' }}
+      aria-hidden
+    />
+    {tee ? (
+      <span
+        className="text-[0.7rem] font-semibold px-1 rounded"
+        style={{ backgroundColor: bgColor || 'transparent', color: color || 'inherit' }}
+      >
+        {tee}
+      </span>
+    ) : null}
+  </span>
+);
+
 /** Detecta MATCH PLAY a partir del nombre del sistema de juego. */
 const isMatchPlaySystem = (system?: string): boolean =>
   !!system && /match\s*play/i.test(system);
