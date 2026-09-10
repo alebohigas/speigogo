@@ -21,14 +21,52 @@ if (!$file || !preg_match('/^[a-zA-Z0-9_\-\.]+$/', $file)) {
 }
 
 // ============= Fetch & Serve =============
-$remoteUrl = 'https://alien2019.speitour.mx/logos/' . $file;
-$imageData = @file_get_contents($remoteUrl);
+/**
+ * Resolución del logo.
+ *
+ * 1) Carpetas locales del hosting (permite subir logos propios por dominio).
+ * 2) Servidor legacy alien2019 (varias carpetas conocidas).
+ * Se descarta cualquier respuesta que no sea una imagen real (las 302 del
+ * servidor legacy devuelven HTML y antes provocaban 404 ruidosos).
+ */
+$imageData = null;
 
-if ($imageData === false) {
+$localDirs = [
+    __DIR__ . '/../logos/',
+    __DIR__ . '/../logos-equipos/',
+    __DIR__ . '/../../logos/',
+    __DIR__ . '/../../logos-equipos/',
+];
+foreach ($localDirs as $dir) {
+    $path = realpath($dir . $file);
+    if ($path && is_file($path)) {
+        $imageData = file_get_contents($path);
+        break;
+    }
+}
+
+if ($imageData === null) {
+    $remoteBases = [
+        'https://alien2019.speitour.mx/logos/',
+        'https://alien2019.speitour.mx/logos_equipos/',
+    ];
+    $ctx = stream_context_create(['http' => ['timeout' => 8, 'follow_location' => 0]]);
+    foreach ($remoteBases as $base) {
+        $data = @file_get_contents($base . $file, false, $ctx);
+        if ($data === false || $data === '') continue;
+        // Descarta páginas de error/redirección (HTML) servidas con 200/302.
+        if (stripos(substr($data, 0, 200), '<html') !== false) continue;
+        $imageData = $data;
+        break;
+    }
+}
+
+if ($imageData === null) {
     http_response_code(404);
     echo 'Logo not found';
     exit;
 }
+
 
 // Detect content type from extension
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));

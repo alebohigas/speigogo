@@ -94,32 +94,45 @@ if (categories_table_exists($conn, 'registro')) {
     }
 }
 
-/** Query: fetch categories with player count, joined to jugadores */
-/** Query: fetch categories with player count, tee info, rating & slope */
-$sql = "SELECT a.categoria_id, a.torneo_id, a.categoria, a.abreviatura,
-               a.sistema, a.formato, a.estilo, a.hcpIdxMin, a.hcpIdxMax,
-               a.porcentaje, a.hoyosajugar, a.hoyosacorte, a.salida,
-               a.gross, a.catrel, a.sexo, a.corte,
-               a.maxjugadores, a.hoyosxronda,
-               a.Skin_grupo_id, a.Skeenporcent$ageMinSel$ageMaxSel,
-                COUNT(b.id) as playerCount,
-                $registeredCountSelect,
-               s.tee AS teeName, s.color AS teeColorName,
-               ct.rating, ct.slope, ct.parcampo
-        FROM categorias a
-        LEFT JOIN jugadores b ON $playerJoinCond
-        LEFT JOIN salidas s ON (a.salida = s.id)
-        /**
-         * Rating / Slope / Par resolution.
-         *
-         * Antes se tomaba `SELECT campo FROM caljuego ... LIMIT 1`, lo que en
-         * algunas categorías devolvía una ronda con `campo = 0` (sin campo
-         * asignado) y dejaba Rating/Slope/Par vacíos en /jugadores.
-         *
-         * Ahora se toma el primer campo VÁLIDO (campo > 0) y, si la categoría
-         * no tiene ninguna ronda con campo asignado, se cae al primer registro
-         * de campo_tee que exista para ese tee de salida.
-         */
+/**
+ * Columnas opcionales de `categorias`.
+ *
+ * Algunas bases (p. ej. speigogo) no tienen todas las columnas legacy
+ * (`catrel`, `corte`, `Skin_grupo_id`, ...). Antes esto provocaba un 500
+ * ("Unknown column 'a.catrel'") y dejaba /equipos y /jugadores sin datos.
+ * Ahora cada columna ausente se sustituye por `NULL AS <columna>`.
+ */
+$optionalCols = [
+    'abreviatura', 'sistema', 'formato', 'estilo', 'hcpIdxMin', 'hcpIdxMax',
+    'porcentaje', 'hoyosajugar', 'hoyosacorte', 'salida', 'gross', 'catrel',
+    'sexo', 'corte', 'maxjugadores', 'hoyosxronda', 'Skin_grupo_id',
+    'Skeenporcent', 'age_range_min', 'age_range_max',
+];
+$selParts = [];
+$groupParts = [];
+foreach ($optionalCols as $col) {
+    if (categories_column_exists($conn, 'categorias', $col)) {
+        $selParts[] = "a.`$col`";
+        $groupParts[] = "a.`$col`";
+    } else {
+        $selParts[] = "NULL AS `$col`";
+    }
+}
+$optSel = $selParts ? ', ' . implode(', ', $selParts) : '';
+$optGroup = $groupParts ? ', ' . implode(', ', $groupParts) : '';
+
+/** El filtro de sub-categorías del skin solo aplica si existe `catrel`. */
+if ($skinCatFilter !== '' && !categories_column_exists($conn, 'categorias', 'catrel')) {
+    $skinCatFilter = '';
+}
+/** El join del skin solo usa `Skeenjuga` si la columna existe. */
+if ($skinOnly && !categories_column_exists($conn, 'jugadores', 'Skeenjuga')) {
+    $playerJoinCond = "(a.categoria_id = b.categoriaid)";
+}
+/** `salidas`/`campo_tee` requieren `categorias.salida`. */
+$hasSalida = categories_column_exists($conn, 'categorias', 'salida');
+$salidaJoins = $hasSalida
+    ? "LEFT JOIN salidas s ON (a.salida = s.id)
         LEFT JOIN campo_tee ct ON (ct.salidaid = a.salida AND ct.campoid = COALESCE(
             (SELECT cj.campo FROM caljuego cj
               WHERE cj.categoriaid = a.categoria_id AND cj.campo > 0
@@ -127,17 +140,26 @@ $sql = "SELECT a.categoria_id, a.torneo_id, a.categoria, a.abreviatura,
             (SELECT ct2.campoid FROM campo_tee ct2
               WHERE ct2.salidaid = a.salida
               ORDER BY ct2.campoid ASC LIMIT 1)
-        ))
+        ))"
+    : '';
+$teeSel = $hasSalida
+    ? "s.tee AS teeName, s.color AS teeColorName, ct.rating, ct.slope, ct.parcampo"
+    : "NULL AS teeName, NULL AS teeColorName, NULL AS rating, NULL AS slope, NULL AS parcampo";
+$teeGroup = $hasSalida ? ", s.tee, s.color, ct.rating, ct.slope, ct.parcampo" : '';
+
+/** Query: fetch categories with player count, tee info, rating & slope */
+$sql = "SELECT a.categoria_id, a.torneo_id, a.categoria$optSel,
+                COUNT(b.id) as playerCount,
+                $registeredCountSelect,
+                $teeSel
+        FROM categorias a
+        LEFT JOIN jugadores b ON $playerJoinCond
+        $salidaJoins
         WHERE a.estatus = 1 AND a.torneo_id = $tid $skinCatFilter
-        GROUP BY a.categoria_id, a.torneo_id, a.categoria, a.abreviatura,
-                 a.sistema, a.formato, a.estilo, a.hcpIdxMin, a.hcpIdxMax,
-                 a.porcentaje, a.hoyosajugar, a.hoyosacorte, a.salida,
-                 a.gross, a.catrel, a.sexo, a.corte,
-                 a.maxjugadores, a.hoyosxronda,
-                 a.Skin_grupo_id, a.Skeenporcent$ageMinSel$ageMaxSel,
-                 s.tee, s.color, ct.rating, ct.slope, ct.parcampo
+        GROUP BY a.categoria_id, a.torneo_id, a.categoria$optGroup$teeGroup
         " . ($skinOnly ? " HAVING playerCount > 0 " : "") . "
         ORDER BY a.categoria_id ASC";
+
 
 $rows = query_all($conn, $sql);
 
