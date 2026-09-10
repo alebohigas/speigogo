@@ -376,14 +376,20 @@ const AdminMenuOrder = ({
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 className={cn(
-                  'space-y-2 rounded-lg transition-colors p-1',
+                  'rounded-lg transition-colors p-1',
                   snapshot.isDraggingOver && 'bg-accent/30',
                 )}
               >
-                {rows.map((row, index) => (
+                {rows.map((row, index) => {
+                  // El identificador debe ser estable: si depende del índice,
+                  // la librería pierde la referencia al reordenar y el bloque
+                  // termina siempre al final o deja de responder.
+                  const rowId =
+                    row.kind === 'page' ? `row-page:${row.pageId}` : `row-group:${row.groupId}`;
+                  return (
                   <Draggable
-                    key={row.kind === 'page' ? `row-page-${row.pageId}` : `row-group-${row.groupId}`}
-                    draggableId={`row:${index}`}
+                    key={rowId}
+                    draggableId={rowId}
                     index={index}
                   >
                     {(dragProvided, dragSnapshot) => (
@@ -391,7 +397,7 @@ const AdminMenuOrder = ({
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
                         className={cn(
-                          'rounded-lg transition-shadow',
+                          'rounded-lg transition-shadow mb-2',
                           dragSnapshot.isDragging && 'shadow-lg ring-2 ring-primary/30',
                         )}
                       >
@@ -421,7 +427,8 @@ const AdminMenuOrder = ({
                       </div>
                     )}
                   </Draggable>
-                ))}
+                  );
+                })}
                 {provided.placeholder}
               </div>
             )}
@@ -527,7 +534,7 @@ const GroupRow = ({
               ref={provided.innerRef}
               {...provided.droppableProps}
               className={cn(
-                'p-2 pl-8 space-y-1 min-h-[44px] transition-colors',
+                'p-2 pl-8 min-h-[44px] transition-colors',
                 snapshot.isDraggingOver && 'bg-accent/20',
               )}
             >
@@ -547,7 +554,7 @@ const GroupRow = ({
                       ref={dragProvided.innerRef}
                       {...dragProvided.draggableProps}
                       className={cn(
-                        'flex items-center gap-2 rounded-lg',
+                        'flex items-center gap-2 rounded-lg mb-1',
                         dragSnapshot.isDragging && 'shadow-md ring-2 ring-primary/30',
                       )}
                     >
