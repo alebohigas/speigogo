@@ -24,6 +24,8 @@ export interface NavConfigItem {
   children?: (MenuItem & { hidden?: boolean })[];
   wrapText?: boolean;
   hidden?: boolean;
+  /** Posición en la barra superior (mezcla torneos y páginas compartidas). */
+  orden?: number;
 }
 
 /** Páginas visibles de una configuración, ya ordenadas y con prefijo. */
@@ -48,6 +50,9 @@ export const buildNavItemsFromConfig = (
   const pages = visiblePages(config, prefix);
   const groups = config?.menu_groups ?? [];
   const assignments = config?.page_group_assignments ?? {};
+  const order = config?.menu_order ?? {};
+  /** Posición de una página en la barra (la configurada o la de fábrica). */
+  const posOf = (page: MenuItem) => order[page.id] ?? page.order;
 
   const items: NavConfigItem[] = [];
   const done = new Set<string>();
@@ -63,10 +68,17 @@ export const buildNavItemsFromConfig = (
       if (!group || group.visible === false) continue;
       const children = pages.filter((p) => assignments[p.id] === groupId);
       if (children.length === 0) continue;
-      items.push({ type: 'group', id: groupId, label: group.name, children, wrapText: group.wrapText });
+      items.push({
+        type: 'group',
+        id: groupId,
+        label: group.name,
+        children,
+        wrapText: group.wrapText,
+        orden: Math.min(...children.map(posOf)),
+      });
       children.forEach((c) => done.add(c.id));
     } else if (!groupId) {
-      items.push({ type: 'link', id: page.id, label: page.label, path: page.path });
+      items.push({ type: 'link', id: page.id, label: page.label, path: page.path, orden: posOf(page) });
       done.add(page.id);
     }
   }
@@ -75,8 +87,11 @@ export const buildNavItemsFromConfig = (
 };
 
 /**
- * Barra superior completa de un sitio multi-torneo:
- * un desplegable por torneo + los enlaces compartidos.
+ * Barra superior completa de un sitio multi-torneo.
+ *
+ * Cada torneo es un desplegable más de la barra: se coloca según su "orden"
+ * configurado en /admin → Torneos, mezclado con los enlaces compartidos
+ * (que usan el orden del menú general). Home siempre queda al principio.
  */
 export const buildMultiTorneoNav = (
   torneos: SiteTorneo[],
@@ -84,7 +99,7 @@ export const buildMultiTorneoNav = (
 ): NavConfigItem[] => {
   const torneoItems: NavConfigItem[] = torneos
     .filter((t) => t.activo !== false)
-    .map((t) => {
+    .map((t, i) => {
       const prefix = t.slug ? `/${t.slug}` : '';
       const children = visiblePages(configs[String(t.torneoid)], prefix).filter(
         (p) => p.id !== 'home'
@@ -94,9 +109,19 @@ export const buildMultiTorneoNav = (
         id: `torneo-${t.torneoid}`,
         label: t.nombre || `Torneo ${t.torneoid}`,
         children,
+        orden: Number(t.orden) > 0 ? Number(t.orden) : i + 1,
       };
     })
     .filter((g) => (g.children?.length ?? 0) > 0);
 
-  return [...torneoItems, ...buildNavItemsFromConfig(configs.general, '')];
+  const generalItems = buildNavItemsFromConfig(configs.general, '');
+
+  const merged = [...torneoItems, ...generalItems].sort((a, b) => {
+    // Home siempre primero, sin importar el orden guardado.
+    if (a.id === 'home') return -1;
+    if (b.id === 'home') return 1;
+    return (a.orden ?? 999) - (b.orden ?? 999);
+  });
+
+  return merged;
 };

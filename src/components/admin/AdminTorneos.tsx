@@ -21,6 +21,7 @@ import { ArrowDown, ArrowUp, Plus, Save, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { useSiteTorneos, useSaveSiteTorneos, type SiteTorneo } from '@/hooks/useSiteTorneos';
+import { useSaveSiteConfig } from '@/hooks/useSiteConfig';
 
 /** Nombre corto sugerido a partir del nombre del torneo. */
 const slugify = (nombre: string, torneoid: number) => {
@@ -37,21 +38,49 @@ const slugify = (nombre: string, torneoid: number) => {
 const AdminTorneos = () => {
   const { data, isLoading } = useSiteTorneos();
   const save = useSaveSiteTorneos();
+  const saveConfig = useSaveSiteConfig();
   const [rows, setRows] = useState<SiteTorneo[]>([]);
+  /** Torneo del que la vista general toma datos cuando los necesita. */
+  const [generalTorneo, setGeneralTorneo] = useState<number>(0);
 
   useEffect(() => {
     if (data?.torneos) setRows(data.torneos);
   }, [data?.torneos]);
 
+  useEffect(() => {
+    const tid = Number(data?.configs?.general?.torneoid ?? 0);
+    if (tid > 0) setGeneralTorneo(tid);
+  }, [data?.configs]);
+
+  const handleSaveGeneral = () => {
+    saveConfig.mutate(
+      { scope: 'general', torneoid: Number(generalTorneo) || 0, password: getSuperAdminPassword() },
+      {
+        onSuccess: () =>
+          toast({
+            title: 'Configuración general guardada',
+            description: 'Las páginas compartidas ya usan este torneo de referencia.',
+          }),
+        onError: (e: Error) =>
+          toast({ title: 'No se pudo guardar', description: e.message, variant: 'destructive' }),
+      }
+    );
+  };
+
   const update = (i: number, patch: Partial<SiteTorneo>) =>
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
+  /** Sube/baja un torneo intercambiando también su número de orden. */
   const move = (i: number, dir: -1 | 1) =>
     setRows((prev) => {
       const next = [...prev];
       const j = i + dir;
       if (j < 0 || j >= next.length) return prev;
+      const ordenI = next[i].orden;
+      const ordenJ = next[j].orden;
       [next[i], next[j]] = [next[j], next[i]];
+      next[i] = { ...next[i], orden: ordenI };
+      next[j] = { ...next[j], orden: ordenJ };
       return next;
     });
 
@@ -62,7 +91,7 @@ const AdminTorneos = () => {
         ...r,
         torneoid: Number(r.torneoid),
         slug: (r.slug || slugify(r.nombre || '', Number(r.torneoid))).trim(),
-        orden: i + 1,
+        orden: Number(r.orden) > 0 ? Number(r.orden) : i + 1,
       }));
     save.mutate(
       { torneos: clean, password: getSuperAdminPassword() },
@@ -74,6 +103,7 @@ const AdminTorneos = () => {
   };
 
   return (
+    <div className="space-y-6">
     <Card>
       <CardHeader>
         <CardTitle>Torneos del sitio</CardTitle>
@@ -86,7 +116,7 @@ const AdminTorneos = () => {
         {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
 
         {rows.map((row, i) => (
-          <div key={i} className="grid gap-3 rounded-lg border p-3 md:grid-cols-[110px_1fr_180px_auto]">
+          <div key={i} className="grid gap-3 rounded-lg border p-3 md:grid-cols-[110px_1fr_180px_110px_auto]">
             <div>
               <Label className="text-xs">Torneo #</Label>
               <Input
@@ -109,6 +139,16 @@ const AdminTorneos = () => {
                 value={row.slug || ''}
                 onChange={(e) => update(i, { slug: e.target.value.toLowerCase() })}
                 placeholder={slugify(row.nombre || '', row.torneoid)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Orden en la barra</Label>
+              <Input
+                type="number"
+                min={1}
+                value={row.orden || ''}
+                onChange={(e) => update(i, { orden: Number(e.target.value) })}
+                placeholder={String(i + 1)}
               />
             </div>
             <div className="flex items-end gap-2">
@@ -155,6 +195,39 @@ const AdminTorneos = () => {
         </div>
       </CardContent>
     </Card>
+
+    {/* ---------- Configuración compartida (vista general) ---------- */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Configuración general</CardTitle>
+        <CardDescription>
+          La vista general no pertenece a ningún torneo: aquí se guardan las páginas
+          compartidas (patrocinadores, reglas, premios…). Elige de qué torneo toma los datos
+          cuando una página compartida los necesita.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 md:grid-cols-[220px_auto] md:items-end">
+          <div>
+            <Label className="text-xs">Torneo de referencia</Label>
+            <Input
+              type="number"
+              value={generalTorneo || ''}
+              onChange={(e) => setGeneralTorneo(Number(e.target.value))}
+              placeholder="Torneo #"
+            />
+          </div>
+          <Button className="gap-2" onClick={handleSaveGeneral} disabled={saveConfig.isPending}>
+            <Save className="h-4 w-4" />
+            {saveConfig.isPending ? 'Guardando…' : 'Guardar configuración general'}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Sugerencias: {rows.filter((r) => Number(r.torneoid) > 0).map((r) => `${r.torneoid} ${r.nombre || ''}`.trim()).join(' · ') || 'aún no hay torneos dados de alta'}
+        </p>
+      </CardContent>
+    </Card>
+    </div>
   );
 };
 

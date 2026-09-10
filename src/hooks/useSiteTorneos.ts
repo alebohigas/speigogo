@@ -51,7 +51,12 @@ const saveTorneos = async (torneos: SiteTorneo[], password: string) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       password: password === DEFAULT_SUPERADMIN_PASSWORD ? getSuperAdminPassword() : password,
-      torneos: torneos.map((t, i) => ({ ...t, orden: i + 1, activo: t.activo !== false })),
+      torneos: torneos.map((t, i) => ({
+        ...t,
+        // Respeta el orden escrito en /admin; si no hay, usa la posición de la lista.
+        orden: Number(t.orden) > 0 ? Number(t.orden) : i + 1,
+        activo: t.activo !== false,
+      })),
     }),
   });
   if (!res.ok) {
