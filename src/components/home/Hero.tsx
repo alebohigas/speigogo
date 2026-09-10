@@ -17,7 +17,7 @@ import { Calendar, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { menuConfig } from '@/data/mockData';
-import { useIsMultiTorneo } from '@/hooks/useSiteTorneos';
+import { useIsMultiTorneo, useSiteTorneos } from '@/hooks/useSiteTorneos';
 
 /** Regex to match leading Roman numerals (I, V, X, L, C, D, M) */
 const ROMAN_NUMERAL_REGEX = /^([IVXLCDM]+)\s+(.+)$/;
@@ -38,6 +38,10 @@ const Hero = () => {
   const { data: tournamentInfo } = useTournamentInfo();
   const { data: siteConfig } = useSiteConfig();
   const isMultiTorneo = useIsMultiTorneo();
+  /** Torneos del sitio + su configuración, para los botones cruzados. */
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneos = siteTorneos?.torneos ?? [];
+  const configs = siteTorneos?.configs ?? {};
 
   /**
    * Resuelve un slot del hero:
@@ -55,17 +59,36 @@ const Hero = () => {
     : { label: 'Ver Convocatoria',  href: '/convocatoria' };
   const fallback2 = { label: 'Ver Jugadores', href: '/jugadores' };
 
-  const resolveSlot = (pageId: string | null | undefined, fallback: { label: string; href: string }) => {
-    if (!pageId) return fallback;
-    const item = menuConfig.find((m) => m.id === pageId);
+  /**
+   * El valor guardado puede ser:
+   *   - "salidas"        → página del alcance actual.
+   *   - "t274:salidas"   → página de un torneo concreto del sitio
+   *                        (se muestra como "Akron Experience Salidas").
+   */
+  const resolveSlot = (value: string | null | undefined, fallback: { label: string; href: string }) => {
+    if (!value) return fallback;
+    const pretty = (text: string) => text.charAt(0) + text.slice(1).toLowerCase();
+
+    if (value.includes(':')) {
+      const [rawTorneo, pageId] = value.split(':');
+      const torneoId = rawTorneo.replace(/^t/, '');
+      const torneo = torneos.find((t) => String(t.torneoid) === torneoId);
+      const item = menuConfig.find((m) => m.id === pageId);
+      if (!torneo || !item) return fallback;
+      const visible = configs[torneoId]?.visibility?.[pageId];
+      if (visible === false) return fallback;
+      return {
+        label: `${torneo.nombre || `Torneo ${torneo.torneoid}`} ${pretty(item.label)}`,
+        href: torneo.slug ? `/${torneo.slug}${item.path}` : item.path,
+      };
+    }
+
+    const item = menuConfig.find((m) => m.id === value);
     if (!item) return fallback;
-    const visible = siteConfig?.visibility?.[pageId];
+    const visible = siteConfig?.visibility?.[value];
     // If visibility isn't defined, we assume the page is visible (legacy).
     if (visible === false) return fallback;
-    return {
-      label: item.label.charAt(0) + item.label.slice(1).toLowerCase(),
-      href:  item.path,
-    };
+    return { label: pretty(item.label), href: item.path };
   };
 
   const [cfg1, cfg2] = siteConfig?.home_config?.buttons ?? [null, null];

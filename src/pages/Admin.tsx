@@ -38,6 +38,8 @@ import AdminBrackets from '@/components/admin/AdminBrackets';
 import AdminMatchPlay from '@/components/admin/AdminMatchPlay';
 import AdminThemePalette from '@/components/admin/AdminThemePalette';
 import AdminShowcase300 from '@/components/admin/AdminShowcase300';
+/** Constructor de rotación embebido en la pestaña Showcase 300. */
+import { ShowcaseRotacionDashboard } from '@/pages/AdminShowcaseRotacionPage';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminStatsPage from '@/components/admin/AdminStatsPage';
 import AdminHistorial from '@/components/admin/AdminHistorial';
@@ -304,6 +306,8 @@ const AdminDashboard = () => {
     ? (AREA_TO_TAB[staffSession.areas[0]] || 'config')
     : 'config';
   const staffDefaultTab = isAdminTabEnabled(staffFirstTab) ? staffFirstTab : 'config';
+  /** Pestaña activa (controlada para poder agrupar las secciones). */
+  const [activeTab, setActiveTab] = useState<string>(staffDefaultTab);
   /**
    * Filtra tabs por MÓDULO (apagado en /setup = no existe para nadie) y luego
    * por permisos del usuario activo.
@@ -497,85 +501,125 @@ const AdminDashboard = () => {
       ) : (
       <>
       {/* Tabs for different admin sections */}
-      <Tabs defaultValue={staffDefaultTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
         {/*
-          Admin tab strip — split across two wrapping rows so 13+ tabs no
-          longer cram into a single 12-column grid. `flex flex-wrap` lets
-          each row reflow naturally per breakpoint; `h-auto` overrides the
-          shadcn default fixed height. Every trigger carries an icon.
-        */}
-        {/*
-          Admin tab strip — always rendered in TWO rows. When the total
-          count is odd, the FIRST row gets the larger half (ceil(n/2)).
-          Each row is its own <TabsList> (Radix supports multiple lists in
-          one <Tabs> root and keeps the shared active state). Every trigger
-          carries an icon for visual scanability.
+          Admin navigation — dos niveles:
+            Fila 1 → secciones ("Configuración de Página", "Visualización",
+                     "Juego y jugadores", "Control").
+            Fila 2 → pestañas de la sección activa.
+          Las pestañas siguen siendo un único <Tabs> controlado, así que los
+          permisos por área de staff y los módulos apagados se respetan igual.
         */}
         {(() => {
-          /**
-           * adminTabs
-           * Centralized definition of every admin tab so the two-row
-           * split stays in sync if tabs are added/removed. Order here
-           * = display order across row 1 then row 2.
-           */
+          /** Catálogo completo de pestañas (etiqueta + icono). */
           const adminTabs: { value: string; icon: any; label: string }[] = [
             { value: 'config',       icon: Database,        label: 'Config' },
-            { value: 'archivos',     icon: Upload,          label: 'Archivos' },
             { value: 'pagina',       icon: LayoutPanelTop,  label: 'Página' },
+            { value: 'avisos',       icon: Bell,            label: 'Avisos' },
+            { value: 'anuncio',      icon: Megaphone,       label: 'Anuncio' },
+            { value: 'popup',        icon: MonitorPlay,     label: 'POP' },
+            { value: 'sponsors',     icon: ImageIcon,       label: 'Patrocinadores' },
+            { value: 'heros',        icon: ImageIcon,       label: 'Heros' },
+            { value: 'stats',        icon: BarChart3,       label: 'Estadísticas' },
+
+            { value: 'archivos',     icon: Upload,          label: 'Archivos' },
             { value: 'convocatoria', icon: FileText,        label: 'Convocatoria' },
             { value: 'eventos',      icon: CalendarDays,    label: 'Eventos' },
-            { value: 'avisos',       icon: Bell,            label: 'Avisos' },
             { value: 'menus',        icon: UtensilsCrossed, label: 'Menús' },
             { value: 'premios',      icon: Trophy,          label: 'Premios' },
             { value: 'hoteles',      icon: Hotel,           label: 'Hoteles' },
-            { value: 'popup',        icon: MonitorPlay,     label: 'POP' },
-            { value: 'anuncio',      icon: Megaphone,       label: 'Anuncio' },
             { value: 'banderas',     icon: Flag,            label: 'Banderas' },
+
             { value: 'live',         icon: Radio,           label: 'Live' },
-            { value: 'sponsors',     icon: ImageIcon,       label: 'Patrocinadores' },
+            { value: 'showcase-rotacion', icon: MonitorPlay, label: 'Showcase 300' },
             { value: 'registro',     icon: ClipboardList,   label: 'Pre-Registro' },
-            { value: 'registros',    icon: ListChecks,      label: 'Registros' },
             { value: 'jugadores',    icon: Layers,          label: 'Categorías' },
+            { value: 'brackets',     icon: Trophy,          label: 'Brackets Putt' },
+            { value: 'matchplay',    icon: Swords,          label: 'Match Play' },
+            { value: 'stats-page',   icon: BarChart3,       label: 'Página /stats' },
             /**
-             * ALIEN SYSTEM — sección que agrupa las herramientas operativas
-             * de impresión (Tarjetas, Time Line, Salidas) en sub-pestañas.
+             * ALIEN SYSTEM — herramientas operativas de impresión
+             * (Tarjetas, Time Line, Salidas) en sub-pestañas.
              */
             { value: 'alien',        icon: Rocket,          label: 'ALIEN SYSTEM' },
 
-            { value: 'brackets',     icon: Trophy,          label: 'Brackets Putt' },
-            { value: 'matchplay',    icon: Swords,          label: 'Match Play' },
-            { value: 'historial',    icon: History,         label: 'Historial' },
-            { value: 'heros',        icon: ImageIcon,       label: 'Heros' },
-            { value: 'stats',        icon: BarChart3,       label: 'Estadísticas' },
-            { value: 'stats-page',   icon: BarChart3,       label: 'Página /stats' },
+            { value: 'registros',    icon: ListChecks,      label: 'Registros' },
             { value: 'usuarios',     icon: Users,           label: 'Usuarios' },
+            { value: 'historial',    icon: History,         label: 'Historial' },
           ];
-          // Filtrar por área para staff temporal. Admin completo ve todo.
+
+          /** Secciones y el orden de sus pestañas. */
+          const sections: { id: string; label: string; icon: any; tabs: string[] }[] = [
+            {
+              id: 'configuracion',
+              label: 'Configuración de Página',
+              icon: Settings,
+              tabs: ['config', 'pagina', 'avisos', 'anuncio', 'popup', 'sponsors', 'heros', 'stats'],
+            },
+            {
+              id: 'visualizacion',
+              label: 'Visualización',
+              icon: ImageIcon,
+              tabs: ['archivos', 'convocatoria', 'eventos', 'menus', 'premios', 'hoteles', 'banderas'],
+            },
+            {
+              id: 'juego',
+              label: 'Juego y jugadores',
+              icon: Trophy,
+              tabs: ['live', 'showcase-rotacion', 'registro', 'jugadores', 'brackets', 'matchplay', 'stats-page', 'alien'],
+            },
+            {
+              id: 'control',
+              label: 'Control',
+              icon: Shield,
+              tabs: ['registros', 'usuarios', 'historial'],
+            },
+          ];
+
+          // Filtrar por módulo activo y por área para staff temporal.
           const allowed = visibleAdminTabs(adminTabs);
-          // Split: first row = ceil(n/2) so odd counts give the bigger
-          // half to the top row, per the design directive.
-          const firstCount = Math.ceil(allowed.length / 2);
-          const row1 = allowed.slice(0, firstCount);
-          const row2 = allowed.slice(firstCount);
-          const renderRow = (rowTabs: typeof adminTabs) => (
-            <TabsList className="flex flex-wrap w-full h-auto gap-1 p-1">
-              {rowTabs.map(({ value, icon: Icon, label }) => (
-                <TabsTrigger
-                  key={value}
-                  value={value}
-                  className="gap-2 flex-1 min-w-[120px]"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          );
+          const byValue = new Map(allowed.map((t) => [t.value, t]));
+
+          /** Secciones que conservan al menos una pestaña visible. */
+          const usable = sections
+            .map((s) => ({ ...s, items: s.tabs.map((v) => byValue.get(v)).filter(Boolean) as typeof allowed }))
+            .filter((s) => s.items.length > 0);
+
+          if (usable.length === 0) return null;
+
+          const current = usable.find((s) => s.items.some((t) => t.value === activeTab)) ?? usable[0];
+
           return (
             <div className="space-y-2">
-              {renderRow(row1)}
-              {renderRow(row2)}
+              {/* Fila 1 — secciones */}
+              <div className="flex flex-wrap w-full gap-1 rounded-md bg-muted p-1">
+                {usable.map(({ id, label, icon: Icon, items }) => (
+                  <Button
+                    key={id}
+                    type="button"
+                    variant={current.id === id ? 'default' : 'ghost'}
+                    size="sm"
+                    className="gap-2 flex-1 min-w-[150px]"
+                    onClick={() => {
+                      if (!items.some((t) => t.value === activeTab)) setActiveTab(items[0].value);
+                    }}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Fila 2 — pestañas de la sección activa */}
+              <TabsList className="flex flex-wrap w-full h-auto gap-1 p-1">
+                {current.items.map(({ value, icon: Icon, label }) => (
+                  <TabsTrigger key={value} value={value} className="gap-2 flex-1 min-w-[120px]">
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </div>
           );
         })()}
@@ -658,9 +702,6 @@ const AdminDashboard = () => {
           {/* Theme palette picker — applies per-domain via site_config.theme_config */}
           <AdminThemePalette />
 
-          {/* Showcase 300 — buttons to open lobby/TV reports in new windows.
-              Solo si el módulo "showcase" está activo en /setup. */}
-          {isModuleOn('showcase') && <AdminShowcase300 />}
         </TabsContent>
 
         {/* Archivos Tab — upload images + PDFs to the server */}
@@ -738,6 +779,14 @@ const AdminDashboard = () => {
         {/* Live Scoring Tab */}
         <TabsContent value="live">
           <AdminLiveScoring />
+        </TabsContent>
+
+        {/* Showcase 300 — accesos a los reportes de lobby/TV y, debajo, el
+            constructor de rotación ya desplegado (antes vivía en otra
+            ventana en /admin/showcase-rotacion). */}
+        <TabsContent value="showcase-rotacion" className="space-y-6">
+          <AdminShowcase300 />
+          <ShowcaseRotacionDashboard />
         </TabsContent>
 
         {/* Sponsors Tab — controls how the Patrocinadores page renders sponsor logos */}

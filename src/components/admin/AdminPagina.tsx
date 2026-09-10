@@ -133,7 +133,14 @@ const AdminPagina = ({
                   : 'space-y-3'
               )}
             >
-              {menuItems.map((item) => (
+              {/* Las páginas ocultas (en gris) se muestran al final de la lista. */}
+              {[...menuItems]
+                .sort((a, b) => {
+                  const va = (visibilitySettings[a.id] ?? true) ? 0 : 1;
+                  const vb = (visibilitySettings[b.id] ?? true) ? 0 : 1;
+                  return va - vb;
+                })
+                .map((item) => (
                 <AdminPageCard
                   key={item.id}
                   pageId={item.id}

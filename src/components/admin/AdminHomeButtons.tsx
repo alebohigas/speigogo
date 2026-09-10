@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, MousePointerClick, Save } from 'lucide-react';
 import { useSiteConfig, useSaveSiteConfig, type HomeConfig } from '@/hooks/useSiteConfig';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
@@ -35,6 +36,10 @@ const AdminHomeButtons = () => {
   const saveSiteConfig = useSaveSiteConfig();
   const { getAllMenuItems, visibilitySettings } = usePageVisibility();
   const { toast } = useToast();
+  /** Torneos del sitio: permiten apuntar un botón a la página de otro torneo. */
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneos = siteTorneos?.torneos ?? [];
+  const configs = siteTorneos?.configs ?? {};
 
   /** Full menu items list (admin view — includes hidden pages). */
   const menuItems = useMemo(() => getAllMenuItems(), [getAllMenuItems]);
@@ -95,6 +100,23 @@ const AdminHomeButtons = () => {
                   </SelectItem>
                 );
               })}
+
+            {/* Páginas de cada torneo del sitio: "Akron Invitational Salidas". */}
+            {torneos.map((t) => {
+              const cfg = configs[String(t.torneoid)];
+              const nombre = t.nombre || `Torneo ${t.torneoid}`;
+              return menuItems
+                .filter((m) => m.id !== 'home')
+                .filter((m) => (cfg?.visibility?.[m.id] ?? true) !== false)
+                .map((m) => (
+                  <SelectItem key={`t${t.torneoid}:${m.id}`} value={`t${t.torneoid}:${m.id}`}>
+                    {nombre} {m.label}
+                    <span className="text-muted-foreground">
+                      {' '}— {t.slug ? `/${t.slug}${m.path}` : m.path}
+                    </span>
+                  </SelectItem>
+                ));
+            })}
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">
