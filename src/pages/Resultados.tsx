@@ -31,6 +31,7 @@ import type {
 } from '@/data/resultadosData';
 import ScorecardRow from '@/components/resultados/ScorecardRow';
 import ScorecardParejas from '@/components/resultados/ScorecardParejas';
+import EquipoLogo from '@/components/equipos/EquipoLogo';
 
 // ============= Helper Functions =============
 
@@ -621,8 +622,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                              * z-20 keeps headers above sticky body cells (z-10).
                              */}
                             <TableHead className="text-primary-foreground font-bold w-16 sticky left-0 z-20 bg-primary">Pos</TableHead>
-                            <TableHead className="text-primary-foreground font-bold text-center sticky z-20 bg-primary" style={{ left: '4rem' }}>Club</TableHead>
-                            <TableHead className="text-primary-foreground font-bold sticky z-20 bg-primary" style={{ left: '7.5rem' }}>Jugador</TableHead>
+                            <TableHead className="text-primary-foreground font-bold text-center sticky z-20 bg-primary" style={{ left: '4rem' }}>{categoryDetail?.isEquipos ? 'Grupo' : 'Club'}</TableHead>
+                            <TableHead className="text-primary-foreground font-bold sticky z-20 bg-primary" style={{ left: '7.5rem' }}>{categoryDetail?.isEquipos ? 'Equipo' : 'Jugador'}</TableHead>
                             {/* Dynamic round columns based on days array */}
                             {(categoryDetail?.days || []).map((_, i) => (
                               <TableHead
@@ -664,7 +665,16 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                   </TableCell>
                                   {/* Club Logo del jugador 1 (en parejas también es 1 logo por renglón) */}
                                   <TableCell className="p-1 text-center align-middle sticky z-10 bg-white" style={{ left: '4rem' }}>
-                                    {player.clubLogo ? (
+                                    {categoryDetail?.isEquipos ? (
+                                      /* Logo del equipo: primero /logos-equipos, luego el de la BD. */
+                                      <EquipoLogo
+                                        grupoid={player.grupoid || ''}
+                                        torneoId={torneoIdOverride}
+                                        dbLogo={player.clubLogo}
+                                        className="w-auto object-contain rounded inline-block"
+                                        style={{ height: '2.1375rem' }}
+                                      />
+                                    ) : player.clubLogo ? (
                                       <img
                                         src={player.clubLogo}
                                         alt="Club"
@@ -679,8 +689,21 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                     )}
                                   </TableCell>
                                   {/* Nombre recortado a 4 renglones en móvil vía span interno (.player-name-clamp) */}
+                                  {/* En categorías por equipos el renglón muestra el nombre del
+                                      equipo en negritas y debajo la lista de integrantes. */}
                                   <TableCell className="font-medium player-name-cell sticky z-10 bg-white" style={{ left: '7.5rem' }}>
-                                    <span className="player-name-clamp">{name1}</span>
+                                    {categoryDetail?.isEquipos ? (
+                                      <div className="py-1">
+                                        <span className="block font-bold">{name1}</span>
+                                        {(player.members || []).map((m, mi) => (
+                                          <span key={`${player.id}-m${mi}`} className="block text-sm text-muted-foreground leading-tight">
+                                            {m}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <span className="player-name-clamp">{name1}</span>
+                                    )}
                                   </TableCell>
                                   {/* Round score cells — rowSpan=2 en parejas para centrar el score compartido */}
                                   {(categoryDetail?.days || []).map((_, i) => {
@@ -846,7 +869,12 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                    * column / scrolls the table horizontally.
                                    */}
                                   <TableCell className="font-medium text-muted-foreground player-name-cell sticky z-10" style={{ left: '7.5rem', backgroundColor: 'hsl(var(--muted) / 0.2)' }}>
-                                    <span className="block leading-tight player-name-clamp">{name1}</span>
+                                    <span className={`block leading-tight player-name-clamp ${categoryDetail?.isEquipos ? 'font-bold' : ''}`}>{name1}</span>
+                                    {categoryDetail?.isEquipos && (cp.members || []).map((m, mi) => (
+                                      <span key={`${cp.playerId}-m${mi}`} className="block text-sm leading-tight text-muted-foreground">
+                                        {m}
+                                      </span>
+                                    ))}
                                     <span className="block text-[11px] leading-tight text-muted-foreground/70">
                                       ({cp.statusLabel})
                                     </span>

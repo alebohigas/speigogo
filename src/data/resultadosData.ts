@@ -65,6 +65,12 @@ export interface PlayerResult {
    */
   closedRounds?: number;
   handicapIndex?: number;
+  /** Código del equipo (jugadores.grupoid) en categorías por equipos. */
+  grupoid?: string;
+  /** Nombre del equipo en categorías por equipos. */
+  teamName?: string;
+  /** Integrantes del equipo, mostrados bajo el nombre del equipo. */
+  members?: string[];
 }
 
 /** Player who did not complete the tournament (NO SHOW, RETIRO, DQ) */
@@ -90,6 +96,12 @@ export interface CutPlayer {
   total?: number;
   /** Count of CLOSED scorecards (statlsc=1) — see PlayerResult.closedRounds. */
   closedRounds?: number;
+  /** Código del equipo (categorías por equipos). */
+  grupoid?: string;
+  /** Nombre del equipo (categorías por equipos). */
+  teamName?: string;
+  /** Integrantes del equipo (categorías por equipos). */
+  members?: string[];
 }
 
 export interface CategoryScoring {
@@ -108,6 +120,9 @@ export interface ResultCategory {
    *  para enrutar el click de R{n} a `tarjeta_parejas.php` en vez de
    *  `resultados_tarjeta.php`. */
   isParejas?: boolean;
+  /** True cuando la categoría se juega por equipos (formato AGOGO). El
+   *  leaderboard muestra un renglón por equipo con sus integrantes debajo. */
+  isEquipos?: boolean;
   /** Format genérico ('INDIVIDUAL' | 'PAREJAS') del backend. */
   format?: string;
   /** Default scorecard type for this category (can be overridden per scoring) */
