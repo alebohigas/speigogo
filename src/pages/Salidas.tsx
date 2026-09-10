@@ -844,15 +844,25 @@ const Salidas = () => {
                               <TableRow className="bg-primary hover:bg-primary">
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                {(groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) && (
-                                  <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
-                                )}
-                                <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
-                                <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
-                                {/* MATCH PLAY: sin columna Score (no aplica en enfrentamientos). */}
-                                {!(!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) && (
-                                  <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
-                                )}
+                                {(() => {
+                                  const equipos = groupsHaveTeamMembers(detail.groups);
+                                  const showPairTeam = groupsHaveAnyPair(detail.groups);
+                                  return (
+                                    <>
+                                      {showPairTeam && !equipos && (
+                                        <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
+                                      )}
+                                      <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
+                                      <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
+                                      {equipos && (
+                                        <TableHead className="text-primary-foreground font-bold text-center w-20">Tee</TableHead>
+                                      )}
+                                      {!(!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) && (
+                                        <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </TableRow>
                             </TableHeader>
                             <TableBody>
