@@ -621,8 +621,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                              * z-20 keeps headers above sticky body cells (z-10).
                              */}
                             <TableHead className="text-primary-foreground font-bold w-16 sticky left-0 z-20 bg-primary">Pos</TableHead>
-                            <TableHead className="text-primary-foreground font-bold text-center sticky z-20 bg-primary" style={{ left: '4rem' }}>Club</TableHead>
-                            <TableHead className="text-primary-foreground font-bold sticky z-20 bg-primary" style={{ left: '7.5rem' }}>Jugador</TableHead>
+                            <TableHead className="text-primary-foreground font-bold text-center sticky z-20 bg-primary" style={{ left: '4rem' }}>{categoryDetail?.isEquipos ? 'Grupo' : 'Club'}</TableHead>
+                            <TableHead className="text-primary-foreground font-bold sticky z-20 bg-primary" style={{ left: '7.5rem' }}>{categoryDetail?.isEquipos ? 'Equipo' : 'Jugador'}</TableHead>
                             {/* Dynamic round columns based on days array */}
                             {(categoryDetail?.days || []).map((_, i) => (
                               <TableHead
@@ -859,7 +859,12 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                    * column / scrolls the table horizontally.
                                    */}
                                   <TableCell className="font-medium text-muted-foreground player-name-cell sticky z-10" style={{ left: '7.5rem', backgroundColor: 'hsl(var(--muted) / 0.2)' }}>
-                                    <span className="block leading-tight player-name-clamp">{name1}</span>
+                                    <span className={`block leading-tight player-name-clamp ${categoryDetail?.isEquipos ? 'font-bold' : ''}`}>{name1}</span>
+                                    {categoryDetail?.isEquipos && (cp.members || []).map((m, mi) => (
+                                      <span key={`${cp.playerId}-m${mi}`} className="block text-sm leading-tight text-muted-foreground">
+                                        {m}
+                                      </span>
+                                    ))}
                                     <span className="block text-[11px] leading-tight text-muted-foreground/70">
                                       ({cp.statusLabel})
                                     </span>
