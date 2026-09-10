@@ -854,8 +854,11 @@ const Salidas = () => {
                                       ) : null}
                                       {showTeam && (
                                         /* Columna "Equipo": código de pareja/grupo (p.ej. C05).
-                                         * rowSpan=2 cuando hay pareja para centrar verticalmente. */
-                                        <TableCell className="text-center font-bold text-foreground align-middle" rowSpan={isPair ? 2 : 1}>
+                                         * rowSpan=2 cuando hay pareja; en EQUIPOS abarca al equipo y sus integrantes. */
+                                        <TableCell
+                                          className="text-center font-bold text-foreground align-middle"
+                                          rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
+                                        >
                                           {player.groupId || '—'}
                                         </TableCell>
                                       )}
