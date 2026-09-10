@@ -86,7 +86,7 @@ const AdminTorneos = () => {
         {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
 
         {rows.map((row, i) => (
-          <div key={i} className="grid gap-3 rounded-lg border p-3 md:grid-cols-[110px_1fr_180px_auto]">
+          <div key={i} className="grid gap-3 rounded-lg border p-3 md:grid-cols-[110px_1fr_180px_110px_auto]">
             <div>
               <Label className="text-xs">Torneo #</Label>
               <Input
