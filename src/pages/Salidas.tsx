@@ -794,7 +794,7 @@ const Salidas = () => {
                               <TableRow className="bg-primary hover:bg-primary">
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
                                 <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                {groupsHaveAnyPair(detail.groups) && (
+                                {(groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) && (
                                   <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
                                 )}
                                 <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
