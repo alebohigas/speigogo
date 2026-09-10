@@ -107,6 +107,31 @@ if (strtoupper($catInfo['formato'] ?? '') === 'PAREJAS') {
     exit;
 }
 
+/**
+ * Dispatcher EQUIPOS (formato AGOGO): la categoría se juega por equipos cuando
+ * el formato lo declara, o cuando el torneo admite más de 2 jugadores por grupo
+ * y de hecho hay grupos con varios integrantes (`jugadores.grupoid`).
+ * En ese caso `resultados_equipos.php` arma el leaderboard por equipo.
+ */
+$formatoRaw = strtoupper($catInfo['formato'] ?? '');
+$isEquiposFormat = (strpos($formatoRaw, 'AGOGO') !== false || strpos($formatoRaw, 'EQUIPO') !== false);
+if (!$isEquiposFormat) {
+    $torneoRow = query_one($conn, "SELECT nummaxjug FROM torneo WHERE torneo_id = $tid LIMIT 1");
+    if ($torneoRow && (int)($torneoRow['nummaxjug'] ?? 0) > 2) {
+        $multi = query_one($conn,
+            "SELECT COUNT(*) AS grupos FROM (
+                SELECT grupoid FROM jugadores
+                 WHERE categoriaid = $cid AND grupoid <> ''
+                 GROUP BY grupoid HAVING COUNT(*) > 2
+             ) x");
+        $isEquiposFormat = $multi && (int)$multi['grupos'] > 0;
+    }
+}
+if ($isEquiposFormat) {
+    require __DIR__ . '/resultados_equipos.php';
+    exit;
+}
+
 $sistema = strtoupper($catInfo['sistema']);
 $formato = strtoupper($catInfo['formato']);
 $medalCountNeto  = (int)$catInfo['numganadorneto'];
