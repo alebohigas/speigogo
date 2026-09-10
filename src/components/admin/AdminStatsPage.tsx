@@ -57,6 +57,10 @@ const AdminStatsPage = () => {
   const { data: siteConfig, isLoading } = useSiteConfig();
   const saveSiteConfig = useSaveSiteConfig();
   const { toast } = useToast();
+  /** Multi-torneo: alcance activo y torneos del sitio. */
+  const scope = useConfigScope();
+  const { data: siteTorneos } = useSiteTorneos();
+  const torneos = (siteTorneos?.torneos ?? []).filter((t) => t.activo !== false);
 
   /** Local editor state — synced from server config on load. */
   const [sections, setSections] = useState<StatsPageSection[]>(DEFAULT_SECTIONS);
