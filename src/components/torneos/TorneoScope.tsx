@@ -12,9 +12,22 @@
 
 import { useEffect } from 'react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setConfigScope, useConfigScope } from '@/lib/configScope';
 import { useSiteTorneos, type SiteTorneo } from '@/hooks/useSiteTorneos';
+import { setStoredTorneoId, useTorneoId } from '@/hooks/useTorneoId';
 import NotFound from '@/pages/NotFound';
+
+/** Caché completamente independiente para las páginas públicas de cada torneo. */
+const tournamentQueryClients = new Map<string, QueryClient>();
+
+const getTournamentQueryClient = (torneoId: string): QueryClient => {
+  const existing = tournamentQueryClients.get(torneoId);
+  if (existing) return existing;
+  const client = new QueryClient();
+  tournamentQueryClients.set(torneoId, client);
+  return client;
+};
 
 /** Busca el torneo cuyo nombre corto coincide con el de la dirección. */
 export const findTorneoBySlug = (
@@ -34,15 +47,32 @@ export const TorneoSlugLayout = () => {
   const { torneoSlug } = useParams();
   const { data, isLoading } = useSiteTorneos();
   const torneo = findTorneoBySlug(data?.torneos, torneoSlug);
+  const scope = useConfigScope();
+  const { torneoId } = useTorneoId();
+  const expectedTorneoId = torneo ? String(torneo.torneoid) : '';
 
   useEffect(() => {
-    if (torneo) setConfigScope(String(torneo.torneoid));
+    if (!torneo) return;
+
+    // Cambia alcance + torneoid antes de montar la página hija. Si dejamos que
+    // el Outlet se monte con el valor anterior, sus hooks alcanzan a solicitar
+    // y cachear datos del torneo previo al navegar entre slugs equivalentes.
+    setConfigScope(expectedTorneoId);
+    setStoredTorneoId(expectedTorneoId);
   }, [torneo]);
 
   if (isLoading) return null;
   if (!torneo) return <NotFound />;
 
-  return <Outlet />;
+  // El cambio de torneo es una frontera de datos: no se monta ninguna página
+  // pública hasta que ambos identificadores coinciden con el slug de la URL.
+  if (scope !== expectedTorneoId || torneoId !== expectedTorneoId) return null;
+
+  return (
+    <QueryClientProvider client={getTournamentQueryClient(expectedTorneoId)}>
+      <Outlet key={expectedTorneoId} />
+    </QueryClientProvider>
+  );
 };
 
 /**

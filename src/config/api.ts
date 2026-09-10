@@ -5,6 +5,7 @@
  */
 
 import { getTorneoId } from '@/hooks/useTorneoId';
+import { getConfigScope } from '@/lib/configScope';
 
 // ============= Base URL Configuration =============
 
@@ -47,7 +48,11 @@ const buildQuery = (params: Record<string, string> = {}): string => {
   const debugMode = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('debug')
     : null;
-  const torneoId = getTorneoId();
+  // En una URL de torneo (/experience/..., /invitational/...) el scope es la
+  // fuente autoritativa. Evita que una lectura tardía de localStorage mande la
+  // petición al torneo visitado anteriormente.
+  const scope = getConfigScope();
+  const torneoId = /^\d+$/.test(scope) ? scope : getTorneoId();
   const baseParams = torneoId ? { torneoid: torneoId } : {};
   const allParams = {
     ...baseParams,

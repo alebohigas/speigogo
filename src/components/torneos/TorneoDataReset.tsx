@@ -35,13 +35,18 @@ export const TorneoDataReset = () => {
     if (previous.current === signature) return;
     previous.current = signature;
 
-    queryClient.removeQueries({
-      predicate: (query) => {
-        const root = query.queryKey?.[0];
-        return typeof root !== 'string' || !PRESERVED_KEYS.has(root);
-      },
+    const isTournamentQuery = (query: { queryKey?: readonly unknown[] }) => {
+      const root = query.queryKey?.[0];
+      return typeof root !== 'string' || !PRESERVED_KEYS.has(root);
+    };
+
+    // Primero cancela solicitudes del torneo anterior. Sin esta espera, una
+    // respuesta tardía podía volver a llenar una clave recién eliminada con
+    // datos del torneo equivocado.
+    void queryClient.cancelQueries({ predicate: isTournamentQuery }).then(() => {
+      queryClient.removeQueries({ predicate: isTournamentQuery });
+      return queryClient.refetchQueries({ type: 'active' });
     });
-    queryClient.refetchQueries({ type: 'active' });
   }, [queryClient, scope, torneoId]);
 
   return null;
