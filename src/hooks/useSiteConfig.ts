@@ -741,6 +741,7 @@ export const useSaveSiteConfig = () => {
     onSuccess: () => {
       // Invalidate to re-fetch fresh config
       queryClient.invalidateQueries({ queryKey: ['site-config'] });
+      queryClient.invalidateQueries({ queryKey: ['site-torneos'] });
       queryClient.invalidateQueries({ queryKey: ['tournament'] });
       queryClient.invalidateQueries({ queryKey: ['tournament-stats'] });
     },
