@@ -138,26 +138,32 @@ const Equipos = () => {
                 </div>
               ) : (
                 <>
-                  {/* ============ Encabezado de la categoría ============ */}
+                  {/* ============ Encabezado moderno de la categoría ============ */}
                   <div className="w-full max-w-4xl mx-auto mb-6">
-                    <h2 className="text-2xl font-semibold text-foreground">
-                      JUGADORES: <span className="text-primary">{totalJugadores}</span>
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Categoría</p>
+                    <h2 className="text-3xl font-bold text-foreground">
+                      {data?.category.name || selectedCategory.name}
                     </h2>
-                    <h2 className="text-2xl font-semibold text-foreground">
-                      EQUIPOS: <span className="text-blue-700">{totalEquipos}</span>
-                    </h2>
-                    <h3 className="text-2xl font-light text-foreground mt-3">
-                      Categoría: <span className="font-bold">{data?.category.name || selectedCategory.name}</span>
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Handicap {tipoHcp} Mínimo:{' '}
-                      <span className="font-bold text-primary">{minDisplay}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Jugadores por Equipo:{' '}
-                      <span className="font-bold text-blue-700">{jugadoresEquipo}</span>
-                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                      {[
+                        { label: 'Jugadores', value: totalJugadores },
+                        { label: 'Equipos', value: totalEquipos },
+                        { label: `Hcp ${tipoHcp} mínimo`, value: minDisplay },
+                        { label: 'Jugadores por equipo', value: jugadoresEquipo },
+                      ].map((s) => (
+                        <div
+                          key={s.label}
+                          className="rounded-lg border border-border/60 bg-card px-3 py-3 text-center"
+                        >
+                          <p className="text-2xl font-bold text-primary leading-none">{s.value}</p>
+                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground mt-1">
+                            {s.label}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
 
                   {/* ============ Leyenda (antes de la tabla) ============ */}
                   <Leyenda />
