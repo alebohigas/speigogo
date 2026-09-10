@@ -15,15 +15,15 @@ import jugadoresHero from '@/assets/jugadores-hero.jpg';
 import { Fragment, useState } from 'react';
 import { useCategories } from '@/hooks/usePlayersData';
 import { useEquipos } from '@/hooks/useEquiposData';
+import EquipoLogo from '@/components/equipos/EquipoLogo';
+import { getTorneoId } from '@/hooks/useTorneoId';
 import type { CategoryDetail } from '@/data/playersData';
-
-/** Logo de respaldo cuando el equipo no tiene imagen. */
-const FALLBACK_LOGO = `data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="30"><rect width="50" height="30" fill="%23166534" rx="4"/><text x="50%" y="56%" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-family="sans-serif">Club</text></svg>'
-)}`;
 
 const Equipos = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetail | null>(null);
+
+  /** Torneo activo: los logos locales se buscan en /logos-equipos/t{id}. */
+  const torneoId = getTorneoId();
 
   const { data: categories = [], isLoading: loadingCats } = useCategories();
   const { data, isLoading: loadingTeams } = useEquipos(selectedCategory?.id ?? null);
@@ -166,14 +166,12 @@ const Equipos = () => {
                                 {/* Fila del equipo */}
                                 <TableRow key={`team-${team.grupoid}`} className="bg-white hover:bg-white">
                                   <TableCell className="p-1 text-center align-middle">
-                                    <img
-                                      src={team.logo || FALLBACK_LOGO}
-                                      alt="Logo del equipo"
+                                    <EquipoLogo
+                                      grupoid={team.grupoid}
+                                      torneoId={torneoId}
+                                      dbLogo={team.logo}
                                       className="w-auto object-contain rounded inline-block"
                                       style={{ height: '1.875rem' }}
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = FALLBACK_LOGO;
-                                      }}
                                     />
                                   </TableCell>
                                   <TableCell className="font-bold pl-6">{team.grupoid}</TableCell>
