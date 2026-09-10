@@ -41,6 +41,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useRegistroPrecioMatch } from '@/hooks/useRegistroPrecios';
 import { useCategoriasReglas, type CategoriaRegla } from '@/hooks/useCategoriasReglas';
 import { useRegistroPreferente } from '@/hooks/useRegistroPreferente';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
+import { useConfigScope } from '@/lib/configScope';
+import RegistroTorneoPicker from '@/components/registro/RegistroTorneoPicker';
 import type { CategoryDetail } from '@/data/playersData';
 import { toProperName } from '@/lib/properName';
 import {
@@ -373,6 +376,16 @@ const PHONE_CODES: { id: string; code: string; flag: string; label: string; len:
 
 const Registro = () => {
   const { data: fieldsData, isLoading: loadingFields } = useRegistroFields();
+  /**
+   * Multi-torneo: en la portada común (alcance general) se pregunta
+   * primero a cuál torneo desea inscribirse el jugador.
+   */
+  const configScopeActual = useConfigScope();
+  const { data: siteTorneosData } = useSiteTorneos();
+  const torneosSitio = (siteTorneosData?.torneos ?? []).filter(
+    (t) => t.activo !== false && !!t.slug,
+  );
+  const needsTorneoPick = configScopeActual === 'general' && torneosSitio.length > 1;
   /**
    * Mapa de tipos de socio configurados por el admin
    * (nombre-visible → tipo del sistema). Cuando no hay filas en BD el
@@ -2255,7 +2268,10 @@ const Registro = () => {
 
       <section className="py-12 bg-background">
         <div className="container mx-auto px-4 max-w-3xl">
-          {submitted ? (
+          {/* Sitios con varios torneos: primero se pregunta a cuál entrar. */}
+          {needsTorneoPick ? (
+            <RegistroTorneoPicker torneos={torneosSitio} />
+          ) : submitted ? (
             <Card>
               <CardContent className="py-12 text-center space-y-4">
                 <CheckCircle2 className="w-16 h-16 mx-auto text-primary" />
