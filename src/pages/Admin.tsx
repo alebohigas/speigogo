@@ -4,7 +4,7 @@
  * Protected by password authentication
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import Layout from '@/components/layout/Layout';
@@ -100,7 +100,6 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useTorneoId } from '@/hooks/useTorneoId';
 import { useSiteConfig, useSaveSiteConfig } from '@/hooks/useSiteConfig';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
@@ -320,11 +319,14 @@ const AdminDashboard = () => {
     });
   };
   const navigate = useNavigate();
-  const { torneoId, setTorneoId } = useTorneoId();
   const { data: siteConfig, isLoading: isLoadingSiteConfig } = useSiteConfig();
   const saveSiteConfig = useSaveSiteConfig();
   const { toast } = useToast();
-  const [torneoInput, setTorneoInput] = useState(torneoId);
+  const [homeTitleInput, setHomeTitleInput] = useState('');
+
+  useEffect(() => {
+    setHomeTitleInput(siteConfig?.home_config?.title ?? '');
+  }, [siteConfig?.home_config?.title]);
   
   const menuItems = getAllMenuItems();
   const visibleCount = Object.values(visibilitySettings).filter(Boolean).length;
@@ -578,90 +580,68 @@ const AdminDashboard = () => {
 
         {/* Configuration Tab */}
         <TabsContent value="config" className="space-y-4">
-          {/* Server-side torneoid config */}
+          {/* General home identity */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" />
-                Configuración del Torneo (Global)
+                Texto del Home General
               </CardTitle>
               <CardDescription>
-                Configura el ID del torneo para este dominio. Este valor aplica para <strong>todos los visitantes</strong> del sitio.
+                Configura el título de la portada compartida donde viven todos los torneos.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-w-md">
-                {/* Server config status */}
                 {isLoadingSiteConfig ? (
                   <div className="flex items-center gap-2 text-muted-foreground text-sm">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Cargando configuración del servidor...
+                    Cargando texto del Home...
                   </div>
-                ) : siteConfig?.torneoid ? (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <Globe className="h-4 w-4 text-primary" />
-                    Torneo en servidor: <span className="font-mono font-bold">{siteConfig.torneoid}</span>
-                    <span className="text-xs">({siteConfig.domain})</span>
-                  </p>
                 ) : (
-                  <p className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <XCircle className="h-4 w-4" />
-                    Sin configuración en servidor. Los visitantes no verán datos hasta configurarlo.
-                  </p>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="torneoid">Torneo ID</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="torneoid"
-                      type="text"
-                      value={torneoInput}
-                      onChange={(e) => setTorneoInput(e.target.value)}
-                      placeholder="Ej: 341"
-                      className="font-mono"
-                    />
-                    <Button 
-                      onClick={() => {
-                        // Save locally
-                        setTorneoId(torneoInput);
-                        // Save to server for all visitors
-                        saveSiteConfig.mutate(
-                          { torneoid: parseInt(torneoInput), password: getSuperAdminPassword() },
+                  <div className="space-y-2">
+                    <Label htmlFor="general-home-title">Título principal</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="general-home-title"
+                        value={homeTitleInput}
+                        onChange={(event) => setHomeTitleInput(event.target.value)}
+                        placeholder="Torneo de Golf"
+                        maxLength={120}
+                      />
+                      <Button
+                        onClick={() => saveSiteConfig.mutate(
                           {
-                            onSuccess: () => {
-                              toast({
-                                title: 'Configuración guardada',
-                                description: `Torneo ${torneoInput} configurado para todos los visitantes de este dominio.`,
-                              });
+                            scope: 'general',
+                            password: getSuperAdminPassword(),
+                            home_config: {
+                              buttons: siteConfig?.home_config?.buttons ?? [null, null],
+                              ...siteConfig?.home_config,
+                              title: homeTitleInput.trim() || null,
                             },
-                            onError: (err) => {
-                              toast({
-                                title: 'Error al guardar en servidor',
-                                description: err.message + '. Se guardó solo localmente.',
-                                variant: 'destructive',
-                              });
-                            },
-                          }
-                        );
-                      }}
-                      disabled={!torneoInput || saveSiteConfig.isPending}
-                    >
-                      {saveSiteConfig.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        'Guardar'
-                      )}
-                    </Button>
-                  </div>
-                  {torneoId && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      Torneo local: <span className="font-mono font-bold">{torneoId}</span>
+                          },
+                          {
+                            onSuccess: () => toast({
+                              title: 'Texto del Home guardado',
+                              description: 'La portada General ya muestra el nuevo título.',
+                            }),
+                            onError: (err) => toast({
+                              title: 'No se pudo guardar',
+                              description: err.message,
+                              variant: 'destructive',
+                            }),
+                          },
+                        )}
+                        disabled={saveSiteConfig.isPending}
+                      >
+                        {saveSiteConfig.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Si se deja vacío, la portada mostrará “Torneo de Golf”.
                     </p>
-                  )}
-                </div>
-
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
