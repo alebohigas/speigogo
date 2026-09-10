@@ -691,7 +691,7 @@ const Salidas = () => {
                                 <tfoot>
                                   <tr className="bg-primary">
                                     <td
-                                      colSpan={(hasAnyPair(result.group.players ?? []) ? 6 : 5) - ((!!result.matchPlay || isMatchPlaySystem(result.system)) ? 1 : 0)}
+                                      colSpan={((hasAnyPair(result.group.players ?? []) || hasTeamMembers(result.group.players ?? [])) ? 6 : 5) - ((!!result.matchPlay || isMatchPlaySystem(result.system)) ? 1 : 0)}
                                       className="text-primary-foreground font-bold text-center py-2 text-sm"
                                     >
                                       CATEGORÍA: {result.categoryName}
@@ -991,7 +991,7 @@ const Salidas = () => {
                             <tfoot>
                               <tr className="bg-primary">
                                 <td
-                                  colSpan={(groupsHaveAnyPair(detail.groups) ? 6 : 5) - ((!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) ? 1 : 0)}
+                                  colSpan={((groupsHaveAnyPair(detail.groups) || groupsHaveTeamMembers(detail.groups)) ? 6 : 5) - ((!!detail.isMatchPlay || isMatchPlaySystem(detail.system)) ? 1 : 0)}
                                   className="text-primary-foreground font-bold text-center py-2 text-sm"
                                 >
                                   CATEGORÍA: {detail.categoryName}
