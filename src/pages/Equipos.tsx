@@ -9,12 +9,10 @@ import Layout from '@/components/layout/Layout';
 import PageHero from '@/components/shared/PageHero';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, ChevronDown, Flag, Loader2, Users } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import jugadoresHero from '@/assets/jugadores-hero.jpg';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { useCategories } from '@/hooks/usePlayersData';
 import { useEquipos } from '@/hooks/useEquiposData';
 import EquipoLogo from '@/components/equipos/EquipoLogo';
@@ -23,7 +21,7 @@ import type { CategoryDetail } from '@/data/playersData';
 
 const Equipos = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetail | null>(null);
-  const isMobile = useIsMobile();
+
 
   /** Torneo activo: los logos locales se buscan en /logos-equipos/t{id}. */
   const torneoId = getTorneoId();
@@ -170,125 +168,114 @@ const Equipos = () => {
                   {/* ============ Leyenda (antes de la tabla) ============ */}
                   <Leyenda />
 
-                  {/* ============ Tabla de equipos ============ */}
-                  <Card className="border-border/50 bg-white w-full max-w-4xl mx-auto">
-                    <div className="overflow-x-auto bg-white">
-                      {teams.length === 0 ? (
-                        <div className="text-center text-muted-foreground py-12">
+                  {/* ============ Lista de equipos como tarjetas modernas ============ */}
+                  <div className="w-full max-w-4xl mx-auto space-y-6">
+                    {/* Encabezado alineado (solo desktop) */}
+                    <div className="hidden sm:grid sm:grid-cols-[3.5rem_1fr_5rem_5rem] gap-3 px-4 py-2.5 text-sm font-bold text-primary-foreground bg-primary rounded-lg">
+                      <div className="text-center">Equipo</div>
+                      <div>Jugador</div>
+                      <div className="text-center">H.I.</div>
+                      <div className="text-center">H.C.</div>
+                    </div>
+
+                    {teams.length === 0 ? (
+                      <Card className="border-border/50 bg-white">
+                        <CardContent className="text-center text-muted-foreground py-12">
                           <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           No hay equipos registrados en esta categoría
-                        </div>
-                      ) : (
-                        <Table className="bg-white tournament-table">
-                          <TableHeader>
-                            <TableRow className="bg-primary hover:bg-primary">
-                              <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
-                              <TableHead className="text-primary-foreground font-bold">Nombre</TableHead>
-                              <TableHead className="text-primary-foreground font-bold text-center w-16 sm:w-20">HI</TableHead>
-                              <TableHead className="text-primary-foreground font-bold text-center w-16 sm:w-20">HC</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {teams.map((team) => (
-                              <Fragment key={team.grupoid}>
-                                {/* Separador gris entre equipos */}
-                                <TableRow key={`sep-${team.grupoid}`} className="hover:bg-transparent">
-                                  <TableCell colSpan={4} className="p-0 h-5 bg-muted" />
-                                </TableRow>
-                                {/* Fila del equipo */}
-                                <TableRow key={`team-${team.grupoid}`} className="bg-white hover:bg-white">
-                                  <TableCell className="p-1 text-center align-middle">
-                                    <EquipoLogo
-                                      grupoid={team.grupoid}
-                                      torneoId={torneoId}
-                                      dbLogo={team.logoUrl || team.logo}
-                                      className="w-auto object-contain rounded inline-block"
-                                      style={{ height: '1.875rem' }}
-                                    />
-                                  </TableCell>
-                                  <TableCell className="pl-6">
-                                    <div className="inline-flex flex-wrap items-baseline gap-2 rounded-lg bg-primary/10 px-3 py-2">
-                                      {team.numero ? (
-                                        <>
-                                          <span className="text-primary text-base sm:text-lg font-bold">{team.numero}</span>
-                                          <span className="text-foreground text-base sm:text-lg font-bold">{team.nombre}</span>
-                                        </>
-                                      ) : (
-                                        <span className="text-foreground text-base sm:text-lg font-bold">
-                                          {team.nombre || team.grupoid}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell />
-                                  <TableCell
-                                    className={`text-center text-lg font-bold italic text-destructive ${
-                                      team.fueraDeRango ? 'bg-yellow-300 text-black' : ''
-                                    }`}
-                                  >
-                                    {team.total}
-                                  </TableCell>
-                                </TableRow>
-                                {/* Jugadores del equipo */}
-                                {team.players.map((p) => (
-                                  <TableRow key={`p-${p.id}`} className="bg-white hover:bg-white">
-                                    {isMobile ? (
-                                      <TableCell colSpan={2} className="pl-4">
-                                        {/* Máximo 2 renglones en móvil */}
-                                        <span
-                                          className="block max-h-[2.75rem] overflow-hidden break-words leading-[1.375rem] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] sm:max-h-none sm:overflow-visible sm:[display:block] sm:[-webkit-line-clamp:unset]"
-                                          title={p.nombre}
-                                        >
-                                          {p.nombre}
-                                        </span>
-                                      </TableCell>
-                                    ) : (
-                                      <>
-                                        <TableCell />
-                                        <TableCell className="pl-10">
-                                          <span
-                                            className="block sm:max-h-none sm:overflow-visible sm:[display:block] sm:[-webkit-line-clamp:unset]"
-                                            title={p.nombre}
-                                          >
-                                            {p.nombre}
-                                          </span>
-                                        </TableCell>
-                                      </>
-                                    )}
-                                    <TableCell className="text-center whitespace-nowrap w-16 min-w-[4rem] px-1 sm:w-20 sm:px-3">
-                                      {p.hi}
-                                    </TableCell>
-                                    <TableCell
-                                      className="text-center whitespace-nowrap w-16 min-w-[4rem] px-1 text-base font-bold italic sm:w-20 sm:px-3"
-                                      style={{
-                                        backgroundColor: p.bgcolor || undefined,
-                                        color: p.color || undefined,
-                                      }}
-                                    >
-                                      {p.hc}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                                {/* Handicap Neto del equipo (solo si aplica porcentaje) */}
-                                {percentage > 0 && team.handicapNeto !== null && (
-                                  <TableRow key={`hn-${team.grupoid}`} className="bg-white hover:bg-white">
-                                    <TableCell />
-                                    <TableCell className="pl-10 font-bold text-muted-foreground">
-                                      Handicap Neto
-                                    </TableCell>
-                                    <TableCell />
-                                    <TableCell className="text-center text-lg font-bold text-blue-700">
-                                      {team.handicapNeto}
-                                    </TableCell>
-                                  </TableRow>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      teams.map((team) => (
+                        <Card
+                          key={team.grupoid}
+                          className="overflow-hidden border border-border/60 shadow-sm rounded-xl bg-white"
+                        >
+                          {/* Header del equipo */}
+                          <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border-b border-border/40 bg-card">
+                            <div className="shrink-0 w-10 sm:w-14 flex justify-center">
+                              <EquipoLogo
+                                grupoid={team.grupoid}
+                                torneoId={torneoId}
+                                dbLogo={team.logoUrl || team.logo}
+                                className="w-auto object-contain rounded inline-block"
+                                style={{ height: '1.875rem' }}
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg sm:text-xl font-bold text-foreground truncate">
+                                {team.numero ? (
+                                  <>
+                                    <span className="text-primary">{team.numero}</span>
+                                    <span className="mx-1.5 text-muted-foreground">·</span>
+                                    <span>{team.nombre}</span>
+                                  </>
+                                ) : (
+                                  team.nombre || team.grupoid
                                 )}
-                              </Fragment>
+                              </h3>
+                            </div>
+                            <div
+                              className={`text-lg sm:text-xl font-bold italic shrink-0 ${
+                                team.fueraDeRango
+                                  ? 'bg-yellow-300 text-black px-2 py-0.5 rounded'
+                                  : 'text-destructive'
+                              }`}
+                            >
+                              {team.total}
+                            </div>
+                          </div>
+
+                          {/* Jugadores del equipo */}
+                          <div className="divide-y divide-border/30">
+                            {team.players.map((p) => (
+                              <div
+                                key={p.id}
+                                className="grid grid-cols-4 gap-2 p-3 sm:grid-cols-[3.5rem_1fr_5rem_5rem] sm:gap-3 sm:px-4 items-center"
+                              >
+                                {/* Indentación desktop */}
+                                <div className="hidden sm:block" />
+                                {/* Nombre: 2 cols en móvil, 1 col indentada en desktop */}
+                                <div className="col-span-2 sm:col-span-1 min-w-0">
+                                  <span
+                                    className="block max-h-[2.75rem] overflow-hidden break-words leading-[1.375rem] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] sm:max-h-none sm:overflow-visible sm:[display:block] sm:[-webkit-line-clamp:unset]"
+                                    title={p.nombre}
+                                  >
+                                    {p.nombre}
+                                  </span>
+                                </div>
+                                <div className="text-center whitespace-nowrap text-sm sm:text-base">
+                                  {p.hi}
+                                </div>
+                                <div
+                                  className="text-center whitespace-nowrap text-base font-bold italic"
+                                  style={{
+                                    backgroundColor: p.bgcolor || undefined,
+                                    color: p.color || undefined,
+                                  }}
+                                >
+                                  {p.hc}
+                                </div>
+                              </div>
                             ))}
-                          </TableBody>
-                        </Table>
-                      )}
-                    </div>
-                  </Card>
+                          </div>
+
+                          {/* Handicap Neto del equipo (solo si aplica porcentaje) */}
+                          {percentage > 0 && team.handicapNeto !== null && (
+                            <div className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-4 border-t border-border/40 bg-muted/20 text-sm sm:text-base">
+                              <span className="font-semibold text-muted-foreground sm:pl-[3.5rem]">
+                                Handicap Neto
+                              </span>
+                              <span className="text-lg font-bold text-blue-700">
+                                {team.handicapNeto}
+                              </span>
+                            </div>
+                          )}
+                        </Card>
+                      ))
+                    )}
+                  </div>
+
                 </>
               )}
             </>
