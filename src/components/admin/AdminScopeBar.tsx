@@ -24,7 +24,15 @@ interface AdminScopeBarProps {
 const AdminScopeBar = ({ managing, onManagingChange }: AdminScopeBarProps) => {
   const scope = useConfigScope();
   const { data } = useSiteTorneos();
-  const torneos = data?.torneos ?? [];
+  const all = data?.torneos ?? [];
+  /** Con menos de dos torneos el sitio es de torneo único: sólo General. */
+  const multi = all.length > 1;
+  const torneos = multi ? all : [];
+
+  // Si se quitaron torneos mientras se editaba uno, vuelve al alcance general.
+  useEffect(() => {
+    if (!multi && scope !== 'general') setConfigScope('general');
+  }, [multi, scope]);
 
   const select = (next: string) => {
     onManagingChange(false);
