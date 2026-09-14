@@ -21,6 +21,7 @@ import { useTournamentInfo } from '@/hooks/useTournamentData';
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import { cn } from '@/lib/utils';
 import { useSiteTorneos } from '@/hooks/useSiteTorneos';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { buildMultiTorneoNav } from '@/lib/multiTorneoNav';
 
 import { Button } from '@/components/ui/button';
