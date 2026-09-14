@@ -171,14 +171,48 @@ const AdminHeros = () => {
     );
   };
 
+  /** Sube el logo del encabezado a la carpeta `heros` y lo asigna. */
+  const handleUploadLogo = (files: FileList | null, input: HTMLInputElement | null) => {
+    if (!files || files.length === 0) return;
+    setUploadingLogo(true);
+    uploadFiles.mutate(
+      { files: [files[0]], password: getSuperAdminPassword() },
+      {
+        onSuccess: (res) => {
+          const saved = res.saved[0];
+          if (saved) {
+            setHeaderLogo(saved.url);
+            toast({ title: 'Logo subido', description: `${saved.name} asignado. No olvides Guardar.` });
+          } else {
+            toast({
+              title: 'No se pudo subir',
+              description: res.errors[0]?.error || 'Formato no permitido.',
+              variant: 'destructive',
+            });
+          }
+        },
+        onError: (err) => toast({ title: 'Error al subir', description: err.message, variant: 'destructive' }),
+        onSettled: () => {
+          setUploadingLogo(false);
+          if (input) input.value = '';
+        },
+      },
+    );
+  };
+
   /** Persist the full hero_config (all scopes) to the server. */
   const handleSave = () => {
     const payload: HeroConfig = {
       byTorneo: config.byTorneo ?? {},
       default: config.default ?? {},
     };
+    /** Conserva el resto de home_config y solo cambia el logo. */
+    const homePayload = {
+      ...(siteConfig?.home_config ?? { buttons: [null, null] as [string | null, string | null] }),
+      header_logo_url: headerLogo || null,
+    };
     saveSiteConfig.mutate(
-      { password: getSuperAdminPassword(), hero_config: payload },
+      { password: getSuperAdminPassword(), hero_config: payload, home_config: homePayload },
       {
         onSuccess: () =>
           toast({ title: 'Heros guardados', description: 'Los fondos activos ya se aplican en las páginas públicas.' }),
