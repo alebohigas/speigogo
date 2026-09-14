@@ -104,6 +104,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { useSiteConfig, useSaveSiteConfig } from '@/hooks/useSiteConfig';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { useConfigScope } from '@/lib/configScope';
