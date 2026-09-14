@@ -280,6 +280,59 @@ const AdminHeros = () => {
           <Badge variant="secondary" className="ml-auto">{activeCount} hero(s) activos</Badge>
         </div>
 
+        {/* ---- Logo del encabezado ---- */}
+        <div className="grid gap-3 rounded-md border border-border p-3 md:grid-cols-[10rem,1fr] md:items-start">
+          <div className="space-y-1">
+            <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded bg-muted p-2">
+              {headerLogo ? (
+                <img src={headerLogo} alt="Logo del encabezado" className="max-h-full max-w-full object-contain" />
+              ) : (
+                <span className="text-xs text-muted-foreground">Logo del torneo</span>
+              )}
+            </div>
+            <p className="text-sm font-medium">Logo del encabezado</p>
+            <p className="text-xs text-muted-foreground">Se muestra arriba, en todas las páginas</p>
+          </div>
+          <div className="space-y-2">
+            <Select
+              value={headerLogo || NO_IMAGE}
+              onValueChange={(value) => setHeaderLogo(value === NO_IMAGE ? '' : value)}
+            >
+              <SelectTrigger className="w-full sm:w-72">
+                <SelectValue placeholder={isLoadingUploads ? 'Cargando…' : 'Selecciona una imagen'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_IMAGE}>— Usar el logo del torneo —</SelectItem>
+                {(uploads?.files ?? []).map((file) => (
+                  <SelectItem key={`logo-${file.url}`} value={file.url}>{file.name}</SelectItem>
+                ))}
+                {headerLogo && !(uploads?.files ?? []).some((f) => f.url === headerLogo) && (
+                  <SelectItem value={headerLogo}>{headerLogo.split('/').pop()}</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={logoInput}
+                type="file"
+                accept="image/webp,image/jpeg,image/png,image/gif"
+                className="hidden"
+                onChange={(e) => handleUploadLogo(e.target.files, e.currentTarget)}
+              />
+              <Button type="button" variant="outline" disabled={uploadingLogo} onClick={() => logoInput.current?.click()}>
+                {uploadingLogo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                Subir logo
+              </Button>
+              {headerLogo && (
+                <Button type="button" variant="ghost" onClick={() => setHeaderLogo('')} aria-label="Quitar logo del encabezado">
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+
         {isLoading ? (
           <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
         ) : (
