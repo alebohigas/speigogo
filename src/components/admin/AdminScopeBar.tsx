@@ -48,7 +48,7 @@ const AdminScopeBar = ({ managing, onManagingChange }: AdminScopeBarProps) => {
         onClick={() => select('general')}
       >
         <Globe className="h-4 w-4" />
-        General
+        {multi ? 'General' : 'Configuración'}
       </Button>
 
       {torneos.map((t) => (
