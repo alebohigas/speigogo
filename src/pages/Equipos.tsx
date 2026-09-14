@@ -184,8 +184,8 @@ const Equipos = () => {
                             <TableRow className="bg-primary hover:bg-primary">
                               <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
                               <TableHead className="text-primary-foreground font-bold">Nombre</TableHead>
-                              <TableHead className="text-primary-foreground font-bold text-center w-20">HI</TableHead>
-                              <TableHead className="text-primary-foreground font-bold text-center w-20">HC</TableHead>
+                              <TableHead className="text-primary-foreground font-bold text-center w-16 sm:w-20">HI</TableHead>
+                              <TableHead className="text-primary-foreground font-bold text-center w-16 sm:w-20">HC</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -251,9 +251,11 @@ const Equipos = () => {
                                         </TableCell>
                                       </>
                                     )}
-                                    <TableCell className="text-center">{p.hi}</TableCell>
+                                    <TableCell className="text-center whitespace-nowrap w-16 min-w-[4rem] px-1 sm:w-20 sm:px-3">
+                                      {p.hi}
+                                    </TableCell>
                                     <TableCell
-                                      className="text-center text-base font-bold italic"
+                                      className="text-center whitespace-nowrap w-16 min-w-[4rem] px-1 text-base font-bold italic sm:w-20 sm:px-3"
                                       style={{
                                         backgroundColor: p.bgcolor || undefined,
                                         color: p.color || undefined,
