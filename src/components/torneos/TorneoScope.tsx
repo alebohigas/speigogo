@@ -35,6 +35,9 @@ export const findTorneoBySlug = (
   slug: string | undefined
 ): SiteTorneo | undefined => {
   if (!slug || !torneos) return undefined;
+  // Con un solo torneo el sitio es de torneo único: no hay direcciones con
+  // nombre corto, todo vive en el alcance general como antes.
+  if (torneos.length < 2) return undefined;
   const s = slug.toLowerCase();
   return torneos.find((t) => (t.slug || '').toLowerCase() === s);
 };

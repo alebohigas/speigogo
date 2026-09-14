@@ -104,6 +104,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { useSiteConfig, useSaveSiteConfig } from '@/hooks/useSiteConfig';
+import { useSiteTorneos } from '@/hooks/useSiteTorneos';
 import { useToast } from '@/hooks/use-toast';
 import { getSuperAdminPassword } from '@/lib/superAdminAuth';
 import { useConfigScope } from '@/lib/configScope';
@@ -330,10 +331,19 @@ const AdminDashboard = () => {
   const saveSiteConfig = useSaveSiteConfig();
   const { toast } = useToast();
   const [homeTitleInput, setHomeTitleInput] = useState('');
+  /** Torneo ID del sitio cuando sólo se publica un torneo (modo clásico). */
+  const [torneoIdInput, setTorneoIdInput] = useState('');
+  const { data: siteTorneosData } = useSiteTorneos();
+  /** ¿El sitio publica varios torneos a la vez? */
+  const isMultiTorneo = (siteTorneosData?.torneos?.length ?? 0) > 1;
 
   useEffect(() => {
     setHomeTitleInput(siteConfig?.home_config?.title ?? '');
   }, [siteConfig?.home_config?.title]);
+
+  useEffect(() => {
+    setTorneoIdInput(siteConfig?.torneoid ? String(siteConfig.torneoid) : '');
+  }, [siteConfig?.torneoid]);
   
   const menuItems = getAllMenuItems();
   const visibleCount = Object.values(visibilitySettings).filter(Boolean).length;
@@ -627,17 +637,26 @@ const AdminDashboard = () => {
 
         {/* Configuration Tab */}
         <TabsContent value="config" className="space-y-4">
-          {/* General edits its shared Home; tournament scopes show their identity. */}
+          {/*
+            Un solo torneo → este campo es el Torneo ID de siempre.
+            Varios torneos → es el título de la portada compartida.
+          */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" />
-                {configScope === 'general' ? 'Texto del Home General' : 'Configuración del Torneo'}
+                {configScope !== 'general'
+                  ? 'Configuración del Torneo'
+                  : isMultiTorneo
+                    ? 'Texto del Home General'
+                    : 'Torneo ID'}
               </CardTitle>
               <CardDescription>
-                {configScope === 'general'
-                  ? 'Configura el título de la portada compartida donde viven todos los torneos.'
-                  : 'Esta configuración pertenece únicamente al torneo seleccionado.'}
+                {configScope !== 'general'
+                  ? 'Esta configuración pertenece únicamente al torneo seleccionado.'
+                  : isMultiTorneo
+                    ? 'Configura el título de la portada compartida donde viven todos los torneos.'
+                    : 'Número del torneo que se muestra en todo el sitio. Si agregas un segundo torneo, este campo pasa a ser el título de la portada compartida.'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -645,7 +664,47 @@ const AdminDashboard = () => {
                 {isLoadingSiteConfig ? (
                   <div className="flex items-center gap-2 text-muted-foreground text-sm">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Cargando texto del Home...
+                    Cargando configuración...
+                  </div>
+                ) : configScope === 'general' && !isMultiTorneo ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="general-torneoid">Torneo ID</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="general-torneoid"
+                        value={torneoIdInput}
+                        onChange={(event) => setTorneoIdInput(event.target.value.replace(/\D/g, ''))}
+                        placeholder="274"
+                        inputMode="numeric"
+                        maxLength={10}
+                      />
+                      <Button
+                        onClick={() => saveSiteConfig.mutate(
+                          {
+                            scope: 'general',
+                            password: getSuperAdminPassword(),
+                            torneoid: Number(torneoIdInput) || 0,
+                          },
+                          {
+                            onSuccess: () => toast({
+                              title: 'Torneo guardado',
+                              description: `El sitio ahora muestra el torneo ${torneoIdInput}.`,
+                            }),
+                            onError: (err) => toast({
+                              title: 'No se pudo guardar',
+                              description: err.message,
+                              variant: 'destructive',
+                            }),
+                          },
+                        )}
+                        disabled={saveSiteConfig.isPending || !torneoIdInput}
+                      >
+                        {saveSiteConfig.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Todas las páginas usan este torneo, como siempre.
+                    </p>
                   </div>
                 ) : configScope === 'general' ? (
                   <div className="space-y-2">
