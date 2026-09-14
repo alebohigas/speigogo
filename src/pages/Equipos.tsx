@@ -184,8 +184,8 @@ const Equipos = () => {
                             <TableRow className="bg-primary hover:bg-primary">
                               <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
                               <TableHead className="text-primary-foreground font-bold">Nombre</TableHead>
-                              <TableHead className="text-primary-foreground font-bold text-center w-20">HI</TableHead>
-                              <TableHead className="text-primary-foreground font-bold text-center w-20">HC</TableHead>
+                              <TableHead className="text-primary-foreground font-bold text-center w-16 sm:w-20">HI</TableHead>
+                              <TableHead className="text-primary-foreground font-bold text-center w-16 sm:w-20">HC</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
