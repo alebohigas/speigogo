@@ -199,7 +199,7 @@ const Equipos = () => {
                                     <EquipoLogo
                                       grupoid={team.grupoid}
                                       torneoId={torneoId}
-                                      dbLogo={team.logo}
+                                      dbLogo={team.logoUrl || team.logo}
                                       className="w-auto object-contain rounded inline-block"
                                       style={{ height: '1.875rem' }}
                                     />
@@ -227,7 +227,12 @@ const Equipos = () => {
                                 {team.players.map((p) => (
                                   <TableRow key={`p-${p.id}`} className="bg-white hover:bg-white">
                                     <TableCell />
-                                    <TableCell className="pl-10">{p.nombre}</TableCell>
+                                    <TableCell className="pl-10">
+                                      {/* Máximo 3 renglones por nombre */}
+                                      <span className="block line-clamp-3 break-words" title={p.nombre}>
+                                        {p.nombre}
+                                      </span>
+                                    </TableCell>
                                     <TableCell className="text-center">{p.hi}</TableCell>
                                     <TableCell
                                       className="text-center"
