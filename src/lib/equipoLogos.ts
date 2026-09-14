@@ -106,8 +106,10 @@ export const resolveEquipoLogo = (
   const inflight = pending.get(key);
   if (inflight) return inflight;
 
-  const candidates = buildEquipoLogoCandidates(grupoid, torneoId);
-  if (dbLogo) candidates.push(dbLogo);
+  // El logo guardado en la base de datos para el equipo manda sobre
+  // cualquier archivo suelto en la carpeta pública.
+  const candidates = dbLogo ? [dbLogo] : [];
+  candidates.push(...buildEquipoLogoCandidates(grupoid, torneoId));
 
   const run = (async () => {
     for (const url of candidates) {
