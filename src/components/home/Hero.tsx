@@ -134,9 +134,11 @@ const Hero = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: tournamentInfo?.heroImageUrl 
-            ? `url('${tournamentInfo.heroImageUrl}')` 
-            : `url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1920&q=80')`,
+          backgroundImage: `url('${
+            heroOverrideUrl
+            || tournamentInfo?.heroImageUrl
+            || 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1920&q=80'
+          }')`,
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-golf-dark/70 via-golf-dark/50 to-golf-dark/80" />
