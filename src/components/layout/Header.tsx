@@ -305,8 +305,10 @@ const Header = () => {
    * un desplegable por torneo (con sus páginas propias) más los enlaces
    * compartidos. Si no hay torneos, se conserva el menú de siempre.
    */
+  // Con un solo torneo (o ninguno) el sitio funciona como siempre: menú plano
+  // del torneo configurado, sin desplegables por torneo.
   const { data: multiTorneo } = useSiteTorneos();
-  const hasTorneos = (multiTorneo?.torneos?.length ?? 0) > 0;
+  const hasTorneos = (multiTorneo?.torneos?.length ?? 0) > 1;
   const navItems: NavItem[] = hasTorneos
     ? (buildMultiTorneoNav(multiTorneo!.torneos, multiTorneo!.configs) as NavItem[])
     : buildNavItems();
