@@ -238,7 +238,7 @@ const Equipos = () => {
                                     </TableCell>
                                     <TableCell className="text-center">{p.hi}</TableCell>
                                     <TableCell
-                                      className="text-center"
+                                      className="text-center text-lg font-bold"
                                       style={{
                                         backgroundColor: p.bgcolor || undefined,
                                         color: p.color || undefined,
