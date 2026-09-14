@@ -9,6 +9,7 @@
  * "Torneos" abre el alta de torneos del sitio.
  */
 
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Globe, ListPlus, Trophy } from 'lucide-react';
