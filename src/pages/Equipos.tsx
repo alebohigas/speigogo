@@ -228,8 +228,11 @@ const Equipos = () => {
                                   <TableRow key={`p-${p.id}`} className="bg-white hover:bg-white">
                                     <TableCell />
                                     <TableCell className="pl-10">
-                                      {/* Máximo 3 renglones por nombre */}
-                                      <span className="block line-clamp-3 break-words" title={p.nombre}>
+                                      {/* Máximo 3 renglones en móvil; escritorio muestra completo */}
+                                      <span
+                                        className="block line-clamp-3 sm:line-clamp-none break-words leading-snug"
+                                        title={p.nombre}
+                                      >
                                         {p.nombre}
                                       </span>
                                     </TableCell>
