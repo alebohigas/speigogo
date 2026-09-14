@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, ChevronDown, Flag, Loader2, Users } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import jugadoresHero from '@/assets/jugadores-hero.jpg';
 import { Fragment, useState } from 'react';
@@ -22,6 +23,7 @@ import type { CategoryDetail } from '@/data/playersData';
 
 const Equipos = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetail | null>(null);
+  const isMobile = useIsMobile();
 
   /** Torneo activo: los logos locales se buscan en /logos-equipos/t{id}. */
   const torneoId = getTorneoId();
@@ -226,16 +228,29 @@ const Equipos = () => {
                                 {/* Jugadores del equipo */}
                                 {team.players.map((p) => (
                                   <TableRow key={`p-${p.id}`} className="bg-white hover:bg-white">
-                                    <TableCell />
-                                    <TableCell className="pl-10">
-                                      {/* Máximo 3 renglones en móvil; escritorio muestra completo */}
-                                      <span
-                                        className="block max-h-[4.125rem] overflow-hidden break-words leading-[1.375rem] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] sm:max-h-none sm:overflow-visible sm:[display:block] sm:[-webkit-line-clamp:unset]"
-                                        title={p.nombre}
-                                      >
-                                        {p.nombre}
-                                      </span>
-                                    </TableCell>
+                                    {isMobile ? (
+                                      <TableCell colSpan={2} className="pl-4">
+                                        {/* Máximo 2 renglones en móvil */}
+                                        <span
+                                          className="block max-h-[2.75rem] overflow-hidden break-words leading-[1.375rem] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] sm:max-h-none sm:overflow-visible sm:[display:block] sm:[-webkit-line-clamp:unset]"
+                                          title={p.nombre}
+                                        >
+                                          {p.nombre}
+                                        </span>
+                                      </TableCell>
+                                    ) : (
+                                      <>
+                                        <TableCell />
+                                        <TableCell className="pl-10">
+                                          <span
+                                            className="block sm:max-h-none sm:overflow-visible sm:[display:block] sm:[-webkit-line-clamp:unset]"
+                                            title={p.nombre}
+                                          >
+                                            {p.nombre}
+                                          </span>
+                                        </TableCell>
+                                      </>
+                                    )}
                                     <TableCell className="text-center">{p.hi}</TableCell>
                                     <TableCell
                                       className="text-center text-base font-bold italic"
