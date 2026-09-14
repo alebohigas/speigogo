@@ -28,6 +28,8 @@ export interface EquipoTeam {
   /** Integrantes reales del equipo. */
   jugadores?: number;
   logo: string;
+  /** URL lista del logo propio del equipo (tabla `equipos`). */
+  logoUrl?: string;
   totalHcp: number;
   totalIndex: number;
   /** Total mostrado según index_campo del torneo. */
