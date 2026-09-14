@@ -193,7 +193,7 @@ const Equipos = () => {
                               <Fragment key={team.grupoid}>
                                 {/* Separador gris entre equipos */}
                                 <TableRow key={`sep-${team.grupoid}`} className="hover:bg-transparent">
-                                  <TableCell colSpan={4} className="p-0 h-2 bg-muted" />
+                                  <TableCell colSpan={4} className="p-0 h-5 bg-muted" />
                                 </TableRow>
                                 {/* Fila del equipo */}
                                 <TableRow key={`team-${team.grupoid}`} className="bg-white hover:bg-white">
@@ -206,15 +206,19 @@ const Equipos = () => {
                                       style={{ height: '1.875rem' }}
                                     />
                                   </TableCell>
-                                  <TableCell className="font-bold pl-6">
-                                    {team.numero ? (
-                                      <span className="flex flex-wrap items-baseline gap-2">
-                                        <span className="text-primary">{team.numero}</span>
-                                        <span>{team.nombre}</span>
-                                      </span>
-                                    ) : (
-                                      team.nombre || team.grupoid
-                                    )}
+                                  <TableCell className="pl-6">
+                                    <div className="inline-flex flex-wrap items-baseline gap-2 rounded-lg bg-primary/10 px-3 py-2">
+                                      {team.numero ? (
+                                        <>
+                                          <span className="text-primary text-base sm:text-lg font-bold">{team.numero}</span>
+                                          <span className="text-foreground text-base sm:text-lg font-bold">{team.nombre}</span>
+                                        </>
+                                      ) : (
+                                        <span className="text-foreground text-base sm:text-lg font-bold">
+                                          {team.nombre || team.grupoid}
+                                        </span>
+                                      )}
+                                    </div>
                                   </TableCell>
                                   <TableCell />
                                   <TableCell
