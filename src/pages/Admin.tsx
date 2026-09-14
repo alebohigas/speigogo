@@ -330,10 +330,19 @@ const AdminDashboard = () => {
   const saveSiteConfig = useSaveSiteConfig();
   const { toast } = useToast();
   const [homeTitleInput, setHomeTitleInput] = useState('');
+  /** Torneo ID del sitio cuando sólo se publica un torneo (modo clásico). */
+  const [torneoIdInput, setTorneoIdInput] = useState('');
+  const { data: siteTorneosData } = useSiteTorneos();
+  /** ¿El sitio publica varios torneos a la vez? */
+  const isMultiTorneo = (siteTorneosData?.torneos?.length ?? 0) > 1;
 
   useEffect(() => {
     setHomeTitleInput(siteConfig?.home_config?.title ?? '');
   }, [siteConfig?.home_config?.title]);
+
+  useEffect(() => {
+    setTorneoIdInput(siteConfig?.torneoid ? String(siteConfig.torneoid) : '');
+  }, [siteConfig?.torneoid]);
   
   const menuItems = getAllMenuItems();
   const visibleCount = Object.values(visibilitySettings).filter(Boolean).length;
