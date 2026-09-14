@@ -230,7 +230,7 @@ const Equipos = () => {
                                     <TableCell className="pl-10">
                                       {/* Máximo 3 renglones en móvil; escritorio muestra completo */}
                                       <span
-                                        className="block line-clamp-3 sm:line-clamp-none break-words leading-snug"
+                                        className="block max-h-[4.125rem] overflow-hidden break-words leading-[1.375rem] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] sm:max-h-none sm:overflow-visible sm:[display:block] sm:[-webkit-line-clamp:unset]"
                                         title={p.nombre}
                                       >
                                         {p.nombre}
