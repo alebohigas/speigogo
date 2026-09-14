@@ -23,6 +23,7 @@ import type { CategoryDetail } from '@/data/playersData';
 
 const Equipos = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetail | null>(null);
+  const isMobile = useIsMobile();
 
   /** Torneo activo: los logos locales se buscan en /logos-equipos/t{id}. */
   const torneoId = getTorneoId();
