@@ -169,7 +169,7 @@ const Equipos = () => {
                   <Leyenda />
 
                   {/* ============ Lista de equipos como tarjetas modernas ============ */}
-                  <div className="w-full max-w-4xl mx-auto space-y-6">
+                  <div className="w-full max-w-4xl mx-auto space-y-8">
                     {/* Encabezado alineado (solo desktop) */}
                     <div className="hidden sm:grid sm:grid-cols-[3.5rem_1fr_5rem_5rem] gap-3 px-4 py-2.5 text-sm font-bold text-primary-foreground bg-primary rounded-lg">
                       <div className="text-center">Equipo</div>
@@ -189,10 +189,10 @@ const Equipos = () => {
                       teams.map((team) => (
                         <Card
                           key={team.grupoid}
-                          className="overflow-hidden border border-border/60 shadow-sm rounded-xl bg-white"
+                          className="overflow-hidden border border-border/60 shadow-md rounded-2xl bg-white"
                         >
-                          {/* Header del equipo */}
-                          <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border-b border-border/40 bg-card">
+                          {/* Header del equipo: fondo fuerte, sin curvas propias */}
+                          <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-muted/70 border-b border-border/40">
                             <div className="shrink-0 w-10 sm:w-14 flex justify-center">
                               <EquipoLogo
                                 grupoid={team.grupoid}
