@@ -180,8 +180,8 @@ const Equipos = () => {
                         <Table className="bg-white tournament-table">
                           <TableHeader>
                             <TableRow className="bg-primary hover:bg-primary">
-                              <TableHead className="text-primary-foreground font-bold text-center w-20">Club</TableHead>
-                              <TableHead className="text-primary-foreground font-bold">Equipo</TableHead>
+                              <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
+                              <TableHead className="text-primary-foreground font-bold">Nombre</TableHead>
                               <TableHead className="text-primary-foreground font-bold text-center w-20">HI</TableHead>
                               <TableHead className="text-primary-foreground font-bold text-center w-20">HC</TableHead>
                             </TableRow>
