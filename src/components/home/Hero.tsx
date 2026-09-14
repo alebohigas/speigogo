@@ -38,6 +38,8 @@ const parseTournamentName = (name: string) => {
 const Hero = () => {
   const { data: tournamentInfo } = useTournamentInfo();
   const { data: siteConfig } = useSiteConfig();
+  /** Imagen de fondo configurada en Admin → Heros para la página de inicio. */
+  const heroOverrideUrl = useHeroOverride('/');
   const isMultiTorneo = useIsMultiTorneo();
   /** Torneos del sitio + su configuración, para los botones cruzados. */
   const { data: siteTorneos } = useSiteTorneos();
