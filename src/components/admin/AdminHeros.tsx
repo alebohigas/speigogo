@@ -66,12 +66,23 @@ const AdminHeros = () => {
   const [uploadingPath, setUploadingPath] = useState<string | null>(null);
   /** One hidden file input per page row. */
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  /** Logo del encabezado (sustituye al de la base de datos cuando existe). */
+  const [headerLogo, setHeaderLogo] = useState<string>('');
+  /** Está subiendo el logo del encabezado. */
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  /** Input oculto para subir el logo. */
+  const logoInput = useRef<HTMLInputElement | null>(null);
 
   /** Hydrate local state whenever the server config changes. */
   useEffect(() => {
     const cfg = siteConfig?.hero_config;
     setConfig({ byTorneo: cfg?.byTorneo ?? {}, default: cfg?.default ?? {} });
   }, [siteConfig?.hero_config]);
+
+  /** Hydrate the header logo from the saved home_config. */
+  useEffect(() => {
+    setHeaderLogo(siteConfig?.home_config?.header_logo_url ?? '');
+  }, [siteConfig?.home_config?.header_logo_url]);
 
   /** Keep the scope aligned with the active tournament on first load. */
   useEffect(() => {
