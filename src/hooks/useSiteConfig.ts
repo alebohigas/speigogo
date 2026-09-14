@@ -310,6 +310,11 @@ export interface HomeConfig {
   /** Título de la portada compartida en sitios con varios torneos. */
   title?: string | null;
   /**
+   * Logo del encabezado subido desde Admin → Heros. Cuando existe, sustituye
+   * al logo que viene de la base de datos del torneo.
+   */
+  header_logo_url?: string | null;
+  /**
    * Secciones que TODOS los torneos del sitio toman de la configuración
    * General (Avisos, Anuncio, POP y Patrocinadores). Solo se lee del
    * alcance 'general'; cuando una bandera está encendida, los torneos

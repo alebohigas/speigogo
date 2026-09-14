@@ -18,6 +18,7 @@ import { Link } from 'react-router-dom';
 import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { menuConfig } from '@/data/mockData';
 import { useIsMultiTorneo, useSiteTorneos } from '@/hooks/useSiteTorneos';
+import { useHeroOverride } from '@/hooks/useHeroOverride';
 
 /** Regex to match leading Roman numerals (I, V, X, L, C, D, M) */
 const ROMAN_NUMERAL_REGEX = /^([IVXLCDM]+)\s+(.+)$/;
@@ -37,6 +38,8 @@ const parseTournamentName = (name: string) => {
 const Hero = () => {
   const { data: tournamentInfo } = useTournamentInfo();
   const { data: siteConfig } = useSiteConfig();
+  /** Imagen de fondo configurada en Admin → Heros para la página de inicio. */
+  const heroOverrideUrl = useHeroOverride('/');
   const isMultiTorneo = useIsMultiTorneo();
   /** Torneos del sitio + su configuración, para los botones cruzados. */
   const { data: siteTorneos } = useSiteTorneos();
@@ -131,9 +134,11 @@ const Hero = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: tournamentInfo?.heroImageUrl 
-            ? `url('${tournamentInfo.heroImageUrl}')` 
-            : `url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1920&q=80')`,
+          backgroundImage: `url('${
+            heroOverrideUrl
+            || tournamentInfo?.heroImageUrl
+            || 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1920&q=80'
+          }')`,
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-golf-dark/70 via-golf-dark/50 to-golf-dark/80" />

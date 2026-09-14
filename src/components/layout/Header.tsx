@@ -21,6 +21,7 @@ import { useTournamentInfo } from '@/hooks/useTournamentData';
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import { cn } from '@/lib/utils';
 import { useSiteTorneos } from '@/hooks/useSiteTorneos';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { buildMultiTorneoNav } from '@/lib/multiTorneoNav';
 
 import { Button } from '@/components/ui/button';
@@ -170,6 +171,10 @@ const useOverflowMenu = (
 
 const Header = () => {
   const { data: tournamentInfo } = useTournamentInfo();
+  /** Logo subido desde Admin; tiene prioridad sobre el logo de la base. */
+  const { data: headerSiteConfig } = useSiteConfig();
+  const customLogoUrl = headerSiteConfig?.home_config?.header_logo_url || '';
+  const headerLogoUrl = customLogoUrl || tournamentInfo?.logoHeaderUrl || tournamentInfo?.logoUrl || '';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMobileGroup, setOpenMobileGroup] = useState<string | null>(null);
   const location = useLocation();
@@ -489,10 +494,10 @@ const Header = () => {
           {/* Logo */}
           <div ref={logoRef} className="flex-shrink-0 overflow-visible">
             <Link to="/" className="flex items-center gap-3 overflow-visible">
-              {(tournamentInfo?.logoHeaderUrl || tournamentInfo?.logoUrl) ? (
+              {headerLogoUrl ? (
                 <img 
-                  src={tournamentInfo.logoHeaderUrl || tournamentInfo.logoUrl} 
-                  alt={tournamentInfo.name}
+                  src={headerLogoUrl} 
+                  alt={tournamentInfo?.name || 'Logo'}
                   // Mobile logo: larger visible height, auto width, and a
                   // slight scale boost so logos with transparent padding still
                   // look materially bigger inside the ribbon.
