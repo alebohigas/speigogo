@@ -216,7 +216,7 @@ const Equipos = () => {
                                   </TableCell>
                                   <TableCell />
                                   <TableCell
-                                    className={`text-center text-lg font-bold text-destructive ${
+                                    className={`text-center text-xl font-bold text-destructive ${
                                       team.fueraDeRango ? 'bg-yellow-300 text-black' : ''
                                     }`}
                                   >
