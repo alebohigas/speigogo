@@ -309,6 +309,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
   /** Handle category card click - auto-select scoring if only one type */
   const handleCategoryClick = (category: ResultCategory) => {
     setSelectedCategoryId(category.categoryId);
+    setDetailQuery('');
     setExpandedScorecard(null);
     setScorecardData(null);
     if (category.scoringTypes.length === 1) {
@@ -320,6 +321,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
 
   /** Handle scoring type selection */
   const handleScoringClick = (scoringType: ScoringType) => {
+    setDetailQuery('');
     setExpandedScorecard(null);
     setScorecardData(null);
     setSelectedScoringType(scoringType);
@@ -327,6 +329,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
 
   /** Handle back navigation */
   const handleBack = () => {
+    setDetailQuery('');
     setExpandedScorecard(null);
     setScorecardData(null);
     setParejaScorecardData(null);
