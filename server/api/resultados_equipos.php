@@ -73,20 +73,24 @@ $teamsEq = [];
 foreach ($rowsEq as $r) {
     $g = (string)$r['grupoid'];
     if (!isset($teamsEq[$g])) {
-        // El nombre real del equipo viene del identificador de grupo, no del
-        // campo `club` del jugador (ese es el club del integrante). Se separa
-        // número/clave del nombre, igual que en equipos.php.
+        // El nombre real del equipo se toma de la tabla `equipos` si existe;
+        // si no, se parsea del identificador de grupo, igual que en equipos.php.
+        // NUNCA se usa `j.club` porque ese es el club del integrante, no el
+        // nombre del equipo.
         $numeroEq = '';
-        $nombreEq = $g;
-        if (preg_match('/^([A-Za-z]*\d+[A-Za-z0-9\-]*)\s+(.+)$/u', $g, $m)) {
-            $numeroEq = $m[1];
-            $nombreEq = $m[2];
+        $nombreEq = trim((string)($r['equiponombre'] ?? ''));
+        if ($nombreEq === '') {
+            $nombreEq = $g;
+            if (preg_match('/^([A-Za-z]*\d+[A-Za-z0-9\-]*)\s+(.+)$/u', $g, $m)) {
+                $numeroEq = $m[1];
+                $nombreEq = $m[2];
+            }
         }
         $teamsEq[$g] = [
             'grupoid'   => $g,
             'numero'    => $numeroEq,
             'teamName'  => $nombreEq,
-            'logo'      => $r['logoeq'] ?: ($r['clublogo'] ?? ''),
+            'logo'      => $r['logoeq'] ?: ($r['equipologo'] ?: ($r['clublogo'] ?? '')),
             'club'      => $r['clubabr'] ?? '',
             'estatus'   => $r['estatus'] ?? 'NORMAL',
             'members'   => [],
