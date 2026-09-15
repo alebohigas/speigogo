@@ -61,6 +61,31 @@ if ($hasEqTable) {
             . (isset($eqCols['torneoid']) ? " AND j.torneoid = e.torneoid" : '') . ")";
 }
 
+/** ---------- Desempates sobre la última tarjeta cerrada ----------
+ *  Progresión solicitada: mejor score del último día → hoyos 10-18 →
+ *  13-18 → 16-18 → 18 → 4-9 → 7-9 → 9. Se comparan golpes (menos es mejor).
+ */
+$sufEq = ($grossEq === '1') ? '' : '_a';
+function tb_sum_eq($holes, $suf) {
+    $sum = implode(' + ', array_map(fn($h) => "COALESCE(tc.h{$h}{$suf}, 0)", $holes));
+    return "(SELECT ({$sum})
+             FROM tarjetas tc
+             WHERE tc.jugadorid = j.id
+               AND tc.torneoid  = j.torneoid
+               AND tc.statlsc   = 1
+             ORDER BY tc.fecha_juego DESC
+             LIMIT 1)";
+}
+$tbSetsEq = [
+    'tb1' => [10, 11, 12, 13, 14, 15, 16, 17, 18],
+    'tb2' => [13, 14, 15, 16, 17, 18],
+    'tb3' => [16, 17, 18],
+    'tb4' => [18],
+    'tb5' => [4, 5, 6, 7, 8, 9],
+    'tb6' => [7, 8, 9],
+    'tb7' => [9],
+];
+
 /** ---------- Integrantes con sus scores ---------- */
 $sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus,
                  CONCAT(j.nombre, ' ', j.apellido) AS jugador,
@@ -68,6 +93,9 @@ $sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus,
                  $eqNombreExpr AS equiponombre, $eqLogoExpr AS equipologo,
                  $logoEqExpr AS logoeq,
                  $totalExprEq AS total_main";
+foreach ($tbSetsEq as $alias => $holes) {
+    $sqlEq .= ", " . tb_sum_eq($holes, $sufEq) . " AS {$alias}";
+}
 foreach ($diasEq as $i => $fechaEq) {
     $sqlEq .= ", $diaFnEq(j.id, '" . esc($conn, $fechaEq) . "') AS d{$i}";
 }
@@ -79,6 +107,7 @@ $sqlEq .= " FROM jugadores j
 
 $rowsEq = query_all($conn, $sqlEq);
 if ($rowsEq === null) { $rowsEq = []; }
+
 
 /** Elige el score real del equipo entre los integrantes (0 = sin tarjeta). */
 function equipo_pick($values, $isStroke) {
