@@ -16,7 +16,7 @@
  */
 
 /** Extensiones soportadas para los archivos de logo. */
-const EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'svg'];
+const EXTENSIONS = ['png', 'jpg'];
 
 /** Carpeta pública donde se dejan los logos de equipo. */
 export const EQUIPO_LOGOS_DIR = '/logos-equipos';
