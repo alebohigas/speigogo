@@ -215,15 +215,17 @@ const Equipos = () => {
                       <div className="text-center">H.C.</div>
                     </div>
 
-                    {teams.length === 0 ? (
+                    {filteredTeams.length === 0 ? (
                       <Card className="border-border/50 bg-white">
                         <CardContent className="text-center text-muted-foreground py-12">
                           <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          No hay equipos registrados en esta categoría
+                          {detailSearchActive
+                            ? 'No se encontraron equipos con ese criterio'
+                            : 'No hay equipos registrados en esta categoría'}
                         </CardContent>
                       </Card>
                     ) : (
-                      teams.map((team) => (
+                      filteredTeams.map((team) => (
                         <Card
                           key={team.grupoid}
                           className="overflow-hidden border border-border/60 shadow-md rounded-2xl bg-white"
