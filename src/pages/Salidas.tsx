@@ -1271,8 +1271,7 @@ const Salidas = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  </>)
-                  )}
+                  </>)}
                 </>
               ) : detailIsError ? (
                 <div className="text-center py-16">
