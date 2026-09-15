@@ -96,7 +96,11 @@ export const useEffectiveSiteConfig = () => {
    * ribbon can briefly appear after navigation and disappear when its scoped
    * visibility arrives, leaving a conspicuous white gap above the hero.
    */
-  const isVisualConfigReady = query.isFetched && siteTorneosQuery.isFetched;
+  const isVisualConfigReady =
+    query.isFetched &&
+    !query.isFetching &&
+    siteTorneosQuery.isFetched &&
+    !siteTorneosQuery.isFetching;
 
   return { ...query, data, isVisualConfigReady };
 };
