@@ -34,20 +34,30 @@ if (!function_exists('equipos_logo_norm')) {
 if (!function_exists('equipos_logo_url')) {
     /**
      * Convierte el valor guardado en la base de datos en una URL utilizable.
-     * Acepta 'logos/logo_x.png', '../jugadores/logo_x.png', '/ruta/x.png',
-     * 'logo_x.png' o una URL absoluta.
+     *
+     * Los logos de equipo viven en el servidor de imágenes, bajo la carpeta
+     * /jugadores/, y la base de datos guarda la ruta relativa a esa carpeta:
+     *   'logos/equipo-06_1.png'  ->  https://alien.speigogo.com/jugadores/logos/equipo-06_1.png
+     *
+     * Acepta además '../jugadores/x.png', '/ruta/x.png', 'x.png' o una URL
+     * absoluta (que se respeta tal cual).
      */
     function equipos_logo_url($raw) {
-        global $LOGOS_BASE_URL;
-        $base = $LOGOS_BASE_URL ?: '/api/logo.php?file=';
+        $imgBase = 'https://alien.speigogo.com/jugadores/';
         $raw = trim((string)$raw);
         if ($raw === '') return '';
         if (preg_match('#^https?://#i', $raw)) return $raw;
-        // El proxy sólo acepta el nombre del archivo; busca en las carpetas
-        // locales y en las del servidor legacy.
-        $file = basename(str_replace('\\', '/', $raw));
-        if ($file === '' || !preg_match('/^[A-Za-z0-9_\-\.]+$/', $file)) return '';
-        return $base . rawurlencode($file);
+
+        $path = str_replace('\\', '/', $raw);
+        // '../jugadores/logos/x.png' -> 'logos/x.png'
+        $path = preg_replace('#^(\.\./)+#', '', $path);
+        $path = preg_replace('#^/?jugadores/#i', '', $path);
+        $path = ltrim($path, '/');
+        if ($path === '') return '';
+
+        // Codifica cada segmento sin romper las diagonales.
+        $segments = array_map('rawurlencode', explode('/', $path));
+        return $imgBase . implode('/', $segments);
     }
 }
 
