@@ -859,7 +859,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                 R{i + 1}
                               </TableHead>
                             ))}
-                            <TableHead className="text-primary-foreground font-bold text-center">Total</TableHead>
+                            <TableHead className="text-report-header-foreground font-bold text-center">Total</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
