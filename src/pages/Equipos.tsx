@@ -23,7 +23,10 @@ import type { CategoryDetail } from '@/data/playersData';
 
 const Equipos = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetail | null>(null);
-
+  /** Búsqueda por jugador dentro de la categoría seleccionada */
+  const [detailQuery, setDetailQuery] = useState('');
+  const normalizedDetailQuery = normalizeSearchText(detailQuery);
+  const detailSearchActive = normalizedDetailQuery.length >= 2;
 
   /** Torneo activo: los logos locales se buscan en /logos-equipos/t{id}. */
   const torneoId = getTorneoId();
@@ -32,6 +35,23 @@ const Equipos = () => {
   const { data, isLoading: loadingTeams } = useEquipos(selectedCategory?.id ?? null);
 
   const teams = data?.teams ?? [];
+
+  /** Lista de nombres únicos para autocompletar la búsqueda */
+  const playerSuggestions = useMemo(
+    () => buildUniqueNameSuggestions(teams.flatMap((t) => t.players.map((p) => p.nombre))),
+    [teams]
+  );
+
+  /** Equipos filtrados por nombre de jugador, nombre de equipo o número */
+  const filteredTeams = useMemo(() => {
+    if (!detailSearchActive) return teams;
+    return teams.filter((team) => {
+      const matchTeamName = normalizeSearchText(team.nombre).includes(normalizedDetailQuery);
+      const matchTeamNumber = normalizeSearchText(team.numero).includes(normalizedDetailQuery);
+      const matchPlayer = team.players.some((p) => matchesPlayerName(p.nombre, detailQuery));
+      return matchTeamName || matchTeamNumber || matchPlayer;
+    });
+  }, [teams, detailSearchActive, normalizedDetailQuery, detailQuery]);
   const tees = data?.tees ?? [];
   const totalJugadores = data?.category.totalJugadores ?? 0;
   const totalEquipos = data?.category.totalEquipos ?? 0;
