@@ -186,6 +186,21 @@ const Equipos = () => {
                     </div>
                   </div>
 
+                  {/* ============ Buscador de jugador/equipo ============ */}
+                  <div className="w-full max-w-4xl mx-auto mb-4 space-y-2">
+                    <PlayerSearchInput
+                      value={detailQuery}
+                      onChange={setDetailQuery}
+                      suggestions={playerSuggestions}
+                      placeholder="Buscar jugador, equipo o número..."
+                      className="w-full"
+                    />
+                    {detailSearchActive && (
+                      <p className="text-sm text-muted-foreground">
+                        Mostrando {filteredTeams.length} de {teams.length} equipos
+                      </p>
+                    )}
+                  </div>
 
                   {/* ============ Leyenda (antes de la tabla) ============ */}
                   <Leyenda />
