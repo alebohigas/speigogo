@@ -784,7 +784,7 @@ const Salidas = () => {
               </div>
             </>
 
-          /* ============= Level 3: Groups Table ============= */
+          /* ============= Level 3: Groups Cards ============= */
           ) : (
             <>
               <Button variant="ghost" onClick={handleBack} className="mb-6 gap-2 bg-primary/10 hover:bg-primary/20">
