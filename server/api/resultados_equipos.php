@@ -109,7 +109,9 @@ foreach ($teamsEq as $g => $t) {
         'playerId'     => $cardHolder,
         'grupoid'      => $g,
         'teamName'     => $t['teamName'],
-        'name'         => trim($g . ' ' . $t['teamName']),
+        /** En Resultados debe mostrarse ÚNICAMENTE el nombre del equipo,
+         *  no el identificador de grupo ni el club. */
+        'name'         => $t['teamName'] ?: $g,
         'club'         => $t['club'],
         'clubLogo'     => $t['logo'] ? $LOGOS_BASE_URL . $t['logo'] : '',
         'members'      => array_map(fn($m) => $m['nombre'], $t['members']),
