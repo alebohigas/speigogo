@@ -85,14 +85,54 @@ if (empty($candidateBases)) {
 $basePath     = null;
 $resolvedPath = null;
 
+/**
+ * Subcarpetas donde pueden vivir los logos, además de la ruta tal cual.
+ * En este servidor las imágenes están en /alien/logos/, y en instalaciones
+ * anteriores en /logos_patrocinadores/ o /logos/.
+ */
+$fileBase = basename($file);
+$relCandidates = [
+    $file,
+    'alien/logos/' . $fileBase,
+    'alien/logos_patrocinadores/' . $fileBase,
+    'logos_patrocinadores/' . $fileBase,
+    'logos/' . $fileBase,
+];
+
 foreach ($candidateBases as $candidate) {
-    $tryFull   = $candidate . '/' . $file;
-    $tryResolved = realpath($tryFull);
-    // Accept the first candidate where the file exists AND stays under that base
-    if ($tryResolved && strpos($tryResolved, $candidate) === 0 && is_file($tryResolved)) {
-        $basePath     = $candidate;
-        $resolvedPath = $tryResolved;
-        break;
+    foreach ($relCandidates as $rel) {
+        $tryResolved = realpath($candidate . '/' . $rel);
+        // Accept the first candidate where the file exists AND stays under that base
+        if ($tryResolved && strpos($tryResolved, $candidate) === 0 && is_file($tryResolved)) {
+            $basePath     = $candidate;
+            $resolvedPath = $tryResolved;
+            break 2;
+        }
+    }
+}
+
+// Última opción: traerlo de los servidores de imágenes conocidos.
+if (!$resolvedPath) {
+    $remoteBases = [
+        'https://alien.speigogo.com/logos/',
+        'https://alien.speigogo.com/logos_patrocinadores/',
+        'https://alien2019.speitour.mx/logos_patrocinadores/',
+        'https://alien2019.speitour.mx/logos/',
+    ];
+    $ctx = stream_context_create(['http' => ['timeout' => 8, 'follow_location' => 0]]);
+    foreach ($remoteBases as $remote) {
+        $data = @file_get_contents($remote . rawurlencode($fileBase), false, $ctx);
+        if ($data === false || $data === '') continue;
+        if (stripos(substr($data, 0, 200), '<html') !== false) continue;
+        $mime = [
+            'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif', 'webp' => 'image/webp', 'svg' => 'image/svg+xml',
+        ][$ext] ?? 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=604800');
+        header('Content-Length: ' . strlen($data));
+        echo $data;
+        exit;
     }
 }
 
