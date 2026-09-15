@@ -16,9 +16,14 @@
  * $LOGOS_BASE_URL.
  */
 
+require_once '_equipos_logos.php';
+
 $sistemaEq = strtoupper(trim($catInfo['sistema'] ?? ''));
 $isStrokeEq = ($sistemaEq === 'STROKE PLAY');
 $grossEq = ($gross == '1') ? '1' : '0';
+
+/** Logos de la tabla `equipos` del torneo (id / nombre / número). */
+$eqLogoIndex = equipos_logo_index($conn, $torneoid ?? '');
 
 /** ---------- Fechas de juego ---------- */
 $diasEq = [];
