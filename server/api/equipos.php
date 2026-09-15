@@ -139,20 +139,7 @@ $logoIndex = equipos_logo_index($conn, $torneoid);
 
 foreach ($teams as $i => $t) {
     $url = equipos_logo_find($logoIndex, $t['grupoid'] ?? '', $t['nombre'] ?? '');
-    if ($url === '') {
-        $logo = trim((string)($t['logo'] ?? ''));
-        if ($logo !== '') {
-            if (preg_match('#^https?://#i', $logo)) {
-                $url = $logo;
-            } elseif (strpos($logo, '../') === 0) {
-                $url = 'https://alien2019.speitour.mx/' . substr($logo, 3);
-            } elseif ($logo[0] === '/') {
-                $url = 'https://alien2019.speitour.mx' . $logo;
-            } else {
-                $url = equipos_logo_url($logo);
-            }
-        }
-    }
+    if ($url === '') $url = equipos_logo_url($t['logo'] ?? '');
     $teams[$i]['logoUrl'] = $url;
 }
 
