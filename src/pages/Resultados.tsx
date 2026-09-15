@@ -174,6 +174,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
   const [searchQuery, setSearchQuery] = useState('');
   const normalizedQuery = normalizeSearchText(searchQuery);
   const searchActive = normalizedQuery.length >= 2;
+  /** Búsqueda por nombre dentro de la categoría/tipo seleccionado (vista detalle) */
+  const [detailQuery, setDetailQuery] = useState('');
 
   /** Track which scorecard is expanded: "playerId-round" */
   const [expandedScorecard, setExpandedScorecard] = useState<string | null>(null);
@@ -282,6 +284,27 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
     const scoring = categoryDetail.scoringTypes?.find(s => s.scoringType === selectedScoringType);
     return scoring?.players || [];
   })();
+
+  /** Filtro por nombre aplicado al leaderboard del detalle (jugador, pareja o integrante de equipo) */
+  const detailNorm = normalizeSearchText(detailQuery);
+  const detailSearchActive = detailNorm.length >= 2;
+  const detailSuggestions = useMemo(
+    () =>
+      buildUniqueNameSuggestions(
+        players.flatMap((p) => [p.name, p.partner, p.pairName, ...(p.members ?? [])])
+      ),
+    [players]
+  );
+  const filteredPlayers = useMemo(() => {
+    if (!detailSearchActive) return players;
+    return players.filter(
+      (p) =>
+        normalizeSearchText(p.name).includes(detailNorm) ||
+        normalizeSearchText(p.partner).includes(detailNorm) ||
+        normalizeSearchText(p.pairName).includes(detailNorm) ||
+        (p.members ?? []).some((m) => normalizeSearchText(m).includes(detailNorm))
+    );
+  }, [players, detailSearchActive, detailNorm]);
 
   /** Handle category card click - auto-select scoring if only one type */
   const handleCategoryClick = (category: ResultCategory) => {
