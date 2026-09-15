@@ -154,8 +154,14 @@ if ($ov) {
     }
     if ($img !== '') {
         $html = preg_replace(
-            '#<meta\s+property="og:image"[^>]*>#i',
+            '#<meta\s+property="og:image"\s+content="[^"]*"\s*/?>#i',
             '<meta property="og:image" content="' . $img . '" />',
+            $html,
+            1
+        );
+        $html = preg_replace(
+            '#<meta\s+property="og:image:secure_url"[^>]*>#i',
+            '<meta property="og:image:secure_url" content="' . $img . '" />',
             $html
         );
         $html = preg_replace(
@@ -164,6 +170,16 @@ if ($ov) {
             $html
         );
     }
+
+    // og:url siempre apunta a la página solicitada (WhatsApp lo usa para
+    // validar el preview y resolver rutas relativas).
+    $pageUrl = 'https://' . $host . ($_SERVER['REQUEST_URI'] ?? '/');
+    $pageUrl = htmlspecialchars($pageUrl, ENT_QUOTES, 'UTF-8');
+    $html = preg_replace(
+        '#<meta\s+property="og:url"[^>]*>#i',
+        '<meta property="og:url" content="' . $pageUrl . '" />',
+        $html
+    );
 }
 
 header('Content-Type: text/html; charset=utf-8');
