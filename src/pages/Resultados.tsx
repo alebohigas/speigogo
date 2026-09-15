@@ -174,6 +174,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
   const [searchQuery, setSearchQuery] = useState('');
   const normalizedQuery = normalizeSearchText(searchQuery);
   const searchActive = normalizedQuery.length >= 2;
+  /** Búsqueda por nombre dentro de la categoría/tipo seleccionado (vista detalle) */
+  const [detailQuery, setDetailQuery] = useState('');
 
   /** Track which scorecard is expanded: "playerId-round" */
   const [expandedScorecard, setExpandedScorecard] = useState<string | null>(null);
@@ -283,9 +285,31 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
     return scoring?.players || [];
   })();
 
+  /** Filtro por nombre aplicado al leaderboard del detalle (jugador, pareja o integrante de equipo) */
+  const detailNorm = normalizeSearchText(detailQuery);
+  const detailSearchActive = detailNorm.length >= 2;
+  const detailSuggestions = useMemo(
+    () =>
+      buildUniqueNameSuggestions(
+        players.flatMap((p) => [p.name, p.partner, p.pairName, ...(p.members ?? [])])
+      ),
+    [players]
+  );
+  const filteredPlayers = useMemo(() => {
+    if (!detailSearchActive) return players;
+    return players.filter(
+      (p) =>
+        normalizeSearchText(p.name).includes(detailNorm) ||
+        normalizeSearchText(p.partner).includes(detailNorm) ||
+        normalizeSearchText(p.pairName).includes(detailNorm) ||
+        (p.members ?? []).some((m) => normalizeSearchText(m).includes(detailNorm))
+    );
+  }, [players, detailSearchActive, detailNorm]);
+
   /** Handle category card click - auto-select scoring if only one type */
   const handleCategoryClick = (category: ResultCategory) => {
     setSelectedCategoryId(category.categoryId);
+    setDetailQuery('');
     setExpandedScorecard(null);
     setScorecardData(null);
     if (category.scoringTypes.length === 1) {
@@ -297,6 +321,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
 
   /** Handle scoring type selection */
   const handleScoringClick = (scoringType: ScoringType) => {
+    setDetailQuery('');
     setExpandedScorecard(null);
     setScorecardData(null);
     setSelectedScoringType(scoringType);
@@ -304,6 +329,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
 
   /** Handle back navigation */
   const handleBack = () => {
+    setDetailQuery('');
     setExpandedScorecard(null);
     setScorecardData(null);
     setParejaScorecardData(null);
@@ -599,6 +625,20 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                 </span>
               </div>
 
+              {/* Buscador por nombre dentro de la categoría */}
+              <PlayerSearchInput
+                className="max-w-md mx-auto mb-6"
+                value={detailQuery}
+                onChange={setDetailQuery}
+                suggestions={detailSuggestions}
+                placeholder="Buscar jugador en esta categoría..."
+              />
+              {detailSearchActive && (
+                <p className="text-sm text-muted-foreground text-center mb-4">
+                  {filteredPlayers.length} resultado{filteredPlayers.length !== 1 ? 's' : ''} para "{detailQuery}"
+                </p>
+              )}
+
               {loadingDetail ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -609,10 +649,10 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                   <CardContent className="p-0 bg-white">
                     {categoryDetail?.isEquipos && (
                     <div className="p-4 space-y-4 md:hidden">
-                      {players.length === 0 ? (
+                      {filteredPlayers.length === 0 ? (
                         <div className="text-center py-6 text-muted-foreground">Sin resultados aún.</div>
                       ) : (
-                        players.map((player) => {
+                        filteredPlayers.map((player) => {
                           const name1 = player.name;
                           return (
                             <div key={player.id} className="border border-border/50 rounded-xl bg-white overflow-hidden shadow-sm">
@@ -819,8 +859,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {players.length > 0 ? (
-                            players.map((player) => {
+                          {filteredPlayers.length > 0 ? (
+                            filteredPlayers.map((player) => {
                               /* En categorías de PAREJAS: render = 2 renglones (uno por integrante)
                                * y las columnas compartidas (Pos / Club logo / R1..Rn / Total) se
                                * centran verticalmente con rowSpan=2 — equivalente a la imagen

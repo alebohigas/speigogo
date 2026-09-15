@@ -252,6 +252,8 @@ const Salidas = () => {
    * Derived from searchQuery length (no separate boolean to avoid stale state).
    */
   const normalizedQuery = normalizeSearchText(searchQuery);
+  /** Búsqueda por nombre dentro de la categoría/día seleccionado (vista detalle) */
+  const [detailQuery, setDetailQuery] = useState('');
   const searchActive = normalizedQuery.length >= 2;
 
   // Fetch master data: days + categories
@@ -426,6 +428,7 @@ const Salidas = () => {
 
   /** Handle day card click - if only one category, go directly to detail */
   const handleDayClick = (dayIdx: number) => {
+    setDetailQuery('');
     const day = days[dayIdx];
     if (day.categories.length === 1) {
       setSelectedDayIdx(dayIdx);
@@ -440,12 +443,14 @@ const Salidas = () => {
 
   /** Handle category click */
   const handleCategoryClick = (cat: SalidasCategory) => {
+    setDetailQuery('');
     setSelectedCaljgoid(String(cat.caljgoid));
     setSelectedCatMeta(cat);
   };
 
   /** Handle back navigation */
   const handleBack = () => {
+    setDetailQuery('');
     if (selectedCaljgoid) {
       const day = selectedDayIdx !== null ? days[selectedDayIdx] : null;
       if (day && day.categories.length > 1) {
@@ -465,6 +470,31 @@ const Salidas = () => {
   const handleClearSearch = () => {
     setSearchQuery('');
   };
+
+  /** Filtro por nombre aplicado a los grupos del detalle (jugador, pareja o integrante) */
+  const detailNorm = normalizeSearchText(detailQuery);
+  const detailSearchActive = detailNorm.length >= 2;
+  const detailSuggestions = useMemo(
+    () =>
+      buildUniqueNameSuggestions(
+        (detail?.groups ?? []).flatMap((g) =>
+          (g.players ?? []).flatMap((p) => [p.name, p.partner, ...(p.members ?? []).map((m) => m.name)])
+        )
+      ),
+    [detail]
+  );
+  const filteredGroups = useMemo(() => {
+    const gs = detail?.groups ?? [];
+    if (!detailSearchActive) return gs;
+    return gs.filter((g) =>
+      (g.players ?? []).some(
+        (p) =>
+          normalizeSearchText(p.name).includes(detailNorm) ||
+          normalizeSearchText(p.partner).includes(detailNorm) ||
+          (p.members ?? []).some((m) => normalizeSearchText(m.name).includes(detailNorm))
+      )
+    );
+  }, [detail, detailSearchActive, detailNorm]);
 
   return (
     <Layout>
@@ -839,10 +869,24 @@ const Salidas = () => {
                     </p>
                   </div>
 
+                  {/* Buscador por nombre dentro de la categoría */}
+                  <PlayerSearchInput
+                    className="max-w-md mx-auto mb-6"
+                    value={detailQuery}
+                    onChange={setDetailQuery}
+                    suggestions={detailSuggestions}
+                    placeholder="Buscar jugador en esta categoría..."
+                  />
+
                   {(detail.groups ?? []).length === 0 ? (
                     <div className="text-center py-16">
                       <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                       <p className="text-muted-foreground text-lg">No hay grupos de salida para esta categoría</p>
+                    </div>
+                  ) : filteredGroups.length === 0 ? (
+                    <div className="text-center py-16">
+                      <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                      <p className="text-muted-foreground text-lg">No se encontró ningún jugador con "{detailQuery}" en esta categoría</p>
                     </div>
                   ) : (
                     <Card className="border-border/50 bg-white max-w-5xl mx-auto">
@@ -875,7 +919,7 @@ const Salidas = () => {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {(detail.groups ?? []).map((group, gIdx) => {
+                              {filteredGroups.map((group, gIdx) => {
                                 /* Igual que el bloque de búsqueda: parejas → 2 renglones por jugador.
                                  * Hoyo/Hora abarcan TODOS los renglones del grupo;
                                  * Score abarca los 2 renglones de cada pareja. */
@@ -897,7 +941,7 @@ const Salidas = () => {
                                   : countGroupRowsWithVs(players, matchPlay);
                                 const totalCols = 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
                                 const lineCols = totalCols;
-                                const isLastGroup = gIdx >= (detail.groups ?? []).length - 1;
+                                const isLastGroup = gIdx >= filteredGroups.length - 1;
                                 let firstRowEmitted = false;
                                 const rows: JSX.Element[] = [];
 

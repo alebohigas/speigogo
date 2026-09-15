@@ -36,6 +36,8 @@ const Jugadores = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const normalizedQuery = normalizeSearchText(searchQuery);
   const searchActive = normalizedQuery.length >= 2;
+  /** Búsqueda por nombre dentro de la categoría seleccionada (vista detalle) */
+  const [detailQuery, setDetailQuery] = useState('');
 
   // Fetch categories from API
   const { data: categories = [], isLoading: loadingCats } = useCategories();
@@ -133,16 +135,38 @@ const Jugadores = () => {
   const isParejas = playersData?.isParejas ?? false;
   const groups = playersData?.groups ?? [];
 
+  /** Filtro por nombre aplicado a la vista de detalle de la categoría */
+  const detailNorm = normalizeSearchText(detailQuery);
+  const detailSearchActive = detailNorm.length >= 2;
+  const detailSuggestions = useMemo(
+    () => buildUniqueNameSuggestions(players.map((p) => p.name)),
+    [players]
+  );
+  const visiblePlayers = useMemo(
+    () => (detailSearchActive ? players.filter((p) => normalizeSearchText(p.name).includes(detailNorm)) : players),
+    [players, detailSearchActive, detailNorm]
+  );
+  const visibleGroups = useMemo(
+    () =>
+      detailSearchActive
+        ? groups
+            .map((g) => ({ ...g, players: g.players.filter((p) => normalizeSearchText(p.name).includes(detailNorm)) }))
+            .filter((g) => g.players.length > 0)
+        : groups,
+    [groups, detailSearchActive, detailNorm]
+  );
+
   /** Total players across all categories */
   const totalPlayers = categories.reduce((sum, cat) => sum + cat.playerCount, 0);
 
   /** Navigate back to category grid */
-  const handleBack = () => setSelectedCategory(null);
+  const handleBack = () => { setSelectedCategory(null); setDetailQuery(''); };
 
   /** Navigate to a category from a search result */
   const handleResultClick = (category: CategoryDetail) => {
     setSelectedCategory(category);
     setSearchQuery('');
+    setDetailQuery('');
   };
 
   /** Clear search and return to normal grid view */
@@ -276,7 +300,7 @@ const Jugadores = () => {
                           <p className="text-2xl font-bold text-primary my-2">{category.playerCount}</p>
                           <Button
                             size="sm"
-                            onClick={() => setSelectedCategory(category)}
+                            onClick={() => { setSelectedCategory(category); setDetailQuery(''); }}
                             className="w-full"
                           >
                             Ver
@@ -337,6 +361,20 @@ const Jugadores = () => {
                 </div>
               </div>
 
+              {/* Buscador por nombre dentro de la categoría */}
+              <PlayerSearchInput
+                className="max-w-md mx-auto mb-6"
+                value={detailQuery}
+                onChange={setDetailQuery}
+                suggestions={detailSuggestions}
+                placeholder="Buscar jugador en esta categoría..."
+              />
+              {detailSearchActive && (
+                <p className="text-sm text-muted-foreground text-center mb-4">
+                  {visiblePlayers.length} resultado{visiblePlayers.length !== 1 ? 's' : ''} para "{detailQuery}"
+                </p>
+              )}
+
               {/* Players Table - full width, centered */}
               <Card className="border-border/50 bg-white w-full max-w-4xl mx-auto">
                 <div className="overflow-x-auto bg-white">
@@ -347,13 +385,13 @@ const Jugadores = () => {
                   ) : isParejas ? (
                     /* ============ Vista de parejas: una tabla por grupo ============ */
                     <div className="p-4 space-y-6 bg-white">
-                      {groups.length === 0 ? (
+                      {visibleGroups.length === 0 ? (
                         <div className="text-center text-muted-foreground py-8">
                           <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           No hay parejas registradas en esta categoría
                         </div>
                       ) : (
-                        groups.map((g) => (
+                        visibleGroups.map((g) => (
                           <div key={g.grupoid} className="border border-border/50 rounded-lg overflow-hidden">
                             <div className="bg-primary/10 px-4 py-2 flex items-center justify-between">
                               <span className="font-bold text-foreground">Grupo {g.grupoid}</span>
@@ -450,8 +488,8 @@ const Jugadores = () => {
                         </TableRow>
                       </TableHeader>
                        <TableBody>
-                         {players.length > 0 ? (
-                           players.map((player) => (
+                          {visiblePlayers.length > 0 ? (
+                            visiblePlayers.map((player) => (
                              <TableRow key={player.id} className="bg-white hover:bg-white">
                                {/* Club Logo column */}
                                <TableCell className="p-1 text-center align-middle">
