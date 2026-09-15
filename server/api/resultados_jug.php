@@ -278,6 +278,35 @@ function countback_order($direction) {
 }
 
 /**
+ * Suma de hoyos de la ÚLTIMA tarjeta cerrada del jugador.
+ * Gross → columnas h{n}; Neto → columnas h{n}_a.
+ */
+function last_card_holes_sum(array $holes, $gross) {
+    $suf = ($gross == '1') ? '' : '_a';
+    $sum = implode(' + ', array_map(fn($h) => "COALESCE(tc.h{$h}{$suf}, 0)", $holes));
+    return "(SELECT ({$sum})
+             FROM tarjetas tc
+             WHERE tc.jugadorid = j.id
+               AND tc.torneoid  = j.torneoid
+               AND tc.statlsc   = 1
+             ORDER BY tc.fecha_juego DESC
+             LIMIT 1)";
+}
+
+/**
+ * Desempates de la vuelta de ida sobre la última tarjeta cerrada, aplicados
+ * después del countback de la vuelta de vuelta (10-18 → 13-18 → 16-18 → 18):
+ *   hoyos 4-9 → hoyos 7-9 → hoyo 9.
+ * Se comparan golpes, por lo que menos siempre es mejor (ASC).
+ */
+function front_countback_order($gross) {
+    return ", " . last_card_holes_sum([4, 5, 6, 7, 8, 9], $gross) . " ASC"
+         . ", " . last_card_holes_sum([7, 8, 9], $gross) . " ASC"
+         . ", " . last_card_holes_sum([9], $gross) . " ASC";
+}
+
+
+/**
  * Last-round score alias used right before the countback. Mirrors legacy
  * `f_score_dia_saxU(a.id)` (score of player's last published round).
  * Returns 'NULL' when there are no rounds yet so MySQL skips it cleanly.
@@ -509,6 +538,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (ASC for Stroke).
         $sql .= ", " . last_round_alias($dias) . " ASC";
         $sql .= countback_order('ASC');
+        $sql .= front_countback_order('1');
 
     } else {
         $sql = "SELECT j.id AS jugadorid, j.numjugador,
@@ -541,6 +571,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (ASC for Stroke).
         $sql .= ", " . last_round_alias($dias) . " ASC";
         $sql .= countback_order('ASC');
+        $sql .= front_countback_order('0');
     }
 
 } elseif ($sistema === 'STABLEFORD') {
@@ -576,6 +607,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (DESC for Stableford).
         $sql .= ", " . last_round_alias($dias) . " DESC";
         $sql .= countback_order('DESC');
+        $sql .= front_countback_order('1');
     } else {
         $sql = "SELECT j.id AS jugadorid, j.numjugador,
                        CONCAT(j.nombre, ' ', j.apellido) as jugador, j.estatus,
@@ -608,6 +640,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (DESC for Stableford).
         $sql .= ", " . last_round_alias($dias) . " DESC";
         $sql .= countback_order('DESC');
+        $sql .= front_countback_order('0');
     }
 }
 

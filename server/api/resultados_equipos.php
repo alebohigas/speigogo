@@ -61,6 +61,31 @@ if ($hasEqTable) {
             . (isset($eqCols['torneoid']) ? " AND j.torneoid = e.torneoid" : '') . ")";
 }
 
+/** ---------- Desempates sobre la última tarjeta cerrada ----------
+ *  Progresión solicitada: mejor score del último día → hoyos 10-18 →
+ *  13-18 → 16-18 → 18 → 4-9 → 7-9 → 9. Se comparan golpes (menos es mejor).
+ */
+$sufEq = ($grossEq === '1') ? '' : '_a';
+function tb_sum_eq($holes, $suf) {
+    $sum = implode(' + ', array_map(fn($h) => "COALESCE(tc.h{$h}{$suf}, 0)", $holes));
+    return "(SELECT ({$sum})
+             FROM tarjetas tc
+             WHERE tc.jugadorid = j.id
+               AND tc.torneoid  = j.torneoid
+               AND tc.statlsc   = 1
+             ORDER BY tc.fecha_juego DESC
+             LIMIT 1)";
+}
+$tbSetsEq = [
+    'tb1' => [10, 11, 12, 13, 14, 15, 16, 17, 18],
+    'tb2' => [13, 14, 15, 16, 17, 18],
+    'tb3' => [16, 17, 18],
+    'tb4' => [18],
+    'tb5' => [4, 5, 6, 7, 8, 9],
+    'tb6' => [7, 8, 9],
+    'tb7' => [9],
+];
+
 /** ---------- Integrantes con sus scores ---------- */
 $sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus,
                  CONCAT(j.nombre, ' ', j.apellido) AS jugador,
@@ -68,6 +93,9 @@ $sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus,
                  $eqNombreExpr AS equiponombre, $eqLogoExpr AS equipologo,
                  $logoEqExpr AS logoeq,
                  $totalExprEq AS total_main";
+foreach ($tbSetsEq as $alias => $holes) {
+    $sqlEq .= ", " . tb_sum_eq($holes, $sufEq) . " AS {$alias}";
+}
 foreach ($diasEq as $i => $fechaEq) {
     $sqlEq .= ", $diaFnEq(j.id, '" . esc($conn, $fechaEq) . "') AS d{$i}";
 }
@@ -79,6 +107,7 @@ $sqlEq .= " FROM jugadores j
 
 $rowsEq = query_all($conn, $sqlEq);
 if ($rowsEq === null) { $rowsEq = []; }
+
 
 /** Elige el score real del equipo entre los integrantes (0 = sin tarjeta). */
 function equipo_pick($values, $isStroke) {
@@ -140,6 +169,17 @@ foreach ($teamsEq as $g => $t) {
     $closed = 0;
     foreach ($rounds as $v) { if ($v !== null) $closed++; }
 
+    // Valores de desempate del equipo: se toma el mejor (menor) de sus
+    // integrantes con tarjeta cerrada en cada segmento de hoyos.
+    $tb = [];
+    foreach (array_keys($tbSetsEq) as $alias) {
+        $vals = array_values(array_filter(
+            array_map(fn($r) => $r[$alias] ?? null, $t['rowsRaw']),
+            fn($v) => $v !== null && $v !== ''
+        ));
+        $tb[$alias] = $vals ? (int)min($vals) : null;
+    }
+
     $builtEq[] = [
         'playerId'     => $cardHolder,
         'grupoid'      => $g,
@@ -154,18 +194,36 @@ foreach ($teamsEq as $g => $t) {
         'total'        => $total ?? 0,
         'closedRounds' => $closed,
         'rounds'       => $rounds,
+        'lastRound'    => empty($rounds) ? null : $rounds[max(array_keys($rounds))],
+        'tb'           => $tb,
         'estatus'      => $t['estatus'],
     ];
 }
 
-/** ---------- Orden: mejor score primero ---------- */
-usort($builtEq, function ($a, $b) use ($isStrokeEq) {
-    $ta = (int)$a['total']; $tb = (int)$b['total'];
-    if ($ta == 0 && $tb != 0) return 1;
-    if ($tb == 0 && $ta != 0) return -1;
-    if ($ta === $tb) return strcmp((string)$a['grupoid'], (string)$b['grupoid']);
-    return $isStrokeEq ? ($ta - $tb) : ($tb - $ta);
+/** ---------- Orden: mejor score primero, luego desempates ---------- */
+usort($builtEq, function ($a, $b) use ($isStrokeEq, $tbSetsEq) {
+    $ta = (int)$a['total']; $tb2 = (int)$b['total'];
+    if ($ta == 0 && $tb2 != 0) return 1;
+    if ($tb2 == 0 && $ta != 0) return -1;
+    if ($ta !== $tb2) return $isStrokeEq ? ($ta - $tb2) : ($tb2 - $ta);
+
+    // 1) Mejor score de la última ronda jugada.
+    $la = $a['lastRound']; $lb = $b['lastRound'];
+    if ($la !== null && $lb !== null && (int)$la !== (int)$lb) {
+        return $isStrokeEq ? ((int)$la - (int)$lb) : ((int)$lb - (int)$la);
+    }
+
+    // 2) Countback por segmentos de hoyos (golpes: menos es mejor).
+    foreach (array_keys($tbSetsEq) as $alias) {
+        $va = $a['tb'][$alias] ?? null;
+        $vb = $b['tb'][$alias] ?? null;
+        if ($va === null || $vb === null || $va === $vb) continue;
+        return $va - $vb;
+    }
+
+    return strcmp((string)$a['grupoid'], (string)$b['grupoid']);
 });
+
 
 $playersEq = [];
 $cutEq = [];
