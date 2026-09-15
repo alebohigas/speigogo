@@ -44,9 +44,10 @@ if ($rt) { $hasLogoEq = $rt->num_rows > 0; $rt->free(); }
 $logoEqExpr = $hasLogoEq ? "f_logo_jugeq(j.id)" : "NULL";
 
 /** ---------- Integrantes con sus scores ---------- */
-$sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus, j.club AS equipo,
+$sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus,
                  CONCAT(j.nombre, ' ', j.apellido) AS jugador,
                  b.abr AS clubabr, b.logo AS clublogo,
+                 e.nombre AS equiponombre, e.logo AS equipologo,
                  $logoEqExpr AS logoeq,
                  $totalExprEq AS total_main";
 foreach ($diasEq as $i => $fechaEq) {
@@ -54,6 +55,7 @@ foreach ($diasEq as $i => $fechaEq) {
 }
 $sqlEq .= " FROM jugadores j
             LEFT JOIN clubs b ON (j.clubid = b.id)
+            LEFT JOIN equipos e ON (j.grupoid = e.equipo AND j.torneoid = e.torneoid)
             WHERE j.categoriaid = $cid AND j.grupoid <> ''
             ORDER BY j.grupoid, j.nombre, j.apellido";
 $rowsEq = query_all($conn, $sqlEq);
@@ -71,10 +73,24 @@ $teamsEq = [];
 foreach ($rowsEq as $r) {
     $g = (string)$r['grupoid'];
     if (!isset($teamsEq[$g])) {
+        // El nombre real del equipo se toma de la tabla `equipos` si existe;
+        // si no, se parsea del identificador de grupo, igual que en equipos.php.
+        // NUNCA se usa `j.club` porque ese es el club del integrante, no el
+        // nombre del equipo.
+        $numeroEq = '';
+        $nombreEq = trim((string)($r['equiponombre'] ?? ''));
+        if ($nombreEq === '') {
+            $nombreEq = $g;
+            if (preg_match('/^([A-Za-z]*\d+[A-Za-z0-9\-]*)\s+(.+)$/u', $g, $m)) {
+                $numeroEq = $m[1];
+                $nombreEq = $m[2];
+            }
+        }
         $teamsEq[$g] = [
             'grupoid'   => $g,
-            'teamName'  => trim((string)($r['equipo'] ?? '')),
-            'logo'      => $r['logoeq'] ?: ($r['clublogo'] ?? ''),
+            'numero'    => $numeroEq,
+            'teamName'  => $nombreEq,
+            'logo'      => $r['logoeq'] ?: ($r['equipologo'] ?: ($r['clublogo'] ?? '')),
             'club'      => $r['clubabr'] ?? '',
             'estatus'   => $r['estatus'] ?? 'NORMAL',
             'members'   => [],
@@ -109,7 +125,9 @@ foreach ($teamsEq as $g => $t) {
         'playerId'     => $cardHolder,
         'grupoid'      => $g,
         'teamName'     => $t['teamName'],
-        'name'         => trim($g . ' ' . $t['teamName']),
+        /** En Resultados debe mostrarse ÚNICAMENTE el nombre del equipo,
+         *  no el identificador de grupo ni el club del integrante. */
+        'name'         => $t['teamName'] ?: $g,
         'club'         => $t['club'],
         'clubLogo'     => $t['logo'] ? $LOGOS_BASE_URL . $t['logo'] : '',
         'members'      => array_map(fn($m) => $m['nombre'], $t['members']),
