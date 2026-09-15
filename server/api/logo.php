@@ -47,6 +47,9 @@ foreach ($localDirs as $dir) {
 
 if ($imageData === null) {
     $remoteBases = [
+        // Servidor de imágenes actual (logos de equipo).
+        'https://alien.speigogo.com/jugadores/logos/',
+        'https://alien.speigogo.com/jugadores/',
         'https://alien2019.speitour.mx/logos/',
         'https://alien2019.speitour.mx/logos_equipos/',
     ];
