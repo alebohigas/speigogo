@@ -228,10 +228,10 @@ const Equipos = () => {
                       filteredTeams.map((team) => (
                         <Card
                           key={team.grupoid}
-                          className="overflow-hidden border border-border/60 shadow-md rounded-2xl bg-white"
+                          className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-white border-l-4 border-l-primary"
                         >
-                          {/* Header del equipo: fondo fuerte, sin curvas propias */}
-                          <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-muted/70 border-b border-border/40">
+                          {/* Header del equipo: fondo oscuro elegante */}
+                          <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-primary text-primary-foreground border-b border-border/40">
                             <div className="shrink-0 w-10 sm:w-14 flex justify-center">
                               <EquipoLogo
                                 grupoid={team.grupoid}
@@ -242,11 +242,11 @@ const Equipos = () => {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-lg sm:text-xl font-bold text-foreground truncate">
+                              <h3 className="text-lg sm:text-xl font-bold text-primary-foreground truncate">
                                 {team.numero ? (
                                   <>
-                                    <span className="text-primary">{team.numero}</span>
-                                    <span className="mx-1.5 text-muted-foreground">·</span>
+                                    <span className="text-primary-foreground">{team.numero}</span>
+                                    <span className="mx-1.5 text-primary-foreground/60">·</span>
                                     <span>{team.nombre}</span>
                                   </>
                                 ) : (
@@ -255,10 +255,10 @@ const Equipos = () => {
                               </h3>
                             </div>
                             <div
-                              className={`text-lg sm:text-xl font-bold italic shrink-0 ${
+                              className={`text-lg sm:text-xl font-bold shrink-0 ${
                                 team.fueraDeRango
                                   ? 'bg-yellow-300 text-black px-2 py-0.5 rounded'
-                                  : 'text-destructive'
+                                  : 'text-primary-foreground'
                               }`}
                             >
                               {team.total}
