@@ -657,10 +657,10 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                           return (
                             <Card key={player.id} className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-card border-l-4 border-l-primary">
                               <div className="bg-report-header text-report-header-foreground px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="flex items-center gap-3 min-w-0">
                                   <div className="flex items-center gap-1 shrink-0">
                                     {getPositionIcon(player.position, medalCount)}
-                                    <span className={player.position <= medalCount ? getMedalStyle(player.position) : 'text-report-header-foreground'}>
+                                    <span className={`text-lg sm:text-xl font-bold ${player.position <= medalCount ? getMedalStyle(player.position) : 'text-report-header-foreground'}`}>
                                       {player.position}
                                     </span>
                                   </div>
@@ -881,10 +881,10 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                               <Fragment key={player.id}>
                                 <TableRow className={`bg-white hover:bg-white ${isPair ? 'border-b-0' : ''}`}>
                                   {/* Position con medalla — abarca los 2 renglones en parejas */}
-                                  <TableCell rowSpan={rowSpan} className="font-semibold sticky left-0 z-10 bg-white align-middle">
+                                  <TableCell rowSpan={rowSpan} className="sticky left-0 z-10 bg-white align-middle">
                                     <div className="flex items-center gap-2">
                                       {getPositionIcon(player.position, medalCount)}
-                                      <span className={player.position <= medalCount ? getMedalStyle(player.position) : ''}>
+                                      <span className={`text-lg font-bold ${player.position <= medalCount ? getMedalStyle(player.position) : ''}`}>
                                         {player.position}
                                       </span>
                                     </div>
