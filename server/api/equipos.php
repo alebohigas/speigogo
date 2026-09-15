@@ -48,6 +48,12 @@ $totalEquipos   = $totRow ? (int)$totRow['equipos'] : 0;
 /** ---------- Jugadores por equipo ---------- */
 $teams = [];
 if ($campoid > 0) {
+    /*
+     * Logo del equipo: exactamente como el reporte legacy lista_jug3.php,
+     * f_logo_jugeq(a.id) hace JOIN equipos ON (jugadores.grupoid = equipos.equipo)
+     * y devuelve la ruta '../jugadores/<logo>' que el reporte usa tal cual
+     * como src de la imagen.
+     */
     $sql = "SELECT a.id, a.grupoid, a.numjugador,
                    CONCAT(a.nombre, ' ', a.apellido) AS jugador,
                    f_logo_jugeq(a.id) AS logo,
@@ -124,88 +130,28 @@ if ($campoid > 0) {
     }
 }
 
-/** ---------- Logo y nombre reales del equipo (tabla `equipos`) ----------
- * La tabla `equipos` guarda el nombre, el torneo y el logo propio del equipo.
- * Ese logo tiene prioridad sobre el del club (f_logo_jugeq). Se detectan las
- * columnas dinámicamente porque el esquema varía entre instalaciones.
+/** ---------- URL del logo del equipo ----------
+ * El reporte legacy usa el valor de f_logo_jugeq() tal cual como src:
+ * una ruta relativa '../jugadores/<logo>' dentro del servidor legacy.
+ * Aquí la convertimos a la URL absoluta equivalente del mismo servidor
+ * para que el frontend la muestre exactamente igual que el reporte.
  */
-if ($teams) {
-    $hasEquipos = false;
-    $cols = [];
-    $chk = @$conn->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-                          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'equipos'");
-    if ($chk) {
-        while ($c = $chk->fetch_assoc()) { $cols[strtolower($c['COLUMN_NAME'])] = true; }
-        $chk->free();
-        $hasEquipos = count($cols) > 0;
-    }
-
-    if ($hasEquipos) {
-        $pick = function (array $names) use ($cols) {
-            foreach ($names as $n) { if (isset($cols[$n])) return $n; }
-            return null;
-        };
-        $colNombre = $pick(['nombre', 'equipo', 'nombre_equipo', 'descripcion']);
-        $colLogo   = $pick(['logo', 'logo_equipo', 'imagen', 'archivo']);
-        $keyCols   = array_values(array_filter([
-            $pick(['grupoid']), $pick(['clave']), $pick(['numero']), $pick(['equipoid']), $colNombre,
-        ]));
-
-        if ($colLogo) {
-            $where = isset($cols['torneoid']) ? "WHERE torneoid = '$tid'" : '';
-            $sel = array_unique(array_filter(array_merge([$colLogo, $colNombre], $keyCols)));
-            $eqRes = @$conn->query('SELECT `' . implode('`, `', $sel) . "` FROM equipos $where");
-            if (!$eqRes) {
-                error_log('equipos.php equipos table query failed: ' . $conn->error);
-            } else {
-                /** Normaliza para comparar: sin acentos ni signos, en minúsculas. */
-                $norm = function ($v) {
-                    $v = strtolower(trim((string)$v));
-                    $v = preg_replace('/[^a-z0-9]+/', '', $v);
-                    return $v;
-                };
-                $mapa = [];
-                while ($e = $eqRes->fetch_assoc()) {
-                    $logo = trim((string)($e[$colLogo] ?? ''));
-                    if ($logo === '') continue;
-                    $nom = $colNombre ? trim((string)($e[$colNombre] ?? '')) : '';
-                    foreach ($keyCols as $kc) {
-                        $k = $norm($e[$kc] ?? '');
-                        if ($k === '') continue;
-                        if (!isset($mapa[$k])) $mapa[$k] = ['logo' => $logo, 'nombre' => $nom];
-                        // También por la parte numérica ("01" → "1").
-                        $num = ltrim(preg_replace('/\D/', '', (string)($e[$kc] ?? '')), '0');
-                        if ($num !== '' && !isset($mapa['#' . $num])) {
-                            $mapa['#' . $num] = ['logo' => $logo, 'nombre' => $nom];
-                        }
-                    }
-                }
-                $eqRes->free();
-
-                foreach ($teams as $i => $t) {
-                    $cands = [
-                        $norm($t['grupoid']),
-                        $norm($t['nombre'] ?? ''),
-                        $norm($t['numero'] ?? ''),
-                    ];
-                    $num = ltrim(preg_replace('/\D/', '', (string)$t['grupoid']), '0');
-                    if ($num !== '') $cands[] = '#' . $num;
-                    foreach ($cands as $k) {
-                        if ($k !== '' && isset($mapa[$k])) {
-                            $teams[$i]['logo'] = $mapa[$k]['logo'];
-                            if ($mapa[$k]['nombre'] !== '') $teams[$i]['nombre'] = $mapa[$k]['nombre'];
-                            break;
-                        }
-                    }
-                }
-            }
+foreach ($teams as $i => $t) {
+    $logo = trim((string)($t['logo'] ?? ''));
+    $url = '';
+    if ($logo !== '') {
+        if (preg_match('#^https?://#i', $logo)) {
+            $url = $logo;
+        } elseif (strpos($logo, '../') === 0) {
+            $url = 'https://alien2019.speitour.mx/' . substr($logo, 3);
+        } elseif ($logo[0] === '/') {
+            $url = 'https://alien2019.speitour.mx' . $logo;
+        } else {
+            // Nombre de archivo suelto: se sirve por el proxy de logos.
+            $url = $LOGOS_BASE_URL . rawurlencode($logo);
         }
     }
-
-    // URL lista para el frontend (proxy de logos).
-    foreach ($teams as $i => $t) {
-        $teams[$i]['logoUrl'] = !empty($t['logo']) ? $LOGOS_BASE_URL . rawurlencode($t['logo']) : '';
-    }
+    $teams[$i]['logoUrl'] = $url;
 }
 
 
