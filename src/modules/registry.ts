@@ -106,7 +106,6 @@ const CORE_MODULES: ModuleDef[] = [
       'server/api/clubs.php',
       'server/api/locations.php',
       'server/api/logo.php',
-      'server/api/og_image.php',
       'server/api/admin_auth.php',
       'server/api/staff_login.php',
       'server/api/staff_session.php',
