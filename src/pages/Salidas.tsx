@@ -216,19 +216,21 @@ const countGroupRowsWithVs = (
 
 
 /**
- * Vista móvil de un grupo de salida.
- * Cada salida se muestra en un recuadro/card con:
- *  - Hoyo en la primera línea
- *  - Hora de salida en la segunda línea
- *  - Jugadores/equipos con su tee de salida
+ * Tarjeta de un grupo de salida — diseño idéntico al de Equipos:
+ *  - Contenedor blanco con borde izquierdo de acento (border-l-primary)
+ *  - Encabezado oscuro con hora (izq) y hoyo (der)
+ *  - Lista de jugadores/equipos/parejas/match play
+ * Se usa tanto en móvil como en escritorio/tablet.
  */
-interface MobileGroupCardProps {
+interface SalidaGroupCardProps {
   group: SalidasGroup;
   detail: SalidasDetailResponse;
   torneoId?: string;
+  /** Índice del jugador resaltado en búsqueda. */
+  matchedPlayerIdx?: number;
 }
 
-const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
+const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGroupCardProps) => {
   const matchPlay = !!detail.isMatchPlay || isMatchPlaySystem(detail.system);
   const players = sortByMatch(group.players ?? [], matchPlay);
   const vsIdx = vsAfterIndexes(players, matchPlay);
@@ -236,12 +238,15 @@ const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
   const hasScore = !matchPlay;
 
   return (
-    <Card className="border-border/50 bg-white overflow-hidden">
+    <Card className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-white border-l-4 border-l-primary">
       <CardContent className="p-0">
-        {/* Header: Hora (izq) + Hoyo (der) — sin tee */}
-        <div className="bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between">
-          <div className="text-sm font-semibold opacity-95">{group.time}</div>
-          <div className="font-bold text-lg leading-tight">Hoyo {group.tee}</div>
+        {/* Header: Hora (izq) + Hoyo (der) */}
+        <div className="flex items-center justify-between gap-3 p-4 sm:p-5 bg-primary text-primary-foreground border-b border-border/40">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 opacity-80" />
+            <span className="text-base sm:text-lg font-semibold opacity-95">{group.time}</span>
+          </div>
+          <div className="font-bold text-lg sm:text-xl leading-tight">Hoyo {group.tee}</div>
         </div>
 
         {/* Players list */}
@@ -251,13 +256,14 @@ const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
             const showVs = vsLabelIdx.has(pIdx);
             const showDivider = vsIdx.has(pIdx);
             const isTeam = (player.members?.length ?? 0) > 0;
+            const isMatched = pIdx === matchedPlayerIdx;
 
             return (
               <div key={`${group.id}-${pIdx}`}>
                 {/* Main player / team row */}
-                <div className="px-3 py-1.5 flex items-center gap-2 bg-white">
+                <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
                   {/* Logo / team logo */}
-                  <div className="shrink-0 w-10 flex justify-center">
+                  <div className="shrink-0 w-10 sm:w-14 flex justify-center">
                     {isTeam ? (
                       <EquipoLogo
                         grupoid={player.groupId || player.name}
@@ -281,7 +287,11 @@ const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
 
                   {/* Name */}
                   <div className="flex-1 min-w-0">
-                    <span className={`block text-sm text-foreground ${player.members?.length ? 'font-bold text-base' : 'font-medium'}`}>
+                    <span
+                      className={`block text-sm sm:text-base ${
+                        player.members?.length ? 'font-bold text-base sm:text-lg' : 'font-medium'
+                      } ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}
+                    >
                       {isTeam
                         ? (player.groupId || player.name)
                         : matchPlay && player.position != null && player.position !== ''
@@ -292,22 +302,24 @@ const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
 
                   {/* Score */}
                   {hasScore && (
-                    <div className="shrink-0 text-right min-w-[2.5rem]">
-                      <span className="font-extrabold text-primary text-base">{player.score || '—'}</span>
+                    <div className="shrink-0 text-right min-w-[2.5rem] sm:min-w-[3.5rem]">
+                      <span className="font-extrabold text-primary text-base sm:text-lg">{player.score || '—'}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Team members */}
                 {isTeam && (
-                  <div className="bg-muted/20 px-3 py-1 space-y-0.5">
+                  <div className="bg-muted/20 divide-y divide-border/20">
                     {player.members?.map((member, mIdx) => (
-                      <div key={mIdx} className="flex items-center gap-2 py-0.5">
-                        <div className="shrink-0 w-10" />
-                        <div className="flex-1 min-w-0 text-sm text-foreground">
+                      <div
+                        key={mIdx}
+                        className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 sm:pl-[4.5rem]"
+                      >
+                        <div className="flex-1 min-w-0 text-sm sm:text-base text-foreground">
                           {member.name}
                         </div>
-                        <div className="shrink-0">
+                        <div className="shrink-0 text-right min-w-[2.5rem] sm:min-w-[3.5rem]">
                           <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
                         </div>
                       </div>
@@ -317,8 +329,8 @@ const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
 
                 {/* Pair partner */}
                 {isPair && (
-                  <div className="px-3 py-1 flex items-center gap-2 bg-white border-t border-border/20">
-                    <div className="shrink-0 w-10 flex justify-center">
+                  <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
+                    <div className="shrink-0 w-10 sm:w-14 flex justify-center">
                       {player.clubLogo2 ? (
                         <img
                           src={player.clubLogo2}
@@ -332,21 +344,27 @@ const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="block font-medium text-sm text-foreground">{player.partner}</span>
+                      <span
+                        className={`block text-sm sm:text-base font-medium ${
+                          isMatched ? 'text-primary font-bold' : 'text-foreground'
+                        }`}
+                      >
+                        {player.partner}
+                      </span>
                     </div>
                   </div>
                 )}
 
                 {/* VS label for match play */}
                 {showVs && (
-                  <div className="py-1 text-center text-sm font-semibold text-muted-foreground bg-muted/30">
+                  <div className="py-1.5 text-center text-sm font-semibold text-muted-foreground bg-muted/30">
                     VS
                   </div>
                 )}
 
                 {/* Divider between matches */}
                 {showDivider && (
-                  <div className="px-3 py-1">
+                  <div className="px-3 sm:px-4 py-1.5">
                     <div className="border-b border-primary/20" />
                   </div>
                 )}
