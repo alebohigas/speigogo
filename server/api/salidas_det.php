@@ -317,20 +317,7 @@ foreach ($groupRows as $group) {
                 $player['members'] = $membersByGroup[(string)$pr['grupoid']];
                 /* Logo del EQUIPO: primero la tabla `equipos` del torneo. */
                 $teamLogo = equipos_logo_find($eqLogoIndex, (string)$pr['grupoid']);
-                if ($teamLogo === '') {
-                    $rawTeamLogo = trim((string)($pr['teamLogo'] ?? ''));
-                    if ($rawTeamLogo !== '') {
-                        if (preg_match('#^https?://#i', $rawTeamLogo)) {
-                            $teamLogo = $rawTeamLogo;
-                        } elseif (strpos($rawTeamLogo, '../') === 0) {
-                            $teamLogo = 'https://alien2019.speitour.mx/' . substr($rawTeamLogo, 3);
-                        } elseif ($rawTeamLogo[0] === '/') {
-                            $teamLogo = 'https://alien2019.speitour.mx' . $rawTeamLogo;
-                        } else {
-                            $teamLogo = equipos_logo_url($rawTeamLogo);
-                        }
-                    }
-                }
+                if ($teamLogo === '') $teamLogo = equipos_logo_url($pr['teamLogo'] ?? '');
                 if ($teamLogo !== '') $player['teamLogo'] = $teamLogo;
             }
         }
