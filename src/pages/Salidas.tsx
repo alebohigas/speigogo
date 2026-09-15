@@ -1271,6 +1271,7 @@ const Salidas = () => {
                         </div>
                       </CardContent>
                     </Card>
+                  </>)
                   )}
                 </>
               ) : detailIsError ? (
