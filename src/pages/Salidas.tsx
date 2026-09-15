@@ -246,8 +246,8 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
                   {/* Name */}
                   <div className="flex-1 min-w-0">
                     <span
-                      className={`block text-sm sm:text-base ${
-                        player.members?.length ? 'font-bold text-base sm:text-lg' : 'font-medium'
+                      className={`block ${
+                        player.members?.length ? 'font-bold text-lg sm:text-xl' : 'text-sm sm:text-base font-medium'
                       } ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}
                     >
                       {isTeam
