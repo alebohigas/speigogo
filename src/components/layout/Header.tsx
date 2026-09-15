@@ -21,7 +21,6 @@ import { useTournamentInfo } from '@/hooks/useTournamentData';
 import { usePageVisibility } from '@/contexts/PageVisibilityContext';
 import { cn } from '@/lib/utils';
 import { useSiteTorneos } from '@/hooks/useSiteTorneos';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { buildMultiTorneoNav } from '@/lib/multiTorneoNav';
 
 import { Button } from '@/components/ui/button';
@@ -171,10 +170,8 @@ const useOverflowMenu = (
 
 const Header = () => {
   const { data: tournamentInfo } = useTournamentInfo();
-  /** Logo subido desde Admin; tiene prioridad sobre el logo de la base. */
-  const { data: headerSiteConfig } = useSiteConfig();
-  const customLogoUrl = headerSiteConfig?.home_config?.header_logo_url || '';
-  const headerLogoUrl = customLogoUrl || tournamentInfo?.logoHeaderUrl || tournamentInfo?.logoUrl || '';
+  /** Logo del encabezado: siempre el de la tabla de torneos (`logo_header`). */
+  const headerLogoUrl = tournamentInfo?.logoHeaderUrl || tournamentInfo?.logoUrl || '';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMobileGroup, setOpenMobileGroup] = useState<string | null>(null);
   const location = useLocation();

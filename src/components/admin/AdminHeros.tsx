@@ -66,12 +66,6 @@ const AdminHeros = () => {
   const [uploadingPath, setUploadingPath] = useState<string | null>(null);
   /** One hidden file input per page row. */
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
-  /** Logo del encabezado (sustituye al de la base de datos cuando existe). */
-  const [headerLogo, setHeaderLogo] = useState<string>('');
-  /** Está subiendo el logo del encabezado. */
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  /** Input oculto para subir el logo. */
-  const logoInput = useRef<HTMLInputElement | null>(null);
 
   /** Hydrate local state whenever the server config changes. */
   useEffect(() => {
@@ -79,10 +73,6 @@ const AdminHeros = () => {
     setConfig({ byTorneo: cfg?.byTorneo ?? {}, default: cfg?.default ?? {} });
   }, [siteConfig?.hero_config]);
 
-  /** Hydrate the header logo from the saved home_config. */
-  useEffect(() => {
-    setHeaderLogo(siteConfig?.home_config?.header_logo_url ?? '');
-  }, [siteConfig?.home_config?.header_logo_url]);
 
   /** Keep the scope aligned with the active tournament on first load. */
   useEffect(() => {
@@ -171,48 +161,14 @@ const AdminHeros = () => {
     );
   };
 
-  /** Sube el logo del encabezado a la carpeta `heros` y lo asigna. */
-  const handleUploadLogo = (files: FileList | null, input: HTMLInputElement | null) => {
-    if (!files || files.length === 0) return;
-    setUploadingLogo(true);
-    uploadFiles.mutate(
-      { files: [files[0]], password: getSuperAdminPassword() },
-      {
-        onSuccess: (res) => {
-          const saved = res.saved[0];
-          if (saved) {
-            setHeaderLogo(saved.url);
-            toast({ title: 'Logo subido', description: `${saved.name} asignado. No olvides Guardar.` });
-          } else {
-            toast({
-              title: 'No se pudo subir',
-              description: res.errors[0]?.error || 'Formato no permitido.',
-              variant: 'destructive',
-            });
-          }
-        },
-        onError: (err) => toast({ title: 'Error al subir', description: err.message, variant: 'destructive' }),
-        onSettled: () => {
-          setUploadingLogo(false);
-          if (input) input.value = '';
-        },
-      },
-    );
-  };
-
   /** Persist the full hero_config (all scopes) to the server. */
   const handleSave = () => {
     const payload: HeroConfig = {
       byTorneo: config.byTorneo ?? {},
       default: config.default ?? {},
     };
-    /** Conserva el resto de home_config y solo cambia el logo. */
-    const homePayload = {
-      ...(siteConfig?.home_config ?? { buttons: [null, null] as [string | null, string | null] }),
-      header_logo_url: headerLogo || null,
-    };
     saveSiteConfig.mutate(
-      { password: getSuperAdminPassword(), hero_config: payload, home_config: homePayload },
+      { password: getSuperAdminPassword(), hero_config: payload },
       {
         onSuccess: () =>
           toast({ title: 'Heros guardados', description: 'Los fondos activos ya se aplican en las páginas públicas.' }),
@@ -280,57 +236,6 @@ const AdminHeros = () => {
           <Badge variant="secondary" className="ml-auto">{activeCount} hero(s) activos</Badge>
         </div>
 
-        {/* ---- Logo del encabezado ---- */}
-        <div className="grid gap-3 rounded-md border border-border p-3 md:grid-cols-[10rem,1fr] md:items-start">
-          <div className="space-y-1">
-            <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded bg-muted p-2">
-              {headerLogo ? (
-                <img src={headerLogo} alt="Logo del encabezado" className="max-h-full max-w-full object-contain" />
-              ) : (
-                <span className="text-xs text-muted-foreground">Logo del torneo</span>
-              )}
-            </div>
-            <p className="text-sm font-medium">Logo del encabezado</p>
-            <p className="text-xs text-muted-foreground">Se muestra arriba, en todas las páginas</p>
-          </div>
-          <div className="space-y-2">
-            <Select
-              value={headerLogo || NO_IMAGE}
-              onValueChange={(value) => setHeaderLogo(value === NO_IMAGE ? '' : value)}
-            >
-              <SelectTrigger className="w-full sm:w-72">
-                <SelectValue placeholder={isLoadingUploads ? 'Cargando…' : 'Selecciona una imagen'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_IMAGE}>— Usar el logo del torneo —</SelectItem>
-                {(uploads?.files ?? []).map((file) => (
-                  <SelectItem key={`logo-${file.url}`} value={file.url}>{file.name}</SelectItem>
-                ))}
-                {headerLogo && !(uploads?.files ?? []).some((f) => f.url === headerLogo) && (
-                  <SelectItem value={headerLogo}>{headerLogo.split('/').pop()}</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-            <div className="flex flex-wrap gap-2">
-              <input
-                ref={logoInput}
-                type="file"
-                accept="image/webp,image/jpeg,image/png,image/gif"
-                className="hidden"
-                onChange={(e) => handleUploadLogo(e.target.files, e.currentTarget)}
-              />
-              <Button type="button" variant="outline" disabled={uploadingLogo} onClick={() => logoInput.current?.click()}>
-                {uploadingLogo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-                Subir logo
-              </Button>
-              {headerLogo && (
-                <Button type="button" variant="ghost" onClick={() => setHeaderLogo('')} aria-label="Quitar logo del encabezado">
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
 
 
         {isLoading ? (
