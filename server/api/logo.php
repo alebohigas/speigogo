@@ -25,7 +25,7 @@ if (!$file || !preg_match('/^[a-zA-Z0-9_\-\.]+$/', $file)) {
  * Resolución del logo.
  *
  * 1) Carpetas locales del hosting (permite subir logos propios por dominio).
- * 2) Servidor legacy alien2019 (varias carpetas conocidas).
+ * 2) Servidor de imágenes alien.speigogo.com (varias carpetas conocidas).
  * Se descarta cualquier respuesta que no sea una imagen real (las 302 del
  * servidor legacy devuelven HTML y antes provocaban 404 ruidosos).
  */
@@ -47,11 +47,10 @@ foreach ($localDirs as $dir) {
 
 if ($imageData === null) {
     $remoteBases = [
-        // Servidor de imágenes actual (logos de equipo).
+        // Servidor de imágenes actual.
         'https://alien.speigogo.com/jugadores/logos/',
         'https://alien.speigogo.com/jugadores/',
-        'https://alien2019.speitour.mx/logos/',
-        'https://alien2019.speitour.mx/logos_equipos/',
+        'https://alien.speigogo.com/logos/',
     ];
     $ctx = stream_context_create(['http' => ['timeout' => 8, 'follow_location' => 0]]);
     foreach ($remoteBases as $base) {

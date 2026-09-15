@@ -13,9 +13,9 @@ $tid = esc($conn, $torneoid);
 /**
  * Sponsor logos are hosted on an external domain (not on this server's filesystem).
  * We build absolute URLs pointing directly to that public bucket.
- * Example final URL: https://alien2019.speitour.mx/logos_patrocinadores/apat-12.png
+ * Example final URL: https://alien.speigogo.com/logos_patrocinadores/apat-12.png
  */
-$SPONSOR_LOGO_BASE = 'https://alien2019.speitour.mx/logos_patrocinadores/';
+$SPONSOR_LOGO_BASE = 'https://alien.speigogo.com/logos_patrocinadores/';
 
 /** Check if patrocinadores table exists before querying */
 $tableCheck = $conn->query("SHOW TABLES LIKE 'patrocinadores'");

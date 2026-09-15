@@ -116,8 +116,6 @@ if (!$resolvedPath) {
     $remoteBases = [
         'https://alien.speigogo.com/logos/',
         'https://alien.speigogo.com/logos_patrocinadores/',
-        'https://alien2019.speitour.mx/logos_patrocinadores/',
-        'https://alien2019.speitour.mx/logos/',
     ];
     $ctx = stream_context_create(['http' => ['timeout' => 8, 'follow_location' => 0]]);
     foreach ($remoteBases as $remote) {
