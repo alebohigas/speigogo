@@ -208,8 +208,10 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
         </div>
 
         {/* Players list */}
-        <div className="divide-y divide-border/30">
+        <div>
           {players.map((player, pIdx) => {
+            const nextPlayer = players[pIdx + 1];
+            const nextIsTeam = (nextPlayer?.members?.length ?? 0) > 0;
             const isPair = !!player.partner;
             const showVs = vsLabelIdx.has(pIdx);
             const showDivider = vsIdx.has(pIdx);
@@ -217,7 +219,10 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
             const isMatched = pIdx === matchedPlayerIdx;
 
             return (
-              <div key={`${group.id}-${pIdx}`}>
+              <div
+                key={`${group.id}-${pIdx}`}
+                className={pIdx > 0 ? 'border-t border-border/30' : ''}
+              >
                 {/* Main player / team row */}
                 <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
                   {/* Logo / team logo */}
@@ -324,6 +329,13 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
                 {showDivider && (
                   <div className="px-3 sm:px-4 py-1.5">
                     <div className="border-b border-primary/20" />
+                  </div>
+                )}
+
+                {/* Separator between two teams in the same departure group */}
+                {isTeam && nextIsTeam && (
+                  <div className="py-3 sm:py-4 px-3 sm:px-4">
+                    <div className="border-b-2 border-dashed border-primary/30" />
                   </div>
                 )}
               </div>
