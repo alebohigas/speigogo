@@ -153,44 +153,16 @@ if ($ov) {
         );
     }
     if ($img !== '') {
-        // Lista ordenada de imágenes: la primera es la del top menu bar
-        // (logo_header); las siguientes son fallbacks. WhatsApp/Facebook
-        // usan la primera que puedan descargar y renderizar.
-        $images = $ov['images'] ?? [$img];
-
-        // MIME por extensión del archivo original (WhatsApp NO acepta webp
-        // de forma confiable: mejor JPG/PNG).
-        $mimeByExt = [
-            'png'  => 'image/png',
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'gif'  => 'image/gif',
-            'webp' => 'image/webp',
-        ];
-        $ogImageTags = '';
-        foreach ($images as $u) {
-            $uEsc = htmlspecialchars($u, ENT_QUOTES, 'UTF-8');
-            $ogImageTags .= '<meta property="og:image" content="' . $uEsc . '" />' . "\n    ";
-            $ogImageTags .= '<meta property="og:image:secure_url" content="' . $uEsc . '" />' . "\n    ";
-            $ext = strtolower(pathinfo(parse_url($u, PHP_URL_QUERY) ?? '', PATHINFO_EXTENSION));
-            // El query trae file=nombre.ext; extraemos la extensión de ahí.
-            parse_str((string)parse_url($u, PHP_URL_QUERY), $qs);
-            $fExt = strtolower(pathinfo((string)($qs['file'] ?? ''), PATHINFO_EXTENSION));
-            $mime = $mimeByExt[$fExt] ?? $mimeByExt[$ext] ?? 'image/png';
-            $ogImageTags .= '<meta property="og:image:type" content="' . $mime . '" />' . "\n    ";
-        }
-
-        // Reemplaza el bloque og:image* del index.html estático (image,
-        // secure_url, type, width, height) por las etiquetas dinámicas.
         $html = preg_replace(
-            '#<meta\s+property="og:image"[^>]*>\s*'
-            . '(<meta\s+property="og:image:secure_url"[^>]*>\s*)?'
-            . '(<meta\s+property="og:image:type"[^>]*>\s*)?'
-            . '(<meta\s+property="og:image:width"[^>]*>\s*)?'
-            . '(<meta\s+property="og:image:height"[^>]*>\s*)?#i',
-            $ogImageTags,
+            '#<meta\s+property="og:image"\s+content="[^"]*"\s*/?>#i',
+            '<meta property="og:image" content="' . $img . '" />',
             $html,
             1
+        );
+        $html = preg_replace(
+            '#<meta\s+property="og:image:secure_url"[^>]*>#i',
+            '<meta property="og:image:secure_url" content="' . $img . '" />',
+            $html
         );
         $html = preg_replace(
             '#<meta\s+name="twitter:image"[^>]*>#i',
