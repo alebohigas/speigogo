@@ -7,16 +7,18 @@
 
 import Layout from '@/components/layout/Layout';
 import PageHero from '@/components/shared/PageHero';
+import PlayerSearchInput from '@/components/shared/PlayerSearchInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ChevronDown, Flag, Loader2, Users } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import jugadoresHero from '@/assets/jugadores-hero.jpg';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useCategories } from '@/hooks/usePlayersData';
 import { useEquipos } from '@/hooks/useEquiposData';
 import EquipoLogo from '@/components/equipos/EquipoLogo';
 import { getTorneoId } from '@/hooks/useTorneoId';
+import { normalizeSearchText, matchesPlayerName, buildUniqueNameSuggestions } from '@/lib/searchUtils';
 import type { CategoryDetail } from '@/data/playersData';
 
 const Equipos = () => {
