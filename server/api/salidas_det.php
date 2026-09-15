@@ -154,6 +154,10 @@ if (!$isParejas && !$isMatchPlay) {
 }
 
 
+/** Logos de la tabla `equipos` de este torneo (id / nombre / número). */
+require_once '_equipos_logos.php';
+$eqLogoIndex = $isEquipos ? equipos_logo_index($conn, $calInfo['torneoid'] ?? '') : [];
+
 foreach ($groupRows as $group) {
     $salid = esc($conn, $group['id']);
 
