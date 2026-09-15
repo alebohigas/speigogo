@@ -607,7 +607,187 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                 <>
                   <Card className="border-border/50 bg-white max-w-5xl mx-auto">
                   <CardContent className="p-0 bg-white">
-                    <div className="overflow-x-auto bg-white">
+                    <div className="p-4 space-y-4 md:hidden">
+                      {players.length === 0 ? (
+                        <div className="text-center py-6 text-muted-foreground">Sin resultados aún.</div>
+                      ) : (
+                        players.map((player) => {
+                          const name1 = player.name;
+                          return (
+                            <div key={player.id} className="border border-border/50 rounded-xl bg-white overflow-hidden shadow-sm">
+                              <div className="bg-muted/50 px-4 py-3 border-b border-border/30 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {getPositionIcon(player.position, medalCount)}
+                                    <span className={player.position <= medalCount ? getMedalStyle(player.position) : ''}>
+                                      {player.position}
+                                    </span>
+                                  </div>
+                                  <EquipoLogo
+                                    grupoid={player.grupoid || ''}
+                                    torneoId={torneoIdOverride}
+                                    dbLogo={player.clubLogo}
+                                    className="w-auto object-contain rounded inline-block shrink-0"
+                                    style={{ height: '2.1375rem' }}
+                                  />
+                                  <span className="font-bold text-foreground truncate">{name1}</span>
+                                </div>
+                                <span className="font-bold text-primary text-lg shrink-0">{player.total ?? 0}</span>
+                              </div>
+                              <div className="p-4 space-y-3">
+                                <div className="text-sm text-muted-foreground space-y-0.5">
+                                  {(player.members || []).map((m, mi) => (
+                                    <span key={mi} className="block">{m}</span>
+                                  ))}
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {(categoryDetail?.days || []).map((_, i) => {
+                                    const round = i + 1;
+                                    const score = getRoundScore(player, round);
+                                    if (score === undefined || score === null) return null;
+                                    const isExpanded = expandedScorecard === `${player.id}-${round}`;
+                                    return (
+                                      <button
+                                        key={round}
+                                        onClick={() => handleRoundClick(player, round)}
+                                        className={`inline-flex flex-col items-center px-3 py-1.5 rounded-md border text-sm transition-colors ${
+                                          isExpanded
+                                            ? 'border-primary bg-primary/10 text-primary'
+                                            : 'border-border bg-white hover:border-primary/50 hover:bg-primary/5'
+                                        }`}
+                                        title={`Ver tarjeta R${round}`}
+                                        style={{ color: strokeScoreColor(score as number, categoryDetail?.coursePar, categoryDetail?.system) }}
+                                      >
+                                        <span className="text-[10px] text-muted-foreground leading-none">R{round}</span>
+                                        <span className="font-bold leading-none mt-0.5">{score}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                              {expandedScorecard?.startsWith(`${player.id}-`) && (
+                                <div className="border-t border-border/30 p-0">
+                                  {scorecardLoading ? (
+                                    <div className="text-center py-6 text-muted-foreground">Cargando tarjeta...</div>
+                                  ) : parejaScorecardData && categoryDetail?.isParejas ? (
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full">
+                                        <tbody>
+                                          <ScorecardParejas
+                                            scorecard={parejaScorecardData}
+                                            pairLabel={player.pairName || player.name}
+                                            roundLabel={`Ronda ${expandedScorecard.split('-').pop()}`}
+                                            onClose={() => { setExpandedScorecard(null); setScorecardData(null); setParejaScorecardData(null); }}
+                                            colSpan={1}
+                                          />
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  ) : scorecardData ? (
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full">
+                                        <tbody>
+                                          <ScorecardRow
+                                            scorecard={scorecardData}
+                                            playerName={player.name}
+                                            roundLabel={`Ronda ${expandedScorecard.split('-').pop()}`}
+                                            onClose={() => { setExpandedScorecard(null); setScorecardData(null); setParejaScorecardData(null); }}
+                                            colSpan={1}
+                                          />
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                      {cutPlayers.length > 0 && (
+                        <>
+                          <div className="text-center py-2">
+                            <span className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">— Corte —</span>
+                          </div>
+                          {cutPlayers.map((cp) => (
+                            <div key={cp.playerId} className="border border-border/50 rounded-xl bg-muted/20 overflow-hidden opacity-80">
+                              <div className="bg-muted/50 px-4 py-3 border-b border-border/30 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${getStatusBadgeClasses(cp.statusCode)}`}>
+                                    {cp.statusCode}
+                                  </span>
+                                  <EquipoLogo
+                                    grupoid={cp.grupoid || ''}
+                                    torneoId={torneoIdOverride}
+                                    dbLogo={cp.clubLogo}
+                                    className="w-auto object-contain rounded inline-block shrink-0"
+                                    style={{ height: '2.1375rem' }}
+                                  />
+                                  <span className="font-bold text-foreground truncate">{cp.name}</span>
+                                </div>
+                                <span className="font-bold text-muted-foreground text-lg shrink-0">{cp.total && cp.total > 0 ? cp.total : '—'}</span>
+                              </div>
+                              <div className="p-4 space-y-3">
+                                <div className="text-sm text-muted-foreground space-y-0.5">
+                                  {(cp.members || []).map((m, mi) => (
+                                    <span key={mi} className="block">{m}</span>
+                                  ))}
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {(categoryDetail?.days || []).map((_, i) => {
+                                    const round = i + 1;
+                                    const score = getRoundScore(cp, round);
+                                    if (score === undefined || score === null) return null;
+                                    const isExpanded = expandedScorecard === `${cp.playerId}-${round}`;
+                                    return (
+                                      <button
+                                        key={round}
+                                        onClick={() => handleRoundClick(
+                                          { ...cp, ...Object.fromEntries((categoryDetail?.days || []).map((_, idx) => [`r${idx + 1}`, getRoundScore(cp, idx + 1) ?? undefined])), id: cp.playerId, position: 0, total: cp.total ?? 0 } as PlayerResult,
+                                          round,
+                                        )}
+                                        className={`inline-flex flex-col items-center px-3 py-1.5 rounded-md border text-sm transition-colors ${
+                                          isExpanded
+                                            ? 'border-primary bg-primary/10 text-primary'
+                                            : 'border-border bg-white hover:border-primary/50 hover:bg-primary/5'
+                                        }`}
+                                        title={`Ver tarjeta R${round}`}
+                                        style={{ color: strokeScoreColor(score as number, categoryDetail?.coursePar, categoryDetail?.system) }}
+                                      >
+                                        <span className="text-[10px] text-muted-foreground leading-none">R{round}</span>
+                                        <span className="font-bold leading-none mt-0.5">{score}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                              {expandedScorecard?.startsWith(`${cp.playerId}-`) && (
+                                <div className="border-t border-border/30 p-0">
+                                  {scorecardLoading ? (
+                                    <div className="text-center py-6 text-muted-foreground">Cargando tarjeta...</div>
+                                  ) : scorecardData ? (
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full">
+                                        <tbody>
+                                          <ScorecardRow
+                                            scorecard={scorecardData}
+                                            playerName={cp.name}
+                                            roundLabel={`Ronda ${expandedScorecard.split('-').pop()}`}
+                                            onClose={() => { setExpandedScorecard(null); setScorecardData(null); }}
+                                            colSpan={1}
+                                          />
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                    <div className="overflow-x-auto bg-white hidden md:block">
                       <Table className="bg-white tournament-table">
                         <TableHeader>
                           <TableRow className="bg-primary hover:bg-primary">
