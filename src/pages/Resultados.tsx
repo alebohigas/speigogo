@@ -625,6 +625,20 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                 </span>
               </div>
 
+              {/* Buscador por nombre dentro de la categoría */}
+              <PlayerSearchInput
+                className="max-w-md mx-auto mb-6"
+                value={detailQuery}
+                onChange={setDetailQuery}
+                suggestions={detailSuggestions}
+                placeholder="Buscar jugador en esta categoría..."
+              />
+              {detailSearchActive && (
+                <p className="text-sm text-muted-foreground text-center mb-4">
+                  {filteredPlayers.length} resultado{filteredPlayers.length !== 1 ? 's' : ''} para "{detailQuery}"
+                </p>
+              )}
+
               {loadingDetail ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -635,10 +649,10 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                   <CardContent className="p-0 bg-white">
                     {categoryDetail?.isEquipos && (
                     <div className="p-4 space-y-4 md:hidden">
-                      {players.length === 0 ? (
+                      {filteredPlayers.length === 0 ? (
                         <div className="text-center py-6 text-muted-foreground">Sin resultados aún.</div>
                       ) : (
-                        players.map((player) => {
+                        filteredPlayers.map((player) => {
                           const name1 = player.name;
                           return (
                             <div key={player.id} className="border border-border/50 rounded-xl bg-white overflow-hidden shadow-sm">
@@ -845,8 +859,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {players.length > 0 ? (
-                            players.map((player) => {
+                          {filteredPlayers.length > 0 ? (
+                            filteredPlayers.map((player) => {
                               /* En categorías de PAREJAS: render = 2 renglones (uno por integrante)
                                * y las columnas compartidas (Pos / Club logo / R1..Rn / Total) se
                                * centran verticalmente con rowSpan=2 — equivalente a la imagen
