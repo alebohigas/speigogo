@@ -131,24 +131,26 @@ if ($campoid > 0) {
 }
 
 /** ---------- URL del logo del equipo ----------
- * El reporte legacy usa el valor de f_logo_jugeq() tal cual como src:
- * una ruta relativa '../jugadores/<logo>' dentro del servidor legacy.
- * Aquí la convertimos a la URL absoluta equivalente del mismo servidor
- * para que el frontend la muestre exactamente igual que el reporte.
+ * Primero se busca en la tabla `equipos` del torneo (id / nombre / número);
+ * si ahí no hay imagen se usa el valor legacy de f_logo_jugeq().
  */
+require_once '_equipos_logos.php';
+$logoIndex = equipos_logo_index($conn, $torneoid);
+
 foreach ($teams as $i => $t) {
-    $logo = trim((string)($t['logo'] ?? ''));
-    $url = '';
-    if ($logo !== '') {
-        if (preg_match('#^https?://#i', $logo)) {
-            $url = $logo;
-        } elseif (strpos($logo, '../') === 0) {
-            $url = 'https://alien2019.speitour.mx/' . substr($logo, 3);
-        } elseif ($logo[0] === '/') {
-            $url = 'https://alien2019.speitour.mx' . $logo;
-        } else {
-            // Nombre de archivo suelto: se sirve por el proxy de logos.
-            $url = $LOGOS_BASE_URL . rawurlencode($logo);
+    $url = equipos_logo_find($logoIndex, $t['grupoid'] ?? '', $t['nombre'] ?? '');
+    if ($url === '') {
+        $logo = trim((string)($t['logo'] ?? ''));
+        if ($logo !== '') {
+            if (preg_match('#^https?://#i', $logo)) {
+                $url = $logo;
+            } elseif (strpos($logo, '../') === 0) {
+                $url = 'https://alien2019.speitour.mx/' . substr($logo, 3);
+            } elseif ($logo[0] === '/') {
+                $url = 'https://alien2019.speitour.mx' . $logo;
+            } else {
+                $url = equipos_logo_url($logo);
+            }
         }
     }
     $teams[$i]['logoUrl'] = $url;
