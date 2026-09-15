@@ -20,6 +20,10 @@
     --primary: 150 40% 22%;
     --primary-foreground: 45 30% 98%;
 
+    /* Encabezados configurables de Equipos, Salidas y Resultados */
+    --report-header: 0 0% 60%;
+    --report-header-foreground: 0 0% 10%;
+
     /* Champagne gold - secondary */
     --secondary: 42 60% 55%;
     --secondary-foreground: 150 30% 10%;

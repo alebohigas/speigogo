@@ -492,11 +492,11 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                             <div className="overflow-x-auto bg-white">
                               <Table className="bg-white tournament-table">
                                 <TableHeader>
-                                  <TableRow className="bg-primary hover:bg-primary">
-                                    <TableHead className="text-primary-foreground font-bold text-center w-16">Pos</TableHead>
-                                    <TableHead className="text-primary-foreground font-bold text-center">Club</TableHead>
-                                    <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
-                                    <TableHead className="text-primary-foreground font-bold text-center">Total</TableHead>
+                                  <TableRow className="bg-report-header hover:bg-report-header">
+                                    <TableHead className="text-report-header-foreground font-bold text-center w-16">Pos</TableHead>
+                                    <TableHead className="text-report-header-foreground font-bold text-center">Club</TableHead>
+                                    <TableHead className="text-report-header-foreground font-bold">Jugador</TableHead>
+                                    <TableHead className="text-report-header-foreground font-bold text-center">Total</TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -656,11 +656,11 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                           const name1 = player.name;
                           return (
                             <Card key={player.id} className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-card border-l-4 border-l-primary">
-                              <div className="bg-primary text-primary-foreground px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40 flex items-center justify-between gap-3">
+                              <div className="bg-report-header text-report-header-foreground px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40 flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className="flex items-center gap-1 shrink-0">
                                     {getPositionIcon(player.position, medalCount)}
-                                    <span className={player.position <= medalCount ? getMedalStyle(player.position) : 'text-primary-foreground'}>
+                                    <span className={player.position <= medalCount ? getMedalStyle(player.position) : 'text-report-header-foreground'}>
                                       {player.position}
                                     </span>
                                   </div>
@@ -671,9 +671,9 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                     className="w-auto object-contain rounded inline-block shrink-0"
                                     style={{ height: '2.1375rem' }}
                                   />
-                                  <span className="text-lg sm:text-xl font-bold text-primary-foreground truncate">{name1}</span>
+                                  <span className="text-lg sm:text-xl font-bold text-report-header-foreground truncate">{name1}</span>
                                 </div>
-                                <span className="font-bold text-primary-foreground text-xl sm:text-2xl shrink-0">{player.total ?? 0}</span>
+                                <span className="font-bold text-report-header-foreground text-xl sm:text-2xl shrink-0">{player.total ?? 0}</span>
                               </div>
                               <div className="p-3 sm:p-4 space-y-4">
                                 <div className="divide-y divide-border/30 text-foreground">
@@ -754,7 +754,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                           </div>
                           {cutPlayers.map((cp) => (
                             <Card key={cp.playerId} className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-card border-l-4 border-l-primary opacity-80">
-                              <div className="bg-primary text-primary-foreground px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40 flex items-center justify-between gap-3">
+                              <div className="bg-report-header text-report-header-foreground px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40 flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                   <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${getStatusBadgeClasses(cp.statusCode)}`}>
                                     {cp.statusCode}
@@ -766,9 +766,9 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                     className="w-auto object-contain rounded inline-block shrink-0"
                                     style={{ height: '2.1375rem' }}
                                   />
-                                  <span className="text-lg sm:text-xl font-bold text-primary-foreground truncate">{cp.name}</span>
+                                  <span className="text-lg sm:text-xl font-bold text-report-header-foreground truncate">{cp.name}</span>
                                 </div>
-                                <span className="font-bold text-primary-foreground text-xl sm:text-2xl shrink-0">{cp.total && cp.total > 0 ? cp.total : '—'}</span>
+                                <span className="font-bold text-report-header-foreground text-xl sm:text-2xl shrink-0">{cp.total && cp.total > 0 ? cp.total : '—'}</span>
                               </div>
                               <div className="p-3 sm:p-4 space-y-4">
                                 <div className="divide-y divide-border/30 text-foreground">
@@ -836,7 +836,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                     <div className={`overflow-x-auto bg-card ${categoryDetail?.isEquipos ? 'hidden' : ''}`}>
                       <Table className="bg-white tournament-table">
                         <TableHeader>
-                          <TableRow className="bg-primary hover:bg-primary">
+                          <TableRow className="bg-report-header hover:bg-report-header">
                             {/*
                              * Sticky leading columns (Pos · Club · Jugador).
                              * The user requested Pos and Jugador to be sticky;
@@ -847,14 +847,14 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                              * width: Pos = 4rem (w-16), Club ≈ 3.5rem.
                              * z-20 keeps headers above sticky body cells (z-10).
                              */}
-                            <TableHead className="text-primary-foreground font-bold w-16 sticky left-0 z-20 bg-primary">Pos</TableHead>
-                            <TableHead className="text-primary-foreground font-bold text-center sticky z-20 bg-primary" style={{ left: '4rem' }}>{categoryDetail?.isEquipos ? 'Grupo' : 'Club'}</TableHead>
-                            <TableHead className="text-primary-foreground font-bold sticky z-20 bg-primary" style={{ left: '7.5rem' }}>{categoryDetail?.isEquipos ? 'Equipo' : 'Jugador'}</TableHead>
+                            <TableHead className="text-report-header-foreground font-bold w-16 sticky left-0 z-20 bg-report-header">Pos</TableHead>
+                            <TableHead className="text-report-header-foreground font-bold text-center sticky z-20 bg-report-header" style={{ left: '4rem' }}>{categoryDetail?.isEquipos ? 'Grupo' : 'Club'}</TableHead>
+                            <TableHead className="text-report-header-foreground font-bold sticky z-20 bg-report-header" style={{ left: '7.5rem' }}>{categoryDetail?.isEquipos ? 'Equipo' : 'Jugador'}</TableHead>
                             {/* Dynamic round columns based on days array */}
                             {(categoryDetail?.days || []).map((_, i) => (
                               <TableHead
                                 key={`r${i + 1}`}
-                                className="text-primary-foreground font-bold text-center"
+                                className="text-report-header-foreground font-bold text-center"
                               >
                                 R{i + 1}
                               </TableHead>

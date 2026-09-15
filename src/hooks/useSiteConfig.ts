@@ -220,6 +220,11 @@ export interface ThemeConfig {
    * historical default #900000.
    */
   lastUpdatedColor?: string;
+  /**
+   * Hex color shared by the headers in Equipos, Salidas and Resultados.
+   * Older configurations fall back to #999999.
+   */
+  reportHeaderColor?: string;
 }
 
 /**

@@ -208,7 +208,7 @@ const Equipos = () => {
                   {/* ============ Lista de equipos como tarjetas modernas ============ */}
                   <div className="w-full max-w-4xl mx-auto space-y-8">
                     {/* Encabezado alineado (solo desktop) */}
-                    <div className="hidden sm:grid sm:grid-cols-[3.5rem_1fr_5rem_5rem] gap-3 px-4 py-2.5 text-sm font-bold text-primary-foreground bg-primary rounded-lg">
+                    <div className="hidden sm:grid sm:grid-cols-[3.5rem_1fr_5rem_5rem] gap-3 px-4 py-2.5 text-sm font-bold text-report-header-foreground bg-report-header rounded-lg">
                       <div className="text-center">Equipo</div>
                       <div>Jugador</div>
                       <div className="text-center">H.I.</div>
@@ -231,7 +231,7 @@ const Equipos = () => {
                           className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-white border-l-4 border-l-primary"
                         >
                           {/* Header del equipo: fondo oscuro elegante */}
-                          <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-primary text-primary-foreground border-b border-border/40">
+                          <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-report-header text-report-header-foreground border-b border-border/40">
                             <div className="shrink-0 w-10 sm:w-14 flex justify-center">
                               <EquipoLogo
                                 grupoid={team.grupoid}
@@ -242,11 +242,11 @@ const Equipos = () => {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-lg sm:text-xl font-bold text-primary-foreground truncate">
+                              <h3 className="text-lg sm:text-xl font-bold text-report-header-foreground truncate">
                                 {team.numero ? (
                                   <>
-                                    <span className="text-primary-foreground">{team.numero}</span>
-                                    <span className="mx-1.5 text-primary-foreground/60">·</span>
+                                    <span className="text-report-header-foreground">{team.numero}</span>
+                                    <span className="mx-1.5 text-report-header-foreground/60">·</span>
                                     <span>{team.nombre}</span>
                                   </>
                                 ) : (
@@ -258,7 +258,7 @@ const Equipos = () => {
                               className={`text-lg sm:text-xl font-bold shrink-0 ${
                                 team.fueraDeRango
                                   ? 'bg-yellow-300 text-black px-2 py-0.5 rounded'
-                                  : 'text-primary-foreground'
+                                  : 'text-report-header-foreground'
                               }`}
                             >
                               {team.total}
