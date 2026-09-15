@@ -84,17 +84,29 @@ function resolve_tournament_meta(string $host): ?array {
         return null;
     }
 
-    $logoFile = trim((string)($row['logo_header'] ?? '')) ?: trim((string)($row['logo'] ?? ''));
-    $image = '';
-    if ($logoFile !== '' && preg_match('/^[a-zA-Z0-9_\-\.]+$/', $logoFile)) {
+    // Candidatos en orden: 1) logo del top menu bar (logo_header),
+    // 2) fallback al logo general del torneo (logo).
+    $candidates = [
+        trim((string)($row['logo_header'] ?? '')),
+        trim((string)($row['logo'] ?? '')),
+    ];
+    $images = [];
+    foreach ($candidates as $logoFile) {
+        if ($logoFile === '') continue;
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $logoFile)) continue;
         // Se sirve por el proxy /api/logo.php para evitar hotlink/CORS.
-        $image = 'https://' . $host . '/api/logo.php?file=' . rawurlencode($logoFile);
+        $url = 'https://' . $host . '/api/logo.php?file=' . rawurlencode($logoFile);
+        if (!in_array($url, $images, true)) {
+            $images[] = $url;
+        }
     }
+    $image = $images[0] ?? '';
 
     return [
         'title'       => trim((string)($row['nombre'] ?? '')),
         'description' => trim((string)($row['club'] ?? '')),
         'image'       => $image,
+        'images'      => $images,
     ];
 }
 
