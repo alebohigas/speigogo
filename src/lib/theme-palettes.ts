@@ -162,6 +162,7 @@ export function applyThemeConfig(theme: ThemeConfig | null): void {
     '--golf-green', '--golf-green-light',
     '--golf-gold', '--golf-gold-light',
     '--sidebar-primary', '--sidebar-primary-foreground',
+    '--report-header', '--report-header-foreground',
   ];
   if (!theme) {
     tokens.forEach(t => root.style.removeProperty(t));
@@ -172,6 +173,8 @@ export function applyThemeConfig(theme: ThemeConfig | null): void {
   const secondaryFg  = getLightness(theme.secondary)  < 55 ? '0 0% 100%' : '0 0% 10%';
   const accentFg     = getLightness(theme.accent)     < 55 ? '0 0% 100%' : '0 0% 10%';
   const backgroundFg = getLightness(theme.background) < 55 ? '0 0% 100%' : '150 30% 10%';
+  const reportHeader = hexToHslString(theme.reportHeaderColor || '#999999') || '0 0% 60%';
+  const reportHeaderFg = getLightness(reportHeader) < 55 ? '0 0% 100%' : '0 0% 10%';
 
   root.style.setProperty('--primary', theme.primary);
   root.style.setProperty('--primary-foreground', primaryFg);
@@ -188,6 +191,8 @@ export function applyThemeConfig(theme: ThemeConfig | null): void {
   root.style.setProperty('--golf-gold-light', theme.secondary);
   root.style.setProperty('--sidebar-primary', theme.primary);
   root.style.setProperty('--sidebar-primary-foreground', primaryFg);
+  root.style.setProperty('--report-header', reportHeader);
+  root.style.setProperty('--report-header-foreground', reportHeaderFg);
 
   // Update gradient-stats so the StatsSection ("fun facts" ribbon)
   // automatically follows the active primary color instead of staying

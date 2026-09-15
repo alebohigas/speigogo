@@ -52,6 +52,8 @@ const DEFAULT_CUSTOM: ThemeConfig = {
   background: '0 0% 100%',
 };
 
+const DEFAULT_REPORT_HEADER_COLOR = '#999999';
+
 const AdminThemePalette = () => {
   const { data: siteConfig, isLoading } = useSiteConfig();
   const saveSiteConfig = useSaveSiteConfig();
@@ -77,11 +79,18 @@ const AdminThemePalette = () => {
   const [lastUpdatedColor, setLastUpdatedColor] = useState<string>(
     saved?.lastUpdatedColor || LAST_UPDATED_COLOR,
   );
+  const [reportHeaderColor, setReportHeaderColor] = useState<string>(
+    saved?.reportHeaderColor || DEFAULT_REPORT_HEADER_COLOR,
+  );
 
   // Sync once the server config arrives.
   useEffect(() => {
     if (saved?.lastUpdatedColor) setLastUpdatedColor(saved.lastUpdatedColor);
   }, [saved?.lastUpdatedColor]);
+
+  useEffect(() => {
+    setReportHeaderColor(saved?.reportHeaderColor || DEFAULT_REPORT_HEADER_COLOR);
+  }, [saved?.reportHeaderColor]);
 
   // Keep editor state synced if the server response arrives after mount.
   useEffect(() => {
@@ -104,7 +113,7 @@ const AdminThemePalette = () => {
   /** Persist a palette to site_config and live-preview it immediately. */
   const persist = (theme: ThemeConfig) => {
     /** Keep the configured stamp color when switching palettes. */
-    const themeWithStamp: ThemeConfig = { ...theme, lastUpdatedColor };
+    const themeWithStamp: ThemeConfig = { ...theme, lastUpdatedColor, reportHeaderColor };
     applyThemeConfig(themeWithStamp);
     saveSiteConfig.mutate(
       {
@@ -172,13 +181,37 @@ const AdminThemePalette = () => {
     saveSiteConfig.mutate(
       {
         password: getSuperAdminPassword(),
-        theme_config: { ...base, lastUpdatedColor },
+        theme_config: { ...base, lastUpdatedColor, reportHeaderColor },
         apply_theme_to_all: scope === 'general' && applyToAll,
       },
       {
         onSuccess: () => toast({
           title: 'Color guardado',
           description: `La fecha de última actualización usará ${lastUpdatedColor.toUpperCase()}.`,
+        }),
+        onError: (err) => toast({
+          title: 'Error al guardar color',
+          description: err.message,
+          variant: 'destructive',
+        }),
+      },
+    );
+  };
+
+  const persistReportHeaderColor = () => {
+    const base = saved ?? DEFAULT_CUSTOM;
+    const nextTheme = { ...base, lastUpdatedColor, reportHeaderColor };
+    applyThemeConfig(nextTheme);
+    saveSiteConfig.mutate(
+      {
+        password: getSuperAdminPassword(),
+        theme_config: nextTheme,
+        apply_theme_to_all: scope === 'general' && applyToAll,
+      },
+      {
+        onSuccess: () => toast({
+          title: 'Color guardado',
+          description: `Los encabezados usarán ${reportHeaderColor.toUpperCase()}.`,
         }),
         onError: (err) => toast({
           title: 'Error al guardar color',
@@ -493,6 +526,66 @@ const AdminThemePalette = () => {
             variant="outline"
             onClick={() => setLastUpdatedColor(LAST_UPDATED_COLOR)}
           >
+            Restaurar default
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Palette className="h-5 w-5 text-primary" />
+          Color de Encabezados
+        </CardTitle>
+        <CardDescription>
+          Color de los encabezados de Equipos, Salidas y Resultados. Default: #999999.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs">Color</Label>
+            <input
+              type="color"
+              value={reportHeaderColor}
+              onChange={(e) => setReportHeaderColor(e.target.value)}
+              className="h-12 w-12 rounded-md border border-border cursor-pointer bg-transparent p-0"
+              aria-label="Color de encabezados"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="report-header-hex" className="text-xs">Hex</Label>
+            <Input
+              id="report-header-hex"
+              value={reportHeaderColor}
+              onChange={(e) => setReportHeaderColor(e.target.value)}
+              placeholder="#999999"
+              className="w-32 font-mono"
+            />
+          </div>
+          <div
+            className="rounded-md px-5 py-3 text-sm font-bold"
+            style={{
+              backgroundColor: reportHeaderColor,
+              color: hexToHslString(reportHeaderColor)
+                ? (parseInt(reportHeaderColor.slice(1, 3), 16) * 0.299 + parseInt(reportHeaderColor.slice(3, 5), 16) * 0.587 + parseInt(reportHeaderColor.slice(5, 7), 16) * 0.114 > 150 ? '#1A1A1A' : '#FFFFFF')
+                : undefined,
+            }}
+          >
+            Vista previa del encabezado
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={persistReportHeaderColor}
+            disabled={saveSiteConfig.isPending || !/^#[0-9a-fA-F]{6}$/.test(reportHeaderColor)}
+            className="gap-2"
+          >
+            {saveSiteConfig.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Guardar color
+          </Button>
+          <Button variant="outline" onClick={() => setReportHeaderColor(DEFAULT_REPORT_HEADER_COLOR)}>
             Restaurar default
           </Button>
         </div>

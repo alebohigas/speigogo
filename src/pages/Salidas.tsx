@@ -199,7 +199,7 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
     <Card className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-white border-l-4 border-l-primary">
       <CardContent className="p-0">
         {/* Header: Hora (izq) + Hoyo (der) */}
-        <div className="flex items-center justify-between gap-3 p-4 sm:p-5 bg-primary text-primary-foreground border-b border-border/40">
+        <div className="flex items-center justify-between gap-3 p-4 sm:p-5 bg-report-header text-report-header-foreground border-b border-border/40">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 opacity-80" />
             <span className="text-base sm:text-lg font-semibold opacity-95">{group.time}</span>
