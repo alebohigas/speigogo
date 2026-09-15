@@ -169,6 +169,17 @@ foreach ($teamsEq as $g => $t) {
     $closed = 0;
     foreach ($rounds as $v) { if ($v !== null) $closed++; }
 
+    // Valores de desempate del equipo: se toma el mejor (menor) de sus
+    // integrantes con tarjeta cerrada en cada segmento de hoyos.
+    $tb = [];
+    foreach (array_keys($tbSetsEq) as $alias) {
+        $vals = array_values(array_filter(
+            array_map(fn($r) => $r[$alias] ?? null, $t['rowsRaw']),
+            fn($v) => $v !== null && $v !== ''
+        ));
+        $tb[$alias] = $vals ? (int)min($vals) : null;
+    }
+
     $builtEq[] = [
         'playerId'     => $cardHolder,
         'grupoid'      => $g,
@@ -183,18 +194,36 @@ foreach ($teamsEq as $g => $t) {
         'total'        => $total ?? 0,
         'closedRounds' => $closed,
         'rounds'       => $rounds,
+        'lastRound'    => empty($rounds) ? null : $rounds[max(array_keys($rounds))],
+        'tb'           => $tb,
         'estatus'      => $t['estatus'],
     ];
 }
 
-/** ---------- Orden: mejor score primero ---------- */
-usort($builtEq, function ($a, $b) use ($isStrokeEq) {
-    $ta = (int)$a['total']; $tb = (int)$b['total'];
-    if ($ta == 0 && $tb != 0) return 1;
-    if ($tb == 0 && $ta != 0) return -1;
-    if ($ta === $tb) return strcmp((string)$a['grupoid'], (string)$b['grupoid']);
-    return $isStrokeEq ? ($ta - $tb) : ($tb - $ta);
+/** ---------- Orden: mejor score primero, luego desempates ---------- */
+usort($builtEq, function ($a, $b) use ($isStrokeEq, $tbSetsEq) {
+    $ta = (int)$a['total']; $tb2 = (int)$b['total'];
+    if ($ta == 0 && $tb2 != 0) return 1;
+    if ($tb2 == 0 && $ta != 0) return -1;
+    if ($ta !== $tb2) return $isStrokeEq ? ($ta - $tb2) : ($tb2 - $ta);
+
+    // 1) Mejor score de la última ronda jugada.
+    $la = $a['lastRound']; $lb = $b['lastRound'];
+    if ($la !== null && $lb !== null && (int)$la !== (int)$lb) {
+        return $isStrokeEq ? ((int)$la - (int)$lb) : ((int)$lb - (int)$la);
+    }
+
+    // 2) Countback por segmentos de hoyos (golpes: menos es mejor).
+    foreach (array_keys($tbSetsEq) as $alias) {
+        $va = $a['tb'][$alias] ?? null;
+        $vb = $b['tb'][$alias] ?? null;
+        if ($va === null || $vb === null || $va === $vb) continue;
+        return $va - $vb;
+    }
+
+    return strcmp((string)$a['grupoid'], (string)$b['grupoid']);
 });
+
 
 $playersEq = [];
 $cutEq = [];
