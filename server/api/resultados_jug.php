@@ -538,6 +538,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (ASC for Stroke).
         $sql .= ", " . last_round_alias($dias) . " ASC";
         $sql .= countback_order('ASC');
+        $sql .= front_countback_order('1');
 
     } else {
         $sql = "SELECT j.id AS jugadorid, j.numjugador,
@@ -570,6 +571,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (ASC for Stroke).
         $sql .= ", " . last_round_alias($dias) . " ASC";
         $sql .= countback_order('ASC');
+        $sql .= front_countback_order('0');
     }
 
 } elseif ($sistema === 'STABLEFORD') {
@@ -605,6 +607,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (DESC for Stableford).
         $sql .= ", " . last_round_alias($dias) . " DESC";
         $sql .= countback_order('DESC');
+        $sql .= front_countback_order('1');
     } else {
         $sql = "SELECT j.id AS jugadorid, j.numjugador,
                        CONCAT(j.nombre, ' ', j.apellido) as jugador, j.estatus,
@@ -637,6 +640,7 @@ if ($sistema === 'STROKE PLAY' || $sistema === 'STROKE') {
         // Legacy ordering: last round score, then countback c1..c5 (DESC for Stableford).
         $sql .= ", " . last_round_alias($dias) . " DESC";
         $sql .= countback_order('DESC');
+        $sql .= front_countback_order('0');
     }
 }
 
