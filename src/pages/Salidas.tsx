@@ -713,228 +713,38 @@ const Salidas = () => {
                           ⚠️ {searchFailures} día(s)/categoría(s) no se pudieron cargar — algunos resultados pueden faltar. Revisa la consola.
                         </p>
                       )}
-                      {searchResults.map((result, rIdx) => (
-                        <Card key={rIdx} className="border-border/50 bg-white">
-                          <CardContent className="p-0 bg-white">
+                      {searchResults.map((result, rIdx) => {
+                        const searchDetail: SalidasDetailResponse = {
+                          caljgoid: '',
+                          date: '',
+                          course: result.course,
+                          categoryId: '',
+                          categoryName: result.categoryName,
+                          shortName: '',
+                          system: result.system,
+                          tee: result.tee,
+                          isMatchPlay: !!result.matchPlay,
+                          isEquipos: false,
+                          groups: [],
+                        };
+                        return (
+                          <div key={rIdx} className="space-y-2">
                             {/* Result context header */}
-                            <div className="bg-muted/50 px-4 py-2 border-b border-border/30 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm px-1">
                               <span className="font-semibold text-foreground capitalize">{result.dayLabel}</span>
                               <span className="text-muted-foreground">{result.course}</span>
                               <span className="text-primary font-medium">{result.categoryName}</span>
                               <span className="text-muted-foreground">{result.system} · Tee: {result.tee}</span>
                             </div>
-                            {/* Group table */}
-                            <div className="overflow-x-auto bg-white">
-                              <Table className="bg-white tournament-table">
-                                <TableHeader>
-                                  <TableRow className="bg-primary hover:bg-primary">
-                                    <TableHead className="text-primary-foreground font-bold text-center w-20">Hoyo</TableHead>
-                                    <TableHead className="text-primary-foreground font-bold text-center w-20">Hora</TableHead>
-                                    {(() => {
-                                      const equipos = hasTeamMembers(result.group.players ?? []);
-                                      const showPairTeam = hasAnyPair(result.group.players ?? []);
-                                      return (
-                                        <>
-                                          {showPairTeam && !equipos && (
-                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Equipo</TableHead>
-                                          )}
-                                          <TableHead className="text-primary-foreground font-bold text-center w-16">Club</TableHead>
-                                          <TableHead className="text-primary-foreground font-bold">Jugador</TableHead>
-                                          {equipos && (
-                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Tee</TableHead>
-                                          )}
-                                          {!(!!result.matchPlay || isMatchPlaySystem(result.system)) && (
-                                            <TableHead className="text-primary-foreground font-bold text-center w-20">Score</TableHead>
-                                          )}
-                                        </>
-                                      );
-                                    })()}
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {(() => {
-                                    /* En PAREJAS cada jugador se renderiza como 2 renglones (uno por integrante)
-                                     * y la celda de Score abarca ambos con rowSpan=2 para quedar centrada. */
-                                    const matchPlay = !!result.matchPlay || isMatchPlaySystem(result.system);
-                                    /* MATCH PLAY: ordenar por número de match y lado. */
-                                    const players = sortByMatch(result.group.players ?? [], matchPlay);
-                                    /* MATCH PLAY: línea divisoria entre un match y el siguiente. */
-                                    const vsIdx = vsAfterIndexes(players, matchPlay);
-                                    /* MATCH PLAY: renglón "VS" entre los dos contendientes del match. */
-                                    const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
-                                    /* EQUIPOS: cada equipo agrega un renglón por integrante. */
-                                    const equipos = hasTeamMembers(players);
-                                    const showPairTeam = hasAnyPair(players);
-                                    const showTeamColumn = showPairTeam && !equipos;
-                                    const showTeeColumn = equipos;
-                                    const hasScoreColumn = !matchPlay;
-                                    const totalRows = equipos
-                                      ? countGroupRowsTeam(players)
-                                      : countGroupRowsWithVs(players, matchPlay);
-                                    const totalCols = 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
-                                    const lineCols = totalCols;
-                                    let firstRowEmitted = false;
-                                    const rows: JSX.Element[] = [];
-
-                                    players.forEach((player, pIdx) => {
-                                      const isPair = !!player.partner;
-                                      const isMatched = pIdx === result.matchedPlayerIdx;
-                                      const renderHoleHora = !firstRowEmitted;
-                                      firstRowEmitted = true;
-                                      // ----- Renglón principal (jugador 1) -----
-                                      rows.push(
-                                        <TableRow
-                                          key={`${pIdx}-a`}
-                                          /* `border-b-0` en MATCH PLAY y en el primer renglón de una pareja
-                                           * para que no aparezca una línea entre contendientes del mismo match/equipo. */
-                                          className={`bg-white hover:bg-white ${isMatched ? 'bg-primary/5 hover:bg-primary/5' : ''} ${(matchPlay || isPair) ? 'border-b-0' : ''}`}
-                                        >
-                                          {renderHoleHora ? (
-                                            <>
-                                              <TableCell className="text-center font-bold text-base text-foreground" rowSpan={totalRows}>
-                                                {result.group.tee}
-                                              </TableCell>
-                                              <TableCell className="text-center font-bold text-base text-foreground" rowSpan={totalRows}>
-                                                {result.group.time}
-                                              </TableCell>
-                                            </>
-                                          ) : null}
-                                          {showTeamColumn && (
-                                            /* Código de pareja/grupo (p.ej. C05). Abarca ambos renglones
-                                             * de la pareja con rowSpan=2 para que se centre verticalmente. */
-                                            <TableCell
-                                              className="text-center font-bold text-foreground align-middle"
-                                              rowSpan={isPair ? 2 : 1 + (player.members?.length ?? 0)}
-                                            >
-                                              {player.groupId || '—'}
-                                            </TableCell>
-                                          )}
-                                          <TableCell className="p-1 text-center align-middle">
-                                            {player.members?.length ? (
-                                              <EquipoLogo
-                                                grupoid={player.groupId || player.name}
-                                                torneoId={torneoId}
-                                                dbLogo={player.teamLogo}
-                                                className="w-auto object-contain rounded inline-block"
-                                              />
-                                            ) : player.clubLogo ? (
-                                              <img src={player.clubLogo} alt="Club" className="w-auto object-contain rounded inline-block" style={{ height: '2.1375rem' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                            ) : (<span className="text-xs text-muted-foreground">—</span>)}
-                                          </TableCell>
-                                          <TableCell className={`font-medium player-name-cell ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}>
-                                            {/* Recorte a 4 renglones en móvil (.player-name-clamp).
-                                              * EQUIPOS: el renglón principal identifica al equipo.
-                                              * MATCH PLAY: prefijo con la posición del jugador en su grupo. */}
-                                            <span className={`player-name-clamp ${player.members?.length ? 'font-bold text-base' : ''}`}>
-                                              {player.members?.length
-                                                ? (player.groupId || player.name)
-                                                : matchPlay && player.position != null && player.position !== ''
-                                                  ? `${player.position} ${player.name}`
-                                                  : player.name}
-                                            </span>
-                                          </TableCell>
-                                          {showTeeColumn && <TableCell className="p-1" />}
-                                          {/* Score: en parejas se centra entre los dos renglones (rowSpan=2).
-                                            * En EQUIPOS aparece únicamente en la fila del equipo.
-                                            * En MATCH PLAY la columna se omite por completo. */}
-                                          {hasScoreColumn && (
-                                            <TableCell
-                                              className="text-center font-extrabold text-primary align-middle text-lg"
-                                              rowSpan={isPair ? 2 : 1}
-                                            >
-                                              {player.score || '—'}
-                                            </TableCell>
-                                          )}
-                                        </TableRow>
-                                      );
-                                      // ----- EQUIPOS: integrantes con su tee de salida individual -----
-                                      (player.members ?? []).forEach((member, mIdx) => {
-                                        const isLastMember = mIdx === (player.members?.length ?? 0) - 1;
-                                        rows.push(
-                                          <TableRow
-                                            key={`${pIdx}-m${mIdx}`}
-                                            className={`bg-white hover:bg-white ${isLastMember ? '' : 'border-b-0'}`}
-                                          >
-                                            <TableCell className="p-0" />
-                                            <TableCell className="py-2 font-medium text-foreground player-name-cell">
-                                              <span className="player-name-clamp">{member.name}</span>
-                                            </TableCell>
-                                            {showTeeColumn && (
-                                              <TableCell className="py-2 text-center align-middle">
-                                                <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
-                                              </TableCell>
-                                            )}
-                                            {hasScoreColumn && <TableCell className="p-0" />}
-                                          </TableRow>
-                                        );
-                                      });
-                                      // ----- Renglón secundario (jugador 2) si es pareja -----
-                                      if (isPair) {
-                                        rows.push(
-                                          <TableRow
-                                            key={`${pIdx}-b`}
-                                            className={`bg-white hover:bg-white ${isMatched ? 'bg-primary/5 hover:bg-primary/5' : ''} ${matchPlay ? 'border-b-0' : ''}`}
-                                          >
-                                            <TableCell className="p-1 text-center align-middle">
-                                              {player.clubLogo2 ? (
-                                                <img src={player.clubLogo2} alt="Club" className="w-auto object-contain rounded inline-block" style={{ height: '2.1375rem' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                              ) : (<span className="text-xs text-muted-foreground">—</span>)}
-                                            </TableCell>
-                                            <TableCell className={`font-medium player-name-cell ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}>
-                                              <span className="player-name-clamp">{player.partner}</span>
-                                            </TableCell>
-                                          </TableRow>
-                                        );
-                                      }
-                                      // ----- Renglón "VS" entre los dos contendientes del mismo match -----
-                                      if (vsLabelIdx.has(pIdx)) {
-                                        rows.push(
-                                          <TableRow key={`${pIdx}-vslabel`} className="bg-white hover:bg-white border-b-0">
-                                            <TableCell colSpan={showTeamColumn ? 2 : 1} className="p-0" />
-                                            <TableCell className="py-0 font-semibold text-muted-foreground">VS</TableCell>
-                                          </TableRow>
-                                        );
-                                      }
-                                      // ----- Línea divisoria delgada entre matches dentro del mismo horario -----
-                                      if (vsIdx.has(pIdx)) {
-                                        rows.push(
-                                          <TableRow key={`${pIdx}-vs`} className="bg-white hover:bg-white border-none">
-                                            <TableCell colSpan={lineCols} className="p-0">
-                                              <div className="border-b border-primary/20" />
-                                            </TableCell>
-                                          </TableRow>
-                                        );
-                                      }
-                                    });
-
-                                    return rows;
-                                  })()}
-                                </TableBody>
-                                {/* Footer with category name */}
-                                <tfoot>
-                                  <tr className="bg-primary">
-                                    <td
-                                      colSpan={(() => {
-                                        const players = result.group.players ?? [];
-                                        const matchPlay = !!result.matchPlay || isMatchPlaySystem(result.system);
-                                        const equipos = hasTeamMembers(players);
-                                        const showPairTeam = hasAnyPair(players);
-                                        const showTeamColumn = showPairTeam && !equipos;
-                                        const showTeeColumn = equipos;
-                                        const hasScoreColumn = !matchPlay;
-                                        return 2 + (showTeamColumn ? 1 : 0) + 1 + (showTeeColumn ? 1 : 0) + (hasScoreColumn ? 1 : 0);
-                                      })()}
-                                      className="text-primary-foreground font-bold text-center py-2 text-sm"
-                                    >
-                                      CATEGORÍA: {result.categoryName}
-                                    </td>
-                                  </tr>
-                                </tfoot>
-                              </Table>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            <SalidaGroupCard
+                              group={result.group}
+                              detail={searchDetail}
+                              torneoId={torneoId}
+                              matchedPlayerIdx={result.matchedPlayerIdx}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
