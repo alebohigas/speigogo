@@ -428,6 +428,7 @@ const Salidas = () => {
 
   /** Handle day card click - if only one category, go directly to detail */
   const handleDayClick = (dayIdx: number) => {
+    setDetailQuery('');
     const day = days[dayIdx];
     if (day.categories.length === 1) {
       setSelectedDayIdx(dayIdx);
@@ -442,12 +443,14 @@ const Salidas = () => {
 
   /** Handle category click */
   const handleCategoryClick = (cat: SalidasCategory) => {
+    setDetailQuery('');
     setSelectedCaljgoid(String(cat.caljgoid));
     setSelectedCatMeta(cat);
   };
 
   /** Handle back navigation */
   const handleBack = () => {
+    setDetailQuery('');
     if (selectedCaljgoid) {
       const day = selectedDayIdx !== null ? days[selectedDayIdx] : null;
       if (day && day.categories.length > 1) {
