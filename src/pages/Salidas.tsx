@@ -27,38 +27,8 @@ import salidasHero from '@/assets/salidas-hero.jpg';
 // ============= Render helpers =============
 
 /**
- * Calcula el total de renglones que ocupará un grupo en la tabla.
- * En PAREJAS cada jugador con `partner` ocupa 2 renglones (uno por integrante);
- * en INDIVIDUAL cada jugador ocupa 1. Se usa para los `rowSpan` de las columnas
- * compartidas (Hoyo / Hora) de un mismo grupo de salida.
+ * Helpers para MATCH PLAY: ordenar jugadores por match y separar enfrentamientos.
  */
-const countGroupRows = (players: SalidasGroup['players']): number =>
-  (players ?? []).reduce((acc, p) => acc + (p.partner ? 2 : 1), 0);
-
-/**
- * Detecta si un conjunto de jugadores corresponde a categoría de PAREJAS.
- * Se usa para decidir si la tabla muestra la columna "Equipo" (código de
- * grupo/pareja, p.ej. C05) y para ajustar el colSpan del footer.
- */
-const hasAnyPair = (players: SalidasGroup['players']): boolean =>
-  (players ?? []).some((p) => !!p.partner);
-
-const groupsHaveAnyPair = (groups: SalidasGroup[] | undefined): boolean =>
-  (groups ?? []).some((g) => hasAnyPair(g.players ?? []));
-
-/**
- * EQUIPOS: la salida se arma por equipo, pero cada integrante sale desde el tee
- * que le corresponde según su handicap. El API entrega `members` por equipo.
- */
-const hasTeamMembers = (players: SalidasGroup['players']): boolean =>
-  (players ?? []).some((p) => (p.members?.length ?? 0) > 0);
-
-const groupsHaveTeamMembers = (groups: SalidasGroup[] | undefined): boolean =>
-  (groups ?? []).some((g) => hasTeamMembers(g.players ?? []));
-
-/** Renglones que ocupa un grupo en modo EQUIPOS: 1 por equipo + 1 por integrante. */
-const countGroupRowsTeam = (players: SalidasGroup['players']): number =>
-  (players ?? []).reduce((acc, p) => acc + 1 + (p.members?.length ?? 0), 0);
 
 /** Bolita con el color del tee de salida del jugador + abreviatura del tee. */
 const TeeDot = ({ tee, bgColor, color }: { tee?: string; bgColor?: string; color?: string }) => (
