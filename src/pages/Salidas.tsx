@@ -169,18 +169,6 @@ const vsLabelAfterIndexes = (
   return set;
 };
 
-/**
- * Total de renglones de un grupo incluyendo los separadores de MATCH PLAY
- * (líneas entre matches y renglones "VS" dentro de cada match).
- * Se usa para el `rowSpan` de las columnas Hoyo / Hora.
- */
-const countGroupRowsWithVs = (
-  players: SalidasGroup['players'],
-  matchPlay = false
-): number =>
-  countGroupRows(players)
-  + vsAfterIndexes(players, matchPlay).size
-  + vsLabelAfterIndexes(players, matchPlay).size;
 
 
 
