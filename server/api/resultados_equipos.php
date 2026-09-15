@@ -43,21 +43,40 @@ $rt = @$conn->query("SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES
 if ($rt) { $hasLogoEq = $rt->num_rows > 0; $rt->free(); }
 $logoEqExpr = $hasLogoEq ? "f_logo_jugeq(j.id)" : "NULL";
 
+/**
+ * Tabla `equipos`: en algunas bases no existe o no trae las mismas columnas
+ * (nombre / logo / torneoid). Se detecta todo antes de armar la consulta para
+ * que el leaderboard nunca falle por una columna ausente.
+ */
+$eqCols = [];
+$rc = @$conn->query("SHOW COLUMNS FROM equipos");
+if ($rc) { while ($c = $rc->fetch_assoc()) { $eqCols[strtolower($c['Field'])] = true; } $rc->free(); }
+$hasEqTable = !empty($eqCols) && isset($eqCols['equipo']);
+
+$eqNombreExpr = ($hasEqTable && isset($eqCols['nombre'])) ? 'e.nombre' : "''";
+$eqLogoExpr   = ($hasEqTable && isset($eqCols['logo']))   ? 'e.logo'   : "''";
+$eqJoin = '';
+if ($hasEqTable) {
+    $eqJoin = " LEFT JOIN equipos e ON (j.grupoid = e.equipo"
+            . (isset($eqCols['torneoid']) ? " AND j.torneoid = e.torneoid" : '') . ")";
+}
+
 /** ---------- Integrantes con sus scores ---------- */
 $sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus,
                  CONCAT(j.nombre, ' ', j.apellido) AS jugador,
                  b.abr AS clubabr, b.logo AS clublogo,
-                 e.nombre AS equiponombre, e.logo AS equipologo,
+                 $eqNombreExpr AS equiponombre, $eqLogoExpr AS equipologo,
                  $logoEqExpr AS logoeq,
                  $totalExprEq AS total_main";
 foreach ($diasEq as $i => $fechaEq) {
     $sqlEq .= ", $diaFnEq(j.id, '" . esc($conn, $fechaEq) . "') AS d{$i}";
 }
 $sqlEq .= " FROM jugadores j
-            LEFT JOIN clubs b ON (j.clubid = b.id)
-            LEFT JOIN equipos e ON (j.grupoid = e.equipo AND j.torneoid = e.torneoid)
-            WHERE j.categoriaid = $cid AND j.grupoid <> ''
+            LEFT JOIN clubs b ON (j.clubid = b.id)"
+        . $eqJoin
+        . " WHERE j.categoriaid = $cid AND j.grupoid <> ''
             ORDER BY j.grupoid, j.nombre, j.apellido";
+
 $rowsEq = query_all($conn, $sqlEq);
 if ($rowsEq === null) { $rowsEq = []; }
 
