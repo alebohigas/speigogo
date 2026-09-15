@@ -40,6 +40,8 @@ interface SalidasMasterResponse {
 export interface SalidasPlayer {
   name: string;
   clubLogo: string;
+  /** EQUIPOS: logo propio del equipo, obtenido con la misma ruta del reporte legacy. */
+  teamLogo?: string;
   /** Logo del club del segundo integrante (sólo en categorías PAREJAS). */
   clubLogo2?: string;
   /** Nombre completo del segundo integrante (sólo en categorías PAREJAS).
