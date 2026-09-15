@@ -208,8 +208,10 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
         </div>
 
         {/* Players list */}
-        <div className="divide-y divide-border/30">
+        <div>
           {players.map((player, pIdx) => {
+            const nextPlayer = players[pIdx + 1];
+            const nextIsTeam = (nextPlayer?.members?.length ?? 0) > 0;
             const isPair = !!player.partner;
             const showVs = vsLabelIdx.has(pIdx);
             const showDivider = vsIdx.has(pIdx);
