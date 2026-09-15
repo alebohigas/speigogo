@@ -645,22 +645,22 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                 </div>
               ) : (
                 <>
-                  <Card className="border-border/50 bg-white max-w-5xl mx-auto">
-                  <CardContent className="p-0 bg-white">
+                  <Card className={`max-w-5xl mx-auto ${categoryDetail?.isEquipos ? 'border-0 bg-transparent shadow-none' : 'border-border/50 bg-card'}`}>
+                  <CardContent className={`p-0 ${categoryDetail?.isEquipos ? 'bg-transparent' : 'bg-card'}`}>
                     {categoryDetail?.isEquipos && (
-                    <div className="p-4 space-y-8 md:hidden">
+                    <div className="w-full max-w-4xl mx-auto space-y-8">
                       {filteredPlayers.length === 0 ? (
                         <div className="text-center py-6 text-muted-foreground">Sin resultados aún.</div>
                       ) : (
                         filteredPlayers.map((player) => {
                           const name1 = player.name;
                           return (
-                            <div key={player.id} className="border border-border/50 rounded-xl bg-white overflow-hidden shadow-sm">
-                              <div className="bg-muted/50 px-4 py-3 border-b border-border/30 flex items-center justify-between gap-3">
+                            <Card key={player.id} className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-card border-l-4 border-l-primary">
+                              <div className="bg-primary text-primary-foreground px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40 flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className="flex items-center gap-1 shrink-0">
                                     {getPositionIcon(player.position, medalCount)}
-                                    <span className={player.position <= medalCount ? getMedalStyle(player.position) : ''}>
+                                    <span className={player.position <= medalCount ? getMedalStyle(player.position) : 'text-primary-foreground'}>
                                       {player.position}
                                     </span>
                                   </div>
@@ -671,37 +671,39 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                     className="w-auto object-contain rounded inline-block shrink-0"
                                     style={{ height: '2.1375rem' }}
                                   />
-                                  <span className="font-bold text-foreground truncate">{name1}</span>
+                                  <span className="text-lg sm:text-xl font-bold text-primary-foreground truncate">{name1}</span>
                                 </div>
-                                <span className="font-bold text-primary text-lg shrink-0">{player.total ?? 0}</span>
+                                <span className="font-bold text-primary-foreground text-xl sm:text-2xl shrink-0">{player.total ?? 0}</span>
                               </div>
-                              <div className="p-4 space-y-3">
-                                <div className="text-sm text-muted-foreground space-y-0.5">
+                              <div className="p-3 sm:p-4 space-y-4">
+                                <div className="divide-y divide-border/30 text-foreground">
                                   {(player.members || []).map((m, mi) => (
-                                    <span key={mi} className="block">{m}</span>
+                                    <span key={mi} className="block py-2 text-sm sm:text-base first:pt-0 last:pb-0">{m}</span>
                                   ))}
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-3 border-t border-border/30 pt-4">
                                   {(categoryDetail?.days || []).map((_, i) => {
                                     const round = i + 1;
                                     const score = getRoundScore(player, round);
                                     if (score === undefined || score === null) return null;
                                     const isExpanded = expandedScorecard === `${player.id}-${round}`;
                                     return (
-                                      <button
+                                      <Button
                                         key={round}
+                                        type="button"
+                                        variant="outline"
                                         onClick={() => handleRoundClick(player, round)}
-                                        className={`inline-flex flex-col items-center px-3 py-1.5 rounded-md border text-sm transition-colors ${
+                                        className={`h-auto min-w-[4rem] inline-flex flex-col items-center px-4 py-2.5 rounded-md border text-base transition-colors ${
                                           isExpanded
                                             ? 'border-primary bg-primary/10 text-primary'
-                                            : 'border-border bg-white hover:border-primary/50 hover:bg-primary/5'
+                                            : 'border-border bg-card hover:border-primary/50 hover:bg-primary/5'
                                         }`}
                                         title={`Ver tarjeta R${round}`}
                                         style={{ color: strokeScoreColor(score as number, categoryDetail?.coursePar, categoryDetail?.system) }}
                                       >
                                         <span className="text-[10px] text-muted-foreground leading-none">R{round}</span>
                                         <span className="font-bold leading-none mt-0.5">{score}</span>
-                                      </button>
+                                      </Button>
                                     );
                                   })}
                                 </div>
@@ -741,7 +743,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                   ) : null}
                                 </div>
                               )}
-                            </div>
+                            </Card>
                           );
                         })
                       )}
@@ -751,8 +753,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                             <span className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">— Corte —</span>
                           </div>
                           {cutPlayers.map((cp) => (
-                            <div key={cp.playerId} className="border border-border/50 rounded-xl bg-muted/20 overflow-hidden opacity-80">
-                              <div className="bg-muted/50 px-4 py-3 border-b border-border/30 flex items-center justify-between gap-3">
+                            <Card key={cp.playerId} className="overflow-hidden border border-border/80 shadow-lg rounded-2xl bg-card border-l-4 border-l-primary opacity-80">
+                              <div className="bg-primary text-primary-foreground px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40 flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                   <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${getStatusBadgeClasses(cp.statusCode)}`}>
                                     {cp.statusCode}
@@ -764,40 +766,42 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                     className="w-auto object-contain rounded inline-block shrink-0"
                                     style={{ height: '2.1375rem' }}
                                   />
-                                  <span className="font-bold text-foreground truncate">{cp.name}</span>
+                                  <span className="text-lg sm:text-xl font-bold text-primary-foreground truncate">{cp.name}</span>
                                 </div>
-                                <span className="font-bold text-muted-foreground text-lg shrink-0">{cp.total && cp.total > 0 ? cp.total : '—'}</span>
+                                <span className="font-bold text-primary-foreground text-xl sm:text-2xl shrink-0">{cp.total && cp.total > 0 ? cp.total : '—'}</span>
                               </div>
-                              <div className="p-4 space-y-3">
-                                <div className="text-sm text-muted-foreground space-y-0.5">
+                              <div className="p-3 sm:p-4 space-y-4">
+                                <div className="divide-y divide-border/30 text-foreground">
                                   {(cp.members || []).map((m, mi) => (
-                                    <span key={mi} className="block">{m}</span>
+                                    <span key={mi} className="block py-2 text-sm sm:text-base first:pt-0 last:pb-0">{m}</span>
                                   ))}
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-3 border-t border-border/30 pt-4">
                                   {(categoryDetail?.days || []).map((_, i) => {
                                     const round = i + 1;
                                     const score = getRoundScore(cp, round);
                                     if (score === undefined || score === null) return null;
                                     const isExpanded = expandedScorecard === `${cp.playerId}-${round}`;
                                     return (
-                                      <button
+                                      <Button
                                         key={round}
+                                        type="button"
+                                        variant="outline"
                                         onClick={() => handleRoundClick(
                                           { ...cp, ...Object.fromEntries((categoryDetail?.days || []).map((_, idx) => [`r${idx + 1}`, getRoundScore(cp, idx + 1) ?? undefined])), id: cp.playerId, position: 0, total: cp.total ?? 0 } as PlayerResult,
                                           round,
                                         )}
-                                        className={`inline-flex flex-col items-center px-3 py-1.5 rounded-md border text-sm transition-colors ${
+                                        className={`h-auto min-w-[4rem] inline-flex flex-col items-center px-4 py-2.5 rounded-md border text-base transition-colors ${
                                           isExpanded
                                             ? 'border-primary bg-primary/10 text-primary'
-                                            : 'border-border bg-white hover:border-primary/50 hover:bg-primary/5'
+                                            : 'border-border bg-card hover:border-primary/50 hover:bg-primary/5'
                                         }`}
                                         title={`Ver tarjeta R${round}`}
                                         style={{ color: strokeScoreColor(score as number, categoryDetail?.coursePar, categoryDetail?.system) }}
                                       >
                                         <span className="text-[10px] text-muted-foreground leading-none">R{round}</span>
                                         <span className="font-bold leading-none mt-0.5">{score}</span>
-                                      </button>
+                                      </Button>
                                     );
                                   })}
                                 </div>
@@ -823,13 +827,13 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                                   ) : null}
                                 </div>
                               )}
-                            </div>
+                            </Card>
                           ))}
                         </>
                       )}
                     </div>
                     )}
-                    <div className={`overflow-x-auto bg-white ${categoryDetail?.isEquipos ? 'hidden md:block' : ''}`}>
+                    <div className={`overflow-x-auto bg-card ${categoryDetail?.isEquipos ? 'hidden' : ''}`}>
                       <Table className="bg-white tournament-table">
                         <TableHeader>
                           <TableRow className="bg-primary hover:bg-primary">
