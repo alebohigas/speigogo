@@ -72,8 +72,10 @@ export const useIsInherited = (section: InheritableSection): boolean => {
  */
 export const useEffectiveSiteConfig = () => {
   const query = useSiteConfig();
-  const general = useGeneralConfig();
-  const flags = useInheritFlags();
+  const siteTorneosQuery = useSiteTorneos();
+  const general = siteTorneosQuery.data?.configs?.general;
+  const home = general?.home_config as HomeConfig | null | undefined;
+  const flags = home?.inherit ?? {};
   const scope = useConfigScope();
 
   const data = useMemo(() => {
@@ -89,5 +91,12 @@ export const useEffectiveSiteConfig = () => {
     return merged;
   }, [query.data, general, flags, scope]);
 
-  return { ...query, data };
+  /**
+   * The ribbons must not render from partial/default information. Otherwise a
+   * ribbon can briefly appear after navigation and disappear when its scoped
+   * visibility arrives, leaving a conspicuous white gap above the hero.
+   */
+  const isVisualConfigReady = query.isFetched && siteTorneosQuery.isFetched;
+
+  return { ...query, data, isVisualConfigReady };
 };

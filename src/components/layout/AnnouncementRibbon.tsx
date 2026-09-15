@@ -68,7 +68,7 @@ const RibbonRow = ({ cfg }: { cfg: AnuncioConfig }) => {
  * qualifies for the current route.
  */
 const AnnouncementRibbon = () => {
-  const { data: siteConfig } = useEffectiveSiteConfig();
+  const { data: siteConfig, isVisualConfigReady } = useEffectiveSiteConfig();
   const location = useLocation();
   const raw = siteConfig?.anuncio_config;
   // Normalize legacy single-object payloads to an array.
@@ -95,7 +95,9 @@ const AnnouncementRibbon = () => {
     );
   });
 
-  if (active.length === 0) return null;
+  // Avoid changing the layout height after navigation while the effective
+  // per-page/general visibility configuration is still unresolved.
+  if (!isVisualConfigReady || active.length === 0) return null;
   /**
    * Si algún anuncio activo está marcado como sticky, el stack completo se
    * fija debajo del header (usando la variable CSS `--header-height` que
