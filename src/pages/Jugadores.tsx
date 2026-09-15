@@ -36,6 +36,8 @@ const Jugadores = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const normalizedQuery = normalizeSearchText(searchQuery);
   const searchActive = normalizedQuery.length >= 2;
+  /** Búsqueda por nombre dentro de la categoría seleccionada (vista detalle) */
+  const [detailQuery, setDetailQuery] = useState('');
 
   // Fetch categories from API
   const { data: categories = [], isLoading: loadingCats } = useCategories();
@@ -132,6 +134,27 @@ const Jugadores = () => {
    *  tabla plana. Los grupos vienen pre-armados desde el hook. */
   const isParejas = playersData?.isParejas ?? false;
   const groups = playersData?.groups ?? [];
+
+  /** Filtro por nombre aplicado a la vista de detalle de la categoría */
+  const detailNorm = normalizeSearchText(detailQuery);
+  const detailSearchActive = detailNorm.length >= 2;
+  const detailSuggestions = useMemo(
+    () => buildUniqueNameSuggestions(players.map((p) => p.name)),
+    [players]
+  );
+  const visiblePlayers = useMemo(
+    () => (detailSearchActive ? players.filter((p) => normalizeSearchText(p.name).includes(detailNorm)) : players),
+    [players, detailSearchActive, detailNorm]
+  );
+  const visibleGroups = useMemo(
+    () =>
+      detailSearchActive
+        ? groups
+            .map((g) => ({ ...g, players: g.players.filter((p) => normalizeSearchText(p.name).includes(detailNorm)) }))
+            .filter((g) => g.players.length > 0)
+        : groups,
+    [groups, detailSearchActive, detailNorm]
+  );
 
   /** Total players across all categories */
   const totalPlayers = categories.reduce((sum, cat) => sum + cat.playerCount, 0);
