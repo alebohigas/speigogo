@@ -287,7 +287,7 @@ const Equipos = () => {
                                   {p.hi}
                                 </div>
                                 <div
-                                  className="text-center whitespace-nowrap text-base font-bold italic"
+                                  className="text-center whitespace-nowrap text-base font-bold"
                                   style={{
                                     backgroundColor: p.bgcolor || undefined,
                                     color: p.color || undefined,
