@@ -188,7 +188,10 @@ foreach ($teamsEq as $g => $t) {
          *  no el identificador de grupo ni el club del integrante. */
         'name'         => $t['teamName'] ?: $g,
         'club'         => $t['club'],
-        'clubLogo'     => $t['logo'] ? $LOGOS_BASE_URL . $t['logo'] : '',
+        /* Logo del EQUIPO: primero la tabla `equipos` del torneo, después el
+         * valor legacy (f_logo_jugeq / e.logo / logo del club). */
+        'clubLogo'     => equipos_logo_find($eqLogoIndex, $g, $t['teamName'])
+                          ?: equipos_logo_url($t['logo'] ?? ''),
         'members'      => array_map(fn($m) => $m['nombre'], $t['members']),
         'memberIds'    => array_map(fn($m) => $m['id'], $t['members']),
         'total'        => $total ?? 0,
