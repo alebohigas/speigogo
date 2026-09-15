@@ -106,10 +106,14 @@ export const resolveEquipoLogo = (
   const inflight = pending.get(key);
   if (inflight) return inflight;
 
-  // El logo guardado en la base de datos para el equipo manda sobre
-  // cualquier archivo suelto en la carpeta pública.
-  const candidates = dbLogo ? [dbLogo] : [];
-  candidates.push(...buildEquipoLogoCandidates(grupoid, torneoId));
+  // El logo guardado en la base de datos manda: si el equipo ya trae su
+  // imagen, ésa es la única que se pide. Sólo cuando NO hay imagen en la
+  // base se buscan archivos sueltos en la carpeta pública, y ahí se limita
+  // la búsqueda a unas pocas rutas para no disparar decenas de peticiones
+  // por equipo.
+  const candidates = dbLogo
+    ? [dbLogo]
+    : buildEquipoLogoCandidates(grupoid, torneoId);
 
   const run = (async () => {
     for (const url of candidates) {
