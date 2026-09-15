@@ -16,7 +16,7 @@
  */
 
 /** Extensiones soportadas para los archivos de logo. */
-const EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'svg'];
+const EXTENSIONS = ['png', 'jpg'];
 
 /** Carpeta pública donde se dejan los logos de equipo. */
 export const EQUIPO_LOGOS_DIR = '/logos-equipos';
@@ -37,10 +37,15 @@ export const buildEquipoLogoCandidates = (grupoid: string, torneoId?: string): s
   const push = (b: string) => {
     if (b && !bases.includes(b)) bases.push(b);
   };
-  push(num);
-  push(`${num}_1`);
-  push(id);
-  push(`${id}_1`);
+  // Sólo por número de equipo; si el identificador no trae número se usa
+  // el identificador tal cual. Menos combinaciones = menos peticiones.
+  if (num) {
+    push(num);
+    push(`${num}_1`);
+  } else {
+    push(id);
+    push(`${id}_1`);
+  }
 
   const dirs = torneoId
     ? [`${EQUIPO_LOGOS_DIR}/t${torneoId}`, EQUIPO_LOGOS_DIR]
@@ -106,10 +111,14 @@ export const resolveEquipoLogo = (
   const inflight = pending.get(key);
   if (inflight) return inflight;
 
-  // El logo guardado en la base de datos para el equipo manda sobre
-  // cualquier archivo suelto en la carpeta pública.
-  const candidates = dbLogo ? [dbLogo] : [];
-  candidates.push(...buildEquipoLogoCandidates(grupoid, torneoId));
+  // El logo guardado en la base de datos manda: si el equipo ya trae su
+  // imagen, ésa es la única que se pide. Sólo cuando NO hay imagen en la
+  // base se buscan archivos sueltos en la carpeta pública, y ahí se limita
+  // la búsqueda a unas pocas rutas para no disparar decenas de peticiones
+  // por equipo.
+  const candidates = dbLogo
+    ? [dbLogo]
+    : buildEquipoLogoCandidates(grupoid, torneoId);
 
   const run = (async () => {
     for (const url of candidates) {
