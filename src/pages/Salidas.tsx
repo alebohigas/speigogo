@@ -1021,7 +1021,7 @@ const Salidas = () => {
                     <p className="text-muted-foreground text-lg">{detail.course}</p>
                     <p className="text-muted-foreground text-lg">{selectedDay?.dateFormatted}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {detail.system} · Tee: {detail.tee} · {(detail.groups ?? []).length} grupos
+                      {detail.system} · {(detail.groups ?? []).length} grupos
                     </p>
                   </div>
 
