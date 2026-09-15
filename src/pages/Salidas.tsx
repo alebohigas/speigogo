@@ -334,8 +334,8 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
 
                 {/* Separator between two teams in the same departure group */}
                 {isTeam && nextIsTeam && (
-                  <div className="py-3 sm:py-4 px-3 sm:px-4">
-                    <div className="border-b-2 border-dashed border-primary/30" />
+                  <div className="py-4 sm:py-5 px-3 sm:px-4">
+                    <div className="border-b border-primary/20" />
                   </div>
                 )}
               </div>
