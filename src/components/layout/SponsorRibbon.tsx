@@ -51,7 +51,7 @@ const clearLegacyBrokenIds = () => {
  */
 const SponsorRibbon = () => {
   const { data: sponsors = [] } = useSponsors();
-  const { data: siteConfig } = useEffectiveSiteConfig();
+  const { data: siteConfig, isVisualConfigReady } = useEffectiveSiteConfig();
   const { pathname } = useLocation();
   /**
    * Mobile override:
@@ -222,6 +222,11 @@ const SponsorRibbon = () => {
 
   // Per-page visibility map from server config — undefined = legacy default (show everywhere)
   const ribbonVisiblePages = siteConfig?.sponsors_config?.ribbonVisiblePages;
+  // Never paint the ribbon with provisional visibility while scoped/general
+  // config is still loading; doing so caused a temporary white band above Hero.
+  if (!isVisualConfigReady) {
+    return null;
+  }
   if (ribbonVisiblePages && ribbonVisiblePages[pathname] === false) {
     return null;
   }
