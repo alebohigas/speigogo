@@ -179,6 +179,11 @@ foreach ($groupRows as $group) {
     // `elimin_salidas_cat` y agrupar por MATCH en categorías MATCH PLAY.
     $logoCols = ($isParejas ? "v.logo, c2.logo as logo2" : "logo")
               . ", {$P}jugadorid as jugadorid";
+    // EQUIPOS: usa exactamente la misma función del reporte legacy y de
+    // equipos.php. Este es el logo del equipo, no el logo del club.
+    if (!$isParejas && $isEquipos) {
+        $logoCols .= ", f_logo_jugeq({$P}jugadorid) AS teamLogo";
+    }
 
 
     /*
@@ -306,6 +311,18 @@ foreach ($groupRows as $group) {
             /* EQUIPOS: integrantes del equipo con su tee de salida individual. */
             if ($isEquipos && isset($membersByGroup[(string)$pr['grupoid']])) {
                 $player['members'] = $membersByGroup[(string)$pr['grupoid']];
+                $rawTeamLogo = trim((string)($pr['teamLogo'] ?? ''));
+                if ($rawTeamLogo !== '') {
+                    if (preg_match('#^https?://#i', $rawTeamLogo)) {
+                        $player['teamLogo'] = $rawTeamLogo;
+                    } elseif (strpos($rawTeamLogo, '../') === 0) {
+                        $player['teamLogo'] = 'https://alien2019.speitour.mx/' . substr($rawTeamLogo, 3);
+                    } elseif ($rawTeamLogo[0] === '/') {
+                        $player['teamLogo'] = 'https://alien2019.speitour.mx' . $rawTeamLogo;
+                    } else {
+                        $player['teamLogo'] = $LOGOS_BASE_URL . rawurlencode($rawTeamLogo);
+                    }
+                }
             }
         }
         /* MATCH PLAY: adjunta número de match y lado (1|2) para que el

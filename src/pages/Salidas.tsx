@@ -8,6 +8,7 @@
 import Layout from '@/components/layout/Layout';
 import PageHero from '@/components/shared/PageHero';
 import PlayerSearchInput from '@/components/shared/PlayerSearchInput';
+import EquipoLogo from '@/components/equipos/EquipoLogo';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -20,6 +21,7 @@ import { apiFetch } from '@/lib/apiClient';
 import { getSalidasDayUrl, POLL_ACTIVE } from '@/config/api';
 import { ApiError } from '@/lib/apiClient';
 import { normalizeSearchText, buildUniqueNameSuggestions } from '@/lib/searchUtils';
+import { getTorneoId } from '@/hooks/useTorneoId';
 
 import salidasHero from '@/assets/salidas-hero.jpg';
 
@@ -239,6 +241,7 @@ interface SearchResult {
 // ============= Component =============
 
 const Salidas = () => {
+  const torneoId = getTorneoId();
   /** Currently selected day index */
   const [selectedDayIdx, setSelectedDayIdx] = useState<number | null>(null);
   /** Currently selected caljgoid for detail view */
@@ -644,7 +647,14 @@ const Salidas = () => {
                                             </TableCell>
                                           )}
                                           <TableCell className="p-1 text-center align-middle">
-                                            {player.clubLogo ? (
+                                            {player.members?.length ? (
+                                              <EquipoLogo
+                                                grupoid={player.groupId || player.name}
+                                                torneoId={torneoId}
+                                                dbLogo={player.teamLogo}
+                                                className="w-auto object-contain rounded inline-block"
+                                              />
+                                            ) : player.clubLogo ? (
                                               <img src={player.clubLogo} alt="Club" className="w-auto object-contain rounded inline-block" style={{ height: '2.1375rem' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                             ) : (<span className="text-xs text-muted-foreground">—</span>)}
                                           </TableCell>
@@ -682,16 +692,16 @@ const Salidas = () => {
                                             key={`${pIdx}-m${mIdx}`}
                                             className={`bg-white hover:bg-white ${isLastMember ? '' : 'border-b-0'}`}
                                           >
-                                            <TableCell className="p-1" />
-                                            <TableCell className="font-medium text-foreground player-name-cell">
+                                            <TableCell className="p-0" />
+                                            <TableCell className="py-2 font-medium text-foreground player-name-cell">
                                               <span className="player-name-clamp">{member.name}</span>
                                             </TableCell>
                                             {showTeeColumn && (
-                                              <TableCell className="text-center align-middle">
+                                              <TableCell className="py-2 text-center align-middle">
                                                 <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
                                               </TableCell>
                                             )}
-                                            {hasScoreColumn && <TableCell className="p-1" />}
+                                            {hasScoreColumn && <TableCell className="p-0" />}
                                           </TableRow>
                                         );
                                       });
@@ -979,7 +989,14 @@ const Salidas = () => {
                                         </TableCell>
                                       )}
                                       <TableCell className="p-1 text-center align-middle">
-                                        {player.clubLogo ? (
+                                        {player.members?.length ? (
+                                          <EquipoLogo
+                                            grupoid={player.groupId || player.name}
+                                            torneoId={torneoId}
+                                            dbLogo={player.teamLogo}
+                                            className="w-auto object-contain rounded inline-block"
+                                          />
+                                        ) : player.clubLogo ? (
                                           <img src={player.clubLogo} alt="Club" className="w-auto object-contain rounded inline-block" style={{ height: '2.1375rem' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                         ) : (<span className="text-xs text-muted-foreground">—</span>)}
                                       </TableCell>
@@ -1016,16 +1033,16 @@ const Salidas = () => {
                                         key={`${group.id}-${pIdx}-m${mIdx}`}
                                         className={`bg-white hover:bg-white ${isLastMember ? '' : 'border-b-0'}`}
                                       >
-                                        <TableCell className="p-1" />
-                                        <TableCell className="font-medium text-foreground player-name-cell">
+                                        <TableCell className="p-0" />
+                                        <TableCell className="py-2 font-medium text-foreground player-name-cell">
                                           <span className="player-name-clamp">{member.name}</span>
                                         </TableCell>
                                         {showTeeColumn && (
-                                          <TableCell className="text-center align-middle">
+                                          <TableCell className="py-2 text-center align-middle">
                                             <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
                                           </TableCell>
                                         )}
-                                        {hasScoreColumn && <TableCell className="p-1" />}
+                                        {hasScoreColumn && <TableCell className="p-0" />}
                                       </TableRow>
                                     );
                                   });
