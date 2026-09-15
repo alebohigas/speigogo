@@ -11,7 +11,6 @@ import PlayerSearchInput from '@/components/shared/PlayerSearchInput';
 import EquipoLogo from '@/components/equipos/EquipoLogo';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Calendar, Clock, Loader2, Search, Users } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
