@@ -25,7 +25,7 @@ if (!$file || !preg_match('/^[a-zA-Z0-9_\-\.]+$/', $file)) {
  * Resolución del logo.
  *
  * 1) Carpetas locales del hosting (permite subir logos propios por dominio).
- * 2) Servidor legacy alien2019 (varias carpetas conocidas).
+ * 2) Servidor de imágenes alien.speigogo.com (varias carpetas conocidas).
  * Se descarta cualquier respuesta que no sea una imagen real (las 302 del
  * servidor legacy devuelven HTML y antes provocaban 404 ruidosos).
  */
