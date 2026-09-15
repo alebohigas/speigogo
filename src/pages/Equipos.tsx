@@ -7,21 +7,26 @@
 
 import Layout from '@/components/layout/Layout';
 import PageHero from '@/components/shared/PageHero';
+import PlayerSearchInput from '@/components/shared/PlayerSearchInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ChevronDown, Flag, Loader2, Users } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import jugadoresHero from '@/assets/jugadores-hero.jpg';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useCategories } from '@/hooks/usePlayersData';
 import { useEquipos } from '@/hooks/useEquiposData';
 import EquipoLogo from '@/components/equipos/EquipoLogo';
 import { getTorneoId } from '@/hooks/useTorneoId';
+import { normalizeSearchText, matchesPlayerName, buildUniqueNameSuggestions } from '@/lib/searchUtils';
 import type { CategoryDetail } from '@/data/playersData';
 
 const Equipos = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetail | null>(null);
-
+  /** Búsqueda por jugador dentro de la categoría seleccionada */
+  const [detailQuery, setDetailQuery] = useState('');
+  const normalizedDetailQuery = normalizeSearchText(detailQuery);
+  const detailSearchActive = normalizedDetailQuery.length >= 2;
 
   /** Torneo activo: los logos locales se buscan en /logos-equipos/t{id}. */
   const torneoId = getTorneoId();
@@ -30,6 +35,23 @@ const Equipos = () => {
   const { data, isLoading: loadingTeams } = useEquipos(selectedCategory?.id ?? null);
 
   const teams = data?.teams ?? [];
+
+  /** Lista de nombres únicos para autocompletar la búsqueda */
+  const playerSuggestions = useMemo(
+    () => buildUniqueNameSuggestions(teams.flatMap((t) => t.players.map((p) => p.nombre))),
+    [teams]
+  );
+
+  /** Equipos filtrados por nombre de jugador, nombre de equipo o número */
+  const filteredTeams = useMemo(() => {
+    if (!detailSearchActive) return teams;
+    return teams.filter((team) => {
+      const matchTeamName = normalizeSearchText(team.nombre).includes(normalizedDetailQuery);
+      const matchTeamNumber = normalizeSearchText(team.numero).includes(normalizedDetailQuery);
+      const matchPlayer = team.players.some((p) => matchesPlayerName(p.nombre, detailQuery));
+      return matchTeamName || matchTeamNumber || matchPlayer;
+    });
+  }, [teams, detailSearchActive, normalizedDetailQuery, detailQuery]);
   const tees = data?.tees ?? [];
   const totalJugadores = data?.category.totalJugadores ?? 0;
   const totalEquipos = data?.category.totalEquipos ?? 0;
@@ -164,6 +186,21 @@ const Equipos = () => {
                     </div>
                   </div>
 
+                  {/* ============ Buscador de jugador/equipo ============ */}
+                  <div className="w-full max-w-4xl mx-auto mb-4 space-y-2">
+                    <PlayerSearchInput
+                      value={detailQuery}
+                      onChange={setDetailQuery}
+                      suggestions={playerSuggestions}
+                      placeholder="Buscar jugador, equipo o número..."
+                      className="w-full"
+                    />
+                    {detailSearchActive && (
+                      <p className="text-sm text-muted-foreground">
+                        Mostrando {filteredTeams.length} de {teams.length} equipos
+                      </p>
+                    )}
+                  </div>
 
                   {/* ============ Leyenda (antes de la tabla) ============ */}
                   <Leyenda />
@@ -178,15 +215,17 @@ const Equipos = () => {
                       <div className="text-center">H.C.</div>
                     </div>
 
-                    {teams.length === 0 ? (
+                    {filteredTeams.length === 0 ? (
                       <Card className="border-border/50 bg-white">
                         <CardContent className="text-center text-muted-foreground py-12">
                           <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          No hay equipos registrados en esta categoría
+                          {detailSearchActive
+                            ? 'No se encontraron equipos con ese criterio'
+                            : 'No hay equipos registrados en esta categoría'}
                         </CardContent>
                       </Card>
                     ) : (
-                      teams.map((team) => (
+                      filteredTeams.map((team) => (
                         <Card
                           key={team.grupoid}
                           className="overflow-hidden border border-border/60 shadow-md rounded-2xl bg-white"
