@@ -224,7 +224,7 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
                 className={pIdx > 0 ? 'border-t border-border/30' : ''}
               >
                 {/* Main player / team row */}
-                <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
+                <div className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
                   {/* Logo / team logo */}
                   <div className="shrink-0 w-10 sm:w-14 flex justify-center">
                     {isTeam ? (
@@ -252,7 +252,7 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
                   <div className="flex-1 min-w-0">
                     <span
                       className={`block ${
-                        player.members?.length ? 'font-bold text-lg sm:text-xl' : 'text-sm sm:text-base font-medium'
+                        player.members?.length ? 'font-bold text-base sm:text-lg' : 'text-sm sm:text-base'
                       } ${isMatched ? 'text-primary font-bold' : 'text-foreground'}`}
                     >
                       {isTeam
@@ -277,7 +277,7 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
                     {player.members?.map((member, mIdx) => (
                       <div
                         key={mIdx}
-                        className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 sm:pl-[4.5rem]"
+                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 sm:pl-[4.5rem]"
                       >
                         <div className="flex-1 min-w-0 text-sm sm:text-base text-foreground">
                           {member.name}
@@ -292,7 +292,7 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
 
                 {/* Pair partner */}
                 {isPair && (
-                  <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
+                  <div className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
                     <div className="shrink-0 w-10 sm:w-14 flex justify-center">
                       {player.clubLogo2 ? (
                         <img
@@ -308,7 +308,7 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
                     </div>
                     <div className="flex-1 min-w-0">
                       <span
-                        className={`block text-sm sm:text-base font-medium ${
+                        className={`block text-sm sm:text-base ${
                           isMatched ? 'text-primary font-bold' : 'text-foreground'
                         }`}
                       >
@@ -320,21 +320,21 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
 
                 {/* VS label for match play */}
                 {showVs && (
-                  <div className="py-1.5 text-center text-sm font-semibold text-muted-foreground bg-muted/30">
+                  <div className="py-1 text-center text-sm font-semibold text-muted-foreground bg-muted/30">
                     VS
                   </div>
                 )}
 
                 {/* Divider between matches */}
                 {showDivider && (
-                  <div className="px-3 sm:px-4 py-1.5">
+                  <div className="px-3 sm:px-4 py-1">
                     <div className="border-b border-primary/20" />
                   </div>
                 )}
 
                 {/* Separator between two teams in the same departure group */}
                 {isTeam && nextIsTeam && (
-                  <div className="py-4 sm:py-5 px-3 sm:px-4">
+                  <div className="py-2 sm:py-3 px-3 sm:px-4">
                     <div className="border-b border-primary/20" />
                   </div>
                 )}
