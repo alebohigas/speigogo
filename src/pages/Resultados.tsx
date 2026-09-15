@@ -788,7 +788,8 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                         </>
                       )}
                     </div>
-                    <div className="overflow-x-auto bg-white hidden md:block">
+                    )}
+                    <div className={`overflow-x-auto bg-white ${categoryDetail?.isEquipos ? 'hidden md:block' : ''}`}>
                       <Table className="bg-white tournament-table">
                         <TableHeader>
                           <TableRow className="bg-primary hover:bg-primary">
