@@ -160,12 +160,13 @@ const Jugadores = () => {
   const totalPlayers = categories.reduce((sum, cat) => sum + cat.playerCount, 0);
 
   /** Navigate back to category grid */
-  const handleBack = () => setSelectedCategory(null);
+  const handleBack = () => { setSelectedCategory(null); setDetailQuery(''); };
 
   /** Navigate to a category from a search result */
   const handleResultClick = (category: CategoryDetail) => {
     setSelectedCategory(category);
     setSearchQuery('');
+    setDetailQuery('');
   };
 
   /** Clear search and return to normal grid view */
@@ -299,7 +300,7 @@ const Jugadores = () => {
                           <p className="text-2xl font-bold text-primary my-2">{category.playerCount}</p>
                           <Button
                             size="sm"
-                            onClick={() => setSelectedCategory(category)}
+                            onClick={() => { setSelectedCategory(category); setDetailQuery(''); }}
                             className="w-full"
                           >
                             Ver
