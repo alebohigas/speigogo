@@ -44,9 +44,10 @@ if ($rt) { $hasLogoEq = $rt->num_rows > 0; $rt->free(); }
 $logoEqExpr = $hasLogoEq ? "f_logo_jugeq(j.id)" : "NULL";
 
 /** ---------- Integrantes con sus scores ---------- */
-$sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus, j.club AS equipo,
+$sqlEq = "SELECT j.id AS jugadorid, j.grupoid, j.numjugador, j.estatus,
                  CONCAT(j.nombre, ' ', j.apellido) AS jugador,
                  b.abr AS clubabr, b.logo AS clublogo,
+                 e.nombre AS equiponombre, e.logo AS equipologo,
                  $logoEqExpr AS logoeq,
                  $totalExprEq AS total_main";
 foreach ($diasEq as $i => $fechaEq) {
@@ -54,6 +55,7 @@ foreach ($diasEq as $i => $fechaEq) {
 }
 $sqlEq .= " FROM jugadores j
             LEFT JOIN clubs b ON (j.clubid = b.id)
+            LEFT JOIN equipos e ON (j.grupoid = e.equipo AND j.torneoid = e.torneoid)
             WHERE j.categoriaid = $cid AND j.grupoid <> ''
             ORDER BY j.grupoid, j.nombre, j.apellido";
 $rowsEq = query_all($conn, $sqlEq);
