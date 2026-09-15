@@ -648,7 +648,7 @@ const Resultados = ({ embedded = false, torneoIdOverride }: ResultadosProps = {}
                   <Card className="border-border/50 bg-white max-w-5xl mx-auto">
                   <CardContent className="p-0 bg-white">
                     {categoryDetail?.isEquipos && (
-                    <div className="p-4 space-y-4 md:hidden">
+                    <div className="p-4 space-y-8 md:hidden">
                       {filteredPlayers.length === 0 ? (
                         <div className="text-center py-6 text-muted-foreground">Sin resultados aún.</div>
                       ) : (
