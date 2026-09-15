@@ -32,7 +32,7 @@ interface ProtectedRouteProps {
  * por la dirección del torneo.
  */
 const ProtectedRoute = ({ pageId, children }: ProtectedRouteProps) => {
-  const { isPageVisible } = usePageVisibility();
+  const { isPageVisible, isAdmin } = usePageVisibility();
   const { data, isLoading, isError } = useSiteConfig();
 
   // Configuración del alcance aún en camino: no redirigir todavía.
@@ -40,9 +40,8 @@ const ProtectedRoute = ({ pageId, children }: ProtectedRouteProps) => {
 
   // Cuando el servidor sí respondió, su visibilidad manda sobre el estado local.
   const serverVisibility = data?.visibility?.[pageId];
-  const visible = typeof serverVisibility === 'boolean'
-    ? serverVisibility || isPageVisible(pageId)
-    : isPageVisible(pageId);
+  const visible = isAdmin
+    || (typeof serverVisibility === 'boolean' ? serverVisibility : isPageVisible(pageId));
 
   if (!visible) {
     // Redirect to 404 for hidden pages
