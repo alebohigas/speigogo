@@ -66,7 +66,7 @@ if ($campoid > 0) {
             FROM jugadores AS a
             LEFT JOIN clubs AS b ON (a.clubid = b.id)
             JOIN salidas s ON (a.teesalidaid = s.id)
-            WHERE a.categoriaid = '$cid'
+            WHERE a.categoriaid = '$cid' AND a.torneoid = '$tid'
             ORDER BY a.grupoid, a.nombre, a.apellido";
     $res = $conn->query($sql);
     if (!$res) {
