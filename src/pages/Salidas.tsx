@@ -216,9 +216,156 @@ const countGroupRowsWithVs = (
 
 
 
+/**
+ * Vista móvil de un grupo de salida.
+ * Cada salida se muestra en un recuadro/card con:
+ *  - Hoyo en la primera línea
+ *  - Hora de salida en la segunda línea
+ *  - Jugadores/equipos con su tee de salida
+ */
+interface MobileGroupCardProps {
+  group: SalidasGroup;
+  detail: SalidasDetailResponse;
+  torneoId?: string;
+}
+
+const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
+  const matchPlay = !!detail.isMatchPlay || isMatchPlaySystem(detail.system);
+  const players = sortByMatch(group.players ?? [], matchPlay);
+  const vsIdx = vsAfterIndexes(players, matchPlay);
+  const vsLabelIdx = vsLabelAfterIndexes(players, matchPlay);
+  const hasScore = !matchPlay;
+
+  return (
+    <Card className="border-border/50 bg-white overflow-hidden">
+      <CardContent className="p-0">
+        {/* Header: Hoyo + Hora + Tee */}
+        <div className="bg-primary text-primary-foreground px-4 py-2 text-center">
+          <div className="font-bold text-lg leading-tight">Hoyo {group.tee}</div>
+          <div className="text-sm opacity-90 mt-0.5">{group.time}</div>
+          <div className="text-xs opacity-80 mt-0.5">Tee {detail.tee}</div>
+        </div>
+
+        {/* Players list */}
+        <div className="divide-y divide-border/30">
+          {players.map((player, pIdx) => {
+            const isPair = !!player.partner;
+            const showVs = vsLabelIdx.has(pIdx);
+            const showDivider = vsIdx.has(pIdx);
+            const isTeam = (player.members?.length ?? 0) > 0;
+
+            return (
+              <div key={`${group.id}-${pIdx}`}>
+                {/* Main player / team row */}
+                <div className="px-3 py-1.5 flex items-center gap-2 bg-white">
+                  {/* Logo / team logo */}
+                  <div className="shrink-0 w-10 flex justify-center">
+                    {isTeam ? (
+                      <EquipoLogo
+                        grupoid={player.groupId || player.name}
+                        torneoId={torneoId}
+                        dbLogo={player.teamLogo}
+                        className="w-auto object-contain rounded"
+                        style={{ height: '1.8rem' }}
+                      />
+                    ) : player.clubLogo ? (
+                      <img
+                        src={player.clubLogo}
+                        alt="Club"
+                        className="w-auto object-contain rounded"
+                        style={{ height: '1.8rem' }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </div>
+
+                  {/* Name */}
+                  <div className="flex-1 min-w-0">
+                    <span className={`block text-sm text-foreground ${player.members?.length ? 'font-bold text-base' : 'font-medium'}`}>
+                      {isTeam
+                        ? (player.groupId || player.name)
+                        : matchPlay && player.position != null && player.position !== ''
+                          ? `${player.position} ${player.name}`
+                          : player.name}
+                    </span>
+                  </div>
+
+                  {/* Score */}
+                  {hasScore && (
+                    <div className="shrink-0 text-right min-w-[2.5rem]">
+                      <span className="font-extrabold text-primary text-base">{player.score || '—'}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Team members */}
+                {isTeam && (
+                  <div className="bg-muted/20 px-3 py-1 space-y-0.5">
+                    {player.members?.map((member, mIdx) => (
+                      <div key={mIdx} className="flex items-center gap-2 py-0.5">
+                        <div className="shrink-0 w-10" />
+                        <div className="flex-1 min-w-0 text-sm text-foreground">
+                          {member.name}
+                        </div>
+                        <div className="shrink-0">
+                          <TeeDot tee={member.tee} bgColor={member.bgColor} color={member.color} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Pair partner */}
+                {isPair && (
+                  <div className="px-3 py-1 flex items-center gap-2 bg-white border-t border-border/20">
+                    <div className="shrink-0 w-10 flex justify-center">
+                      {player.clubLogo2 ? (
+                        <img
+                          src={player.clubLogo2}
+                          alt="Club"
+                          className="w-auto object-contain rounded"
+                          style={{ height: '1.8rem' }}
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="block font-medium text-sm text-foreground">{player.partner}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* VS label for match play */}
+                {showVs && (
+                  <div className="py-1 text-center text-sm font-semibold text-muted-foreground bg-muted/30">
+                    VS
+                  </div>
+                )}
+
+                {/* Divider between matches */}
+                {showDivider && (
+                  <div className="px-3 py-1">
+                    <div className="border-b border-primary/20" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+
 // ============= Search Result Type =============
 
 /** Represents a player search match with full group context */
+
 interface SearchResult {
   /** Day display label */
   dayLabel: string;
