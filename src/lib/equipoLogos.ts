@@ -37,10 +37,15 @@ export const buildEquipoLogoCandidates = (grupoid: string, torneoId?: string): s
   const push = (b: string) => {
     if (b && !bases.includes(b)) bases.push(b);
   };
-  push(num);
-  push(`${num}_1`);
-  push(id);
-  push(`${id}_1`);
+  // Sólo por número de equipo; si el identificador no trae número se usa
+  // el identificador tal cual. Menos combinaciones = menos peticiones.
+  if (num) {
+    push(num);
+    push(`${num}_1`);
+  } else {
+    push(id);
+    push(`${id}_1`);
+  }
 
   const dirs = torneoId
     ? [`${EQUIPO_LOGOS_DIR}/t${torneoId}`, EQUIPO_LOGOS_DIR]
