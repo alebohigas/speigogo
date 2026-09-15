@@ -252,6 +252,8 @@ const Salidas = () => {
    * Derived from searchQuery length (no separate boolean to avoid stale state).
    */
   const normalizedQuery = normalizeSearchText(searchQuery);
+  /** Búsqueda por nombre dentro de la categoría/día seleccionado (vista detalle) */
+  const [detailQuery, setDetailQuery] = useState('');
   const searchActive = normalizedQuery.length >= 2;
 
   // Fetch master data: days + categories
@@ -465,6 +467,31 @@ const Salidas = () => {
   const handleClearSearch = () => {
     setSearchQuery('');
   };
+
+  /** Filtro por nombre aplicado a los grupos del detalle (jugador, pareja o integrante) */
+  const detailNorm = normalizeSearchText(detailQuery);
+  const detailSearchActive = detailNorm.length >= 2;
+  const detailSuggestions = useMemo(
+    () =>
+      buildUniqueNameSuggestions(
+        (detail?.groups ?? []).flatMap((g) =>
+          (g.players ?? []).flatMap((p) => [p.name, p.partner, ...(p.members ?? []).map((m) => m.name)])
+        )
+      ),
+    [detail]
+  );
+  const filteredGroups = useMemo(() => {
+    const gs = detail?.groups ?? [];
+    if (!detailSearchActive) return gs;
+    return gs.filter((g) =>
+      (g.players ?? []).some(
+        (p) =>
+          normalizeSearchText(p.name).includes(detailNorm) ||
+          normalizeSearchText(p.partner).includes(detailNorm) ||
+          (p.members ?? []).some((m) => normalizeSearchText(m.name).includes(detailNorm))
+      )
+    );
+  }, [detail, detailSearchActive, detailNorm]);
 
   return (
     <Layout>
