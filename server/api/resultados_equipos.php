@@ -16,9 +16,14 @@
  * $LOGOS_BASE_URL.
  */
 
+require_once '_equipos_logos.php';
+
 $sistemaEq = strtoupper(trim($catInfo['sistema'] ?? ''));
 $isStrokeEq = ($sistemaEq === 'STROKE PLAY');
 $grossEq = ($gross == '1') ? '1' : '0';
+
+/** Logos de la tabla `equipos` del torneo (id / nombre / número). */
+$eqLogoIndex = equipos_logo_index($conn, $torneoid ?? '');
 
 /** ---------- Fechas de juego ---------- */
 $diasEq = [];
@@ -188,7 +193,10 @@ foreach ($teamsEq as $g => $t) {
          *  no el identificador de grupo ni el club del integrante. */
         'name'         => $t['teamName'] ?: $g,
         'club'         => $t['club'],
-        'clubLogo'     => $t['logo'] ? $LOGOS_BASE_URL . $t['logo'] : '',
+        /* Logo del EQUIPO: primero la tabla `equipos` del torneo, después el
+         * valor legacy (f_logo_jugeq / e.logo / logo del club). */
+        'clubLogo'     => equipos_logo_find($eqLogoIndex, $g, $t['teamName'])
+                          ?: equipos_logo_url($t['logo'] ?? ''),
         'members'      => array_map(fn($m) => $m['nombre'], $t['members']),
         'memberIds'    => array_map(fn($m) => $m['id'], $t['members']),
         'total'        => $total ?? 0,

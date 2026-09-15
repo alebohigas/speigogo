@@ -154,6 +154,10 @@ if (!$isParejas && !$isMatchPlay) {
 }
 
 
+/** Logos de la tabla `equipos` de este torneo (id / nombre / número). */
+require_once '_equipos_logos.php';
+$eqLogoIndex = $isEquipos ? equipos_logo_index($conn, $calInfo['torneoid'] ?? '') : [];
+
 foreach ($groupRows as $group) {
     $salid = esc($conn, $group['id']);
 
@@ -311,18 +315,23 @@ foreach ($groupRows as $group) {
             /* EQUIPOS: integrantes del equipo con su tee de salida individual. */
             if ($isEquipos && isset($membersByGroup[(string)$pr['grupoid']])) {
                 $player['members'] = $membersByGroup[(string)$pr['grupoid']];
-                $rawTeamLogo = trim((string)($pr['teamLogo'] ?? ''));
-                if ($rawTeamLogo !== '') {
-                    if (preg_match('#^https?://#i', $rawTeamLogo)) {
-                        $player['teamLogo'] = $rawTeamLogo;
-                    } elseif (strpos($rawTeamLogo, '../') === 0) {
-                        $player['teamLogo'] = 'https://alien2019.speitour.mx/' . substr($rawTeamLogo, 3);
-                    } elseif ($rawTeamLogo[0] === '/') {
-                        $player['teamLogo'] = 'https://alien2019.speitour.mx' . $rawTeamLogo;
-                    } else {
-                        $player['teamLogo'] = $LOGOS_BASE_URL . rawurlencode($rawTeamLogo);
+                /* Logo del EQUIPO: primero la tabla `equipos` del torneo. */
+                $teamLogo = equipos_logo_find($eqLogoIndex, (string)$pr['grupoid']);
+                if ($teamLogo === '') {
+                    $rawTeamLogo = trim((string)($pr['teamLogo'] ?? ''));
+                    if ($rawTeamLogo !== '') {
+                        if (preg_match('#^https?://#i', $rawTeamLogo)) {
+                            $teamLogo = $rawTeamLogo;
+                        } elseif (strpos($rawTeamLogo, '../') === 0) {
+                            $teamLogo = 'https://alien2019.speitour.mx/' . substr($rawTeamLogo, 3);
+                        } elseif ($rawTeamLogo[0] === '/') {
+                            $teamLogo = 'https://alien2019.speitour.mx' . $rawTeamLogo;
+                        } else {
+                            $teamLogo = equipos_logo_url($rawTeamLogo);
+                        }
                     }
                 }
+                if ($teamLogo !== '') $player['teamLogo'] = $teamLogo;
             }
         }
         /* MATCH PLAY: adjunta número de match y lado (1|2) para que el
