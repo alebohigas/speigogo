@@ -361,6 +361,20 @@ const Jugadores = () => {
                 </div>
               </div>
 
+              {/* Buscador por nombre dentro de la categoría */}
+              <PlayerSearchInput
+                className="max-w-md mx-auto mb-6"
+                value={detailQuery}
+                onChange={setDetailQuery}
+                suggestions={detailSuggestions}
+                placeholder="Buscar jugador en esta categoría..."
+              />
+              {detailSearchActive && (
+                <p className="text-sm text-muted-foreground text-center mb-4">
+                  {visiblePlayers.length} resultado{visiblePlayers.length !== 1 ? 's' : ''} para "{detailQuery}"
+                </p>
+              )}
+
               {/* Players Table - full width, centered */}
               <Card className="border-border/50 bg-white w-full max-w-4xl mx-auto">
                 <div className="overflow-x-auto bg-white">
@@ -371,13 +385,13 @@ const Jugadores = () => {
                   ) : isParejas ? (
                     /* ============ Vista de parejas: una tabla por grupo ============ */
                     <div className="p-4 space-y-6 bg-white">
-                      {groups.length === 0 ? (
+                      {visibleGroups.length === 0 ? (
                         <div className="text-center text-muted-foreground py-8">
                           <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           No hay parejas registradas en esta categoría
                         </div>
                       ) : (
-                        groups.map((g) => (
+                        visibleGroups.map((g) => (
                           <div key={g.grupoid} className="border border-border/50 rounded-lg overflow-hidden">
                             <div className="bg-primary/10 px-4 py-2 flex items-center justify-between">
                               <span className="font-bold text-foreground">Grupo {g.grupoid}</span>
@@ -474,8 +488,8 @@ const Jugadores = () => {
                         </TableRow>
                       </TableHeader>
                        <TableBody>
-                         {players.length > 0 ? (
-                           players.map((player) => (
+                          {visiblePlayers.length > 0 ? (
+                            visiblePlayers.map((player) => (
                              <TableRow key={player.id} className="bg-white hover:bg-white">
                                {/* Club Logo column */}
                                <TableCell className="p-1 text-center align-middle">
