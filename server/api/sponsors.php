@@ -72,7 +72,10 @@ if ($tableCheck && $tableCheck->num_rows > 0) {
             $file = preg_replace('#^(\.\./)+#', '', $file);     // remove repeated "../"
             $file = ltrim($file, './\\/');                       // remove leading dots/slashes
             $file = preg_replace('#^logos_patrocinadores/#', '', $file); // avoid double folder
-            $logoUrl = $SPONSOR_LOGO_BASE . $file;
+            // Se sirve por el proxy propio: busca el archivo en las carpetas
+            // locales del servidor (incluida /alien/logos/) y, si no está,
+            // lo trae de los servidores de imágenes conocidos.
+            $logoUrl = '/api/sponsor_logo.php?file=' . rawurlencode($file);
         }
 
         return [
