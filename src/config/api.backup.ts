@@ -6,11 +6,11 @@
 
 // ============= Base URL Configuration =============
 // Base URL for the webservice - change this to point to your server
-export const API_BASE_URL = 'https://alien2019.speitour.mx/app';
+export const API_BASE_URL = 'https://alien.speigogo.com/app';
 
 // ============= Logos Base URL =============
 // Base URL for club logo images
-export const LOGOS_BASE_URL = 'https://alien2019.speitour.mx/logos';
+export const LOGOS_BASE_URL = 'https://alien.speigogo.com/logos';
 
 // ============= Endpoint Builders =============
 

@@ -50,8 +50,8 @@ if ($imageData === null) {
         // Servidor de imágenes actual (logos de equipo).
         'https://alien.speigogo.com/jugadores/logos/',
         'https://alien.speigogo.com/jugadores/',
-        'https://alien2019.speitour.mx/logos/',
-        'https://alien2019.speitour.mx/logos_equipos/',
+        'https://alien.speigogo.com/logos/',
+        'https://alien.speigogo.com/logos_equipos/',
     ];
     $ctx = stream_context_create(['http' => ['timeout' => 8, 'follow_location' => 0]]);
     foreach ($remoteBases as $base) {
