@@ -239,11 +239,10 @@ const MobileGroupCard = ({ group, detail, torneoId }: MobileGroupCardProps) => {
   return (
     <Card className="border-border/50 bg-white overflow-hidden">
       <CardContent className="p-0">
-        {/* Header: Hoyo + Hora + Tee */}
-        <div className="bg-primary text-primary-foreground px-4 py-2 text-center">
+        {/* Header: Hora (izq) + Hoyo (der) — sin tee */}
+        <div className="bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between">
+          <div className="text-sm font-semibold opacity-95">{group.time}</div>
           <div className="font-bold text-lg leading-tight">Hoyo {group.tee}</div>
-          <div className="text-sm opacity-90 mt-0.5">{group.time}</div>
-          <div className="text-xs opacity-80 mt-0.5">Tee {detail.tee}</div>
         </div>
 
         {/* Players list */}
@@ -1022,7 +1021,7 @@ const Salidas = () => {
                     <p className="text-muted-foreground text-lg">{detail.course}</p>
                     <p className="text-muted-foreground text-lg">{selectedDay?.dateFormatted}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {detail.system} · Tee: {detail.tee} · {(detail.groups ?? []).length} grupos
+                      {detail.system} · {(detail.groups ?? []).length} grupos
                     </p>
                   </div>
 
@@ -1046,7 +1045,7 @@ const Salidas = () => {
                       <p className="text-muted-foreground text-lg">No se encontró ningún jugador con "{detailQuery}" en esta categoría</p>
                     </div>
                   ) : (<>
-                    <div className="block md:hidden space-y-4">
+                    <div className="block md:hidden space-y-8">
                       {filteredGroups.map((group) => (
                         <MobileGroupCard key={group.id} group={group} detail={detail} torneoId={torneoId} />
                       ))}
