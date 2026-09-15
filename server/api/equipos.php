@@ -48,6 +48,12 @@ $totalEquipos   = $totRow ? (int)$totRow['equipos'] : 0;
 /** ---------- Jugadores por equipo ---------- */
 $teams = [];
 if ($campoid > 0) {
+    /*
+     * Logo del equipo: exactamente como el reporte legacy lista_jug3.php,
+     * f_logo_jugeq(a.id) hace JOIN equipos ON (jugadores.grupoid = equipos.equipo)
+     * y devuelve la ruta '../jugadores/<logo>' que el reporte usa tal cual
+     * como src de la imagen.
+     */
     $sql = "SELECT a.id, a.grupoid, a.numjugador,
                    CONCAT(a.nombre, ' ', a.apellido) AS jugador,
                    f_logo_jugeq(a.id) AS logo,
