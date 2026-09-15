@@ -120,7 +120,7 @@ foreach ($teamsEq as $g => $t) {
         'grupoid'      => $g,
         'teamName'     => $t['teamName'],
         /** En Resultados debe mostrarse ÚNICAMENTE el nombre del equipo,
-         *  no el identificador de grupo ni el club. */
+         *  no el identificador de grupo ni el club del integrante. */
         'name'         => $t['teamName'] ?: $g,
         'club'         => $t['club'],
         'clubLogo'     => $t['logo'] ? $LOGOS_BASE_URL . $t['logo'] : '',
