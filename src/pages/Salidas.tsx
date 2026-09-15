@@ -331,6 +331,13 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
                     <div className="border-b border-primary/20" />
                   </div>
                 )}
+
+                {/* Separator between two teams in the same departure group */}
+                {isTeam && nextIsTeam && (
+                  <div className="py-3 sm:py-4 px-3 sm:px-4">
+                    <div className="border-b-2 border-dashed border-primary/30" />
+                  </div>
+                )}
               </div>
             );
           })}
