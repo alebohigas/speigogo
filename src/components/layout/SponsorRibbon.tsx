@@ -167,6 +167,8 @@ const SponsorRibbon = () => {
    * appear on some browsers.
    */
   const [brokenIds, setBrokenIds] = useState<Set<string>>(() => new Set());
+  /** Sponsors whose image has completed successfully during this page load. */
+  const [readyIds, setReadyIds] = useState<Set<string>>(() => new Set());
 
   /** Purge any legacy persisted broken-ID cache from previous versions. */
   useEffect(() => {
@@ -181,6 +183,15 @@ const SponsorRibbon = () => {
       if (!isBroken && !prev.has(id)) return prev;
       const next = new Set(prev);
       if (isBroken) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+    setReadyIds((prev) => {
+      const isReady = status === 'ok';
+      if (isReady && prev.has(id)) return prev;
+      if (!isReady && !prev.has(id)) return prev;
+      const next = new Set(prev);
+      if (isReady) next.add(id);
       else next.delete(id);
       return next;
     });
@@ -240,9 +251,11 @@ const SponsorRibbon = () => {
   const ribbonStickyMobilePages = siteConfig?.sponsors_config?.ribbonStickyMobilePages;
   const isStickyMobile = isMobile && ribbonStickyMobilePages?.[pathname] === true;
 
-  // No need for separate probes anymore: every sponsor with a URL is in
-  // `orderedSponsors` (broken ones drop out once their <img> errors).
-  const probeSponsors: typeof sponsors = [];
+  // Load logos without occupying layout space. The visible white ribbon is
+  // mounted only after at least one image succeeds, preventing a temporary
+  // empty band when every configured image is slow or broken.
+  const hasReadySponsor = orderedSponsors.some((sponsor) => readyIds.has(String(sponsor.id)));
+  const probeSponsors = hasReadySponsor ? [] : orderedSponsors;
 
   /**
    * On-screen logo density.
@@ -373,6 +386,21 @@ const SponsorRibbon = () => {
 
   if (orderedSponsors.length === 0 && probeSponsors.length === 0) return null;
 
+  if (!hasReadySponsor) {
+    return (
+      <div aria-hidden="true" className="fixed h-0 w-0 overflow-hidden pointer-events-none">
+        {probeSponsors.map((sponsor) => (
+          <SponsorLogoImage
+            key={`probe-${sponsor.id}`}
+            url={sponsor.logoUrl}
+            alt=""
+            onStatusChange={(status) => handleStatus(String(sponsor.id), status)}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`bg-white border-y border-border py-3 md:py-4 overflow-hidden ${
@@ -410,17 +438,6 @@ const SponsorRibbon = () => {
                     className="h-[56px] md:h-[72px] w-auto max-w-none object-contain transition-all duration-300"
                   />
                 )}
-              </div>
-            ))}
-            {/* Hidden probes: detect broken logos for sponsors not yet rendered
-                so they can be filtered out before showing in the visible slice. */}
-            {probeSponsors.map((sponsor) => (
-              <div key={`probe-${sponsor.id}`} aria-hidden="true" className="hidden">
-                <SponsorLogoImage
-                  url={sponsor.logoUrl}
-                  alt={sponsor.name}
-                  onStatusChange={(s) => handleStatus(String(sponsor.id), s)}
-                />
               </div>
             ))}
           </div>
