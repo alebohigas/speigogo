@@ -219,7 +219,10 @@ const SalidaGroupCard = ({ group, detail, torneoId, matchedPlayerIdx }: SalidaGr
             const isMatched = pIdx === matchedPlayerIdx;
 
             return (
-              <div key={`${group.id}-${pIdx}`}>
+              <div
+                key={`${group.id}-${pIdx}`}
+                className={pIdx > 0 ? 'border-t border-border/30' : ''}
+              >
                 {/* Main player / team row */}
                 <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white ${isMatched ? 'bg-primary/5' : ''}`}>
                   {/* Logo / team logo */}
