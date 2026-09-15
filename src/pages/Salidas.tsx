@@ -1045,8 +1045,13 @@ const Salidas = () => {
                       <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                       <p className="text-muted-foreground text-lg">No se encontró ningún jugador con "{detailQuery}" en esta categoría</p>
                     </div>
-                  ) : (
-                    <Card className="border-border/50 bg-white max-w-5xl mx-auto">
+                  ) : (<>
+                    <div className="block md:hidden space-y-4">
+                      {filteredGroups.map((group) => (
+                        <MobileGroupCard key={group.id} group={group} detail={detail} torneoId={torneoId} />
+                      ))}
+                    </div>
+                    <Card className="border-border/50 bg-white max-w-5xl mx-auto hidden md:block">
                       <CardContent className="p-0 bg-white">
                         <div className="overflow-x-auto bg-white">
                           <Table className="bg-white tournament-table">
