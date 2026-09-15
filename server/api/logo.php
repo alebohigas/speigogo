@@ -47,11 +47,10 @@ foreach ($localDirs as $dir) {
 
 if ($imageData === null) {
     $remoteBases = [
-        // Servidor de imágenes actual (logos de equipo).
+        // Servidor de imágenes actual.
         'https://alien.speigogo.com/jugadores/logos/',
         'https://alien.speigogo.com/jugadores/',
         'https://alien.speigogo.com/logos/',
-        'https://alien.speigogo.com/logos_equipos/',
     ];
     $ctx = stream_context_create(['http' => ['timeout' => 8, 'follow_location' => 0]]);
     foreach ($remoteBases as $base) {
